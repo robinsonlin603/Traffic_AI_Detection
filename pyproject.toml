@@ -5,19 +5,35 @@ build-backend = "hatchling.build"
 [project]
 name = "motorcycle-dashcam-ai"
 version = "0.1.0"
-description = "Offline motorcycle dashcam analysis"
+description = "Offline motorcycle dashcam vehicle detection and tracking pipeline"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+  "numpy>=2.0,<3",
+  "pydantic>=2.9,<3",
+  "pydantic-settings>=2.5,<3",
+  "PyYAML>=6.0,<7",
+  "structlog>=24.4,<26",
+  "typer>=0.15,<1",
+]
 
 [project.optional-dependencies]
+cv = [
+  "opencv-python>=4.10,<5",
+  "supervision>=0.25,<1",
+  "ultralytics>=8.3,<9",
+]
 dev = [
   "hatchling>=1.26",
+  "hypothesis>=6.115,<7",
   "mypy>=1.13,<2",
   "pytest>=8.3,<9",
   "pytest-cov>=6,<7",
   "ruff>=0.8,<1",
 ]
+
+[project.scripts]
+dashcam-ai = "dashcam_ai.cli:app"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/dashcam_ai"]
@@ -25,6 +41,7 @@ packages = ["src/dashcam_ai"]
 [tool.pytest.ini_options]
 addopts = "-q"
 testpaths = ["tests"]
+markers = ["cv: requires optional computer-vision dependencies"]
 
 [tool.ruff]
 line-length = 100
@@ -37,3 +54,4 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 python_version = "3.12"
 strict = true
 packages = ["dashcam_ai"]
+

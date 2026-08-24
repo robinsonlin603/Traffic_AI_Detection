@@ -1,0 +1,15 @@
+detection:
+  model: yolo26m.pt
+  confidence: 0.35
+  imgsz: 1280
+  device: mps
+  classes: [car, motorcycle, bus, truck, person, bicycle]
+tracking:
+  tracker: botsort.yaml
+  minimum_track_length: 2
+output:
+  save_video: true
+  save_frames: true
+  codec: mp4v
+logging:
+  level: INFO
