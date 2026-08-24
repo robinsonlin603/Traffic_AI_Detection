@@ -1,0 +1,17 @@
+__pycache__/
+.DS_Store
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.venv/
+dist/
+*.egg-info/
+.env
+output/*
+!output/.gitkeep
+samples/*
+!samples/.gitkeep
+*.pt
+
