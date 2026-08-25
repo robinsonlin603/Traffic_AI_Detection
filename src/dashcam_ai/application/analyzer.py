@@ -38,12 +38,16 @@ class Analyzer:
         save_video: bool = True,
         save_frames: bool = True,
         codec: str = "mp4v",
+        progress_interval: int = 100,
         reader_factory: Callable[[Path], Any] = OpenCVVideoReader,
     ) -> None:
+        if progress_interval <= 0:
+            raise ValueError("progress_interval must be positive")
         self.perception = perception
         self.save_video = save_video
         self.save_frames = save_frames
         self.codec = codec
+        self.progress_interval = progress_interval
         self.reader_factory = reader_factory
 
     def analyze(self, source: Path, output_directory: Path) -> AnalysisSummary:
@@ -90,6 +94,30 @@ class Analyzer:
                     if writer is not None:
                         writer.write(annotator.annotate(video_frame.image, tracked))
                     frames_processed += 1
+                    total_frames = reader.metadata.frame_count
+                    if frames_processed % self.progress_interval == 0 or (
+                        total_frames > 0 and frames_processed == total_frames
+                    ):
+                        elapsed = time.monotonic() - started
+                        processing_fps = frames_processed / elapsed if elapsed else 0.0
+                        remaining_frames = max(total_frames - frames_processed, 0)
+                        logger.info(
+                            "video_progress",
+                            frames_processed=frames_processed,
+                            total_frames=total_frames if total_frames > 0 else None,
+                            progress_percent=(
+                                round(frames_processed / total_frames * 100, 2)
+                                if total_frames > 0
+                                else None
+                            ),
+                            elapsed_seconds=round(elapsed, 3),
+                            processing_fps=round(processing_fps, 3),
+                            eta_seconds=(
+                                round(remaining_frames / processing_fps, 3)
+                                if total_frames > 0 and processing_fps > 0
+                                else None
+                            ),
+                        )
             finally:
                 if writer is not None:
                     writer.close()

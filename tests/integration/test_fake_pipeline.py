@@ -5,6 +5,8 @@ from pathlib import Path
 from types import TracebackType
 from typing import Any
 
+import pytest
+
 from dashcam_ai.application.adapters import DetectorTrackerBackend
 from dashcam_ai.application.analyzer import Analyzer
 from dashcam_ai.detection.fake import FakeDetector
@@ -69,3 +71,40 @@ def test_fake_pipeline_writes_normalized_artifacts(tmp_path: Path) -> None:
     assert json.loads((output / "events.json").read_text()) == []
     assert len((output / "frames.jsonl").read_text().splitlines()) == 2
 
+
+def test_fake_pipeline_reports_progress(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    events: list[tuple[str, dict[str, object]]] = []
+
+    class FakeLogger:
+        def info(self, event: str, **fields: object) -> None:
+            events.append((event, fields))
+
+    monkeypatch.setattr("dashcam_ai.application.analyzer.get_logger", FakeLogger)
+    backend = DetectorTrackerBackend(
+        FakeDetector([[car(100)], [car(110)]]), CentroidTracker(maximum_distance=50)
+    )
+    analyzer = Analyzer(
+        backend,
+        save_video=False,
+        save_frames=False,
+        progress_interval=1,
+        reader_factory=FakeReader,
+    )
+
+    analyzer.analyze(Path("synthetic.mp4"), tmp_path / "progress")
+
+    progress = [fields for event, fields in events if event == "video_progress"]
+    assert [item["frames_processed"] for item in progress] == [1, 2]
+    assert [item["total_frames"] for item in progress] == [2, 2]
+    assert [item["progress_percent"] for item in progress] == [50.0, 100.0]
+    assert all(float(item["processing_fps"]) > 0 for item in progress)
+    assert float(progress[-1]["eta_seconds"]) == 0.0
+
+
+def test_analyzer_rejects_non_positive_progress_interval() -> None:
+    backend = DetectorTrackerBackend(FakeDetector([]), CentroidTracker())
+
+    with pytest.raises(ValueError, match="progress_interval must be positive"):
+        Analyzer(backend, progress_interval=0)
