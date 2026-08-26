@@ -7,6 +7,38 @@ detection:
 tracking:
   tracker: botsort.yaml
   minimum_track_length: 2
+lane_geometry:
+  enabled: true
+  ego_lane_polygon:
+    - {x: 0.44, y: 0.45}
+    - {x: 0.56, y: 0.45}
+    - {x: 0.90, y: 1.00}
+    - {x: 0.10, y: 1.00}
+  confidence: 1.0
+lane_membership:
+  boundary_margin_pixels: 12.0
+ego_motion:
+  max_features: 500
+  feature_quality_level: 0.01
+  feature_min_distance: 8.0
+  optical_flow_window_size: 21
+  optical_flow_max_level: 3
+  ransac_reprojection_threshold: 3.0
+  minimum_tracked_features: 12
+  minimum_inliers: 8
+  minimum_inlier_ratio: 0.5
+  maximum_mean_reprojection_error: 2.5
+  mask_padding_pixels: 8
+temporal_lane:
+  smoothing_window_frames: 3
+  approaching_distance_pixels: 40.0
+  entered_distance_pixels: 20.0
+  debounce_frames: 2
+  minimum_confirmation_frames: 3
+  minimum_confirmation_duration_seconds: 0.1
+  maximum_missing_frames: 2
+  candidate_timeout_seconds: 2.0
+  history_size: 30
 output:
   save_video: true
   save_frames: true
