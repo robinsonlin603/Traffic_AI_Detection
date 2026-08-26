@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml  # type: ignore[import-untyped]
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from dashcam_ai.domain.lane import NormalizedPoint2D
 
@@ -88,6 +88,45 @@ class TemporalLaneConfig(BaseModel):
     history_size: int = Field(default=30, gt=0)
 
 
+class ForwardCorridorConfig(BaseModel):
+    """normalized 前方互動區域。"""
+
+    polygon: list[NormalizedPoint2D] = Field(
+        default_factory=lambda: [
+            NormalizedPoint2D(x=0.43, y=0.55),
+            NormalizedPoint2D(x=0.57, y=0.55),
+            NormalizedPoint2D(x=0.78, y=1.00),
+            NormalizedPoint2D(x=0.22, y=1.00),
+        ],
+        min_length=3,
+    )
+
+
+class CutInConfig(BaseModel):
+    """切入 image-space heuristic 與 confidence 權重。"""
+
+    evidence_history_size: int = Field(default=12, gt=0)
+    minimum_bbox_expansion_ratio: float = Field(default=0.05, gt=0)
+    minimum_confirmed_confidence: float = Field(default=0.65, ge=0, le=1)
+    minimum_motion_quality_ratio: float = Field(default=0.8, ge=0, le=1)
+    lane_change_weight: float = Field(default=0.4, ge=0)
+    corridor_weight: float = Field(default=0.3, ge=0)
+    bbox_expansion_weight: float = Field(default=0.15, ge=0)
+    motion_quality_weight: float = Field(default=0.15, ge=0)
+
+    @model_validator(mode="after")
+    def validate_positive_weight_sum(self) -> CutInConfig:
+        total = (
+            self.lane_change_weight
+            + self.corridor_weight
+            + self.bbox_expansion_weight
+            + self.motion_quality_weight
+        )
+        if total <= 0:
+            raise ValueError("cut-in confidence weights must have a positive sum")
+        return self
+
+
 class OutputConfig(BaseModel):
     """分析結果與標註影片的輸出設定。"""
     save_video: bool = True
@@ -108,6 +147,8 @@ class AppConfig(BaseModel):
     lane_membership: LaneMembershipConfig = Field(default_factory=LaneMembershipConfig)
     ego_motion: EgoMotionConfig = Field(default_factory=EgoMotionConfig)
     temporal_lane: TemporalLaneConfig = Field(default_factory=TemporalLaneConfig)
+    forward_corridor: ForwardCorridorConfig = Field(default_factory=ForwardCorridorConfig)
+    cut_in: CutInConfig = Field(default_factory=CutInConfig)
     output: OutputConfig = Field(default_factory=OutputConfig)
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
 

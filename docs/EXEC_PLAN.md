@@ -72,6 +72,13 @@ evidence; rejected tracks can re-arm after returning to a stable adjacent state.
 - `LaneChangeEvent`, `CutInEvent`, evidence frames, and confidence breakdown.
 - Tests for true cut-in, non-corridor lane change, and insufficient evidence.
 
+Implemented with a configured normalized forward-corridor polygon mapped to original-frame
+coordinates. Bottom-center corridor interaction is primary; bbox center is supporting
+evidence. Cut-in confidence exposes lane-change, corridor, bbox-expansion, and ego-motion
+components. Confirmation requires a confirmed temporal lane change, bottom-center corridor
+interaction, sufficient image-space bbox expansion, motion quality, and an overall threshold.
+These heuristics do not represent physical distance or TTC.
+
 ### 5. Pipeline and visualization integration
 
 - Per-frame scene analysis in the existing streaming analyzer.
@@ -103,7 +110,7 @@ Core automated tests require no GPU, model weights, or network connection.
 - [x] Slice 1: lane and geometry foundation.
 - [x] Slice 2: ego-motion baseline.
 - [x] Slice 3: temporal membership and lane-change state machine.
-- [ ] Slice 4: cut-in events and evidence.
+- [x] Slice 4: cut-in events and evidence.
 - [ ] Slice 5: pipeline and visualization integration.
 - [ ] Slice 6: regression and documentation.
 
