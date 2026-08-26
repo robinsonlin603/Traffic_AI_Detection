@@ -8,6 +8,8 @@ from typing import Any
 import yaml  # type: ignore[import-untyped]
 from pydantic import BaseModel, Field
 
+from dashcam_ai.domain.lane import NormalizedPoint2D
+
 
 class DetectionConfig(BaseModel):
     """物件偵測模型、推論門檻與目標類別設定。"""
@@ -26,6 +28,29 @@ class TrackingConfig(BaseModel):
     minimum_track_length: int = Field(default=2, gt=0)
 
 
+class LaneGeometryConfig(BaseModel):
+    """人工校正的 normalized 自車車道與其可信度。"""
+
+    enabled: bool = True
+    ego_lane_polygon: list[NormalizedPoint2D] = Field(
+        default_factory=lambda: [
+            NormalizedPoint2D(x=0.44, y=0.45),
+            NormalizedPoint2D(x=0.56, y=0.45),
+            NormalizedPoint2D(x=0.90, y=1.00),
+            NormalizedPoint2D(x=0.10, y=1.00),
+        ],
+        min_length=4,
+        max_length=4,
+    )
+    confidence: float = Field(default=1.0, ge=0, le=1)
+
+
+class LaneMembershipConfig(BaseModel):
+    """車道邊界帶設定；時間平滑參數於後續 slice 加入。"""
+
+    boundary_margin_pixels: float = Field(default=12.0, ge=0)
+
+
 class OutputConfig(BaseModel):
     """分析結果與標註影片的輸出設定。"""
     save_video: bool = True
@@ -42,6 +67,8 @@ class AppConfig(BaseModel):
     """彙整所有設定區段的頂層模型。"""
     detection: DetectionConfig = Field(default_factory=DetectionConfig)
     tracking: TrackingConfig = Field(default_factory=TrackingConfig)
+    lane_geometry: LaneGeometryConfig = Field(default_factory=LaneGeometryConfig)
+    lane_membership: LaneMembershipConfig = Field(default_factory=LaneMembershipConfig)
     output: OutputConfig = Field(default_factory=OutputConfig)
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
 

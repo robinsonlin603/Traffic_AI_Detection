@@ -15,6 +15,18 @@ tracking:
   tracker: botsort.yaml
   minimum_track_length: 2
 
+lane_geometry:
+  enabled: true
+  ego_lane_polygon:
+    - {x: 0.44, y: 0.45}
+    - {x: 0.56, y: 0.45}
+    - {x: 0.90, y: 1.00}
+    - {x: 0.10, y: 1.00}
+  confidence: 1.0
+
+lane_membership:
+  boundary_margin_pixels: 12.0
+
 output:
   save_video: true
   save_frames: true
@@ -22,4 +34,3 @@ output:
 
 logging:
   level: INFO
-
