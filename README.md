@@ -59,6 +59,14 @@ NVIDIA 電腦應先依照其驅動與 CUDA 環境安裝相容的 PyTorch，再�
 
 ## 使用方式
 
+只指定 `samples` 內的影片時，系統會使用 `configs/default.yaml` 自動選擇 CUDA、MPS 或 CPU，並將結果輸出到 `output/<影片檔名>/`：
+
+```bash
+dashcam-ai analyze --input ./samples/test1.mp4
+```
+
+上述範例的輸出目錄是 `./output/test1/`。如需自訂輸出目錄、模型或推論尺寸，可以使用完整參數：
+
 ```bash
 dashcam-ai analyze \
   --input ./samples/ride.mp4 \

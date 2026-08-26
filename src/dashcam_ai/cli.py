@@ -17,6 +17,11 @@ from dashcam_ai.runtime.device import inspect_devices
 app = typer.Typer(no_args_is_help=True, help="Analyze motorcycle dashcam videos locally.")
 
 
+def _resolve_output_path(input_path: Path, output_path: Path | None) -> Path:
+    """未指定輸出目錄時，以來源影片檔名建立預設目錄。"""
+    return output_path if output_path is not None else Path("output") / input_path.stem
+
+
 @app.callback()
 def main() -> None:
     """Motorcycle dashcam analysis commands."""
@@ -37,7 +42,7 @@ def devices() -> None:
 @app.command()
 def analyze(
     input_path: Annotated[Path, typer.Option("--input", exists=True, dir_okay=False)],
-    output_path: Annotated[Path, typer.Option("--output", file_okay=False)],
+    output_path: Annotated[Path | None, typer.Option("--output", file_okay=False)] = None,
     config_path: Annotated[Path, typer.Option("--config", exists=True, dir_okay=False)] = Path(
         "configs/default.yaml"
     ),
@@ -49,6 +54,7 @@ def analyze(
     save_frames: Annotated[bool | None, typer.Option("--save-frames/--no-save-frames")] = None,
 ) -> None:
     """對 MP4 影片執行 YOLO 偵測與 BoT-SORT 追蹤。"""
+    resolved_output_path = _resolve_output_path(input_path, output_path)
     config = load_config(config_path)
     configure_logging(config.logging.level)
     detection = config.detection
@@ -68,7 +74,7 @@ def analyze(
         save_frames=output.save_frames if save_frames is None else save_frames,
         codec=output.codec,
     )
-    summary = analyzer.analyze(input_path, output_path)
+    summary = analyzer.analyze(input_path, resolved_output_path)
     typer.echo(
         json.dumps(
             {
