@@ -51,6 +51,23 @@ temporal_lane:
   candidate_timeout_seconds: 2.0
   history_size: 30
 
+forward_corridor:
+  polygon:
+    - {x: 0.43, y: 0.55}
+    - {x: 0.57, y: 0.55}
+    - {x: 0.78, y: 1.00}
+    - {x: 0.22, y: 1.00}
+
+cut_in:
+  evidence_history_size: 12
+  minimum_bbox_expansion_ratio: 0.05
+  minimum_confirmed_confidence: 0.65
+  minimum_motion_quality_ratio: 0.8
+  lane_change_weight: 0.4
+  corridor_weight: 0.3
+  bbox_expansion_weight: 0.15
+  motion_quality_weight: 0.15
+
 output:
   save_video: true
   save_frames: true
