@@ -60,6 +60,12 @@ homography, or quality gates return `unknown` without a transform.
 - Adjacent, approaching, crossing, entered, candidate, confirmed, and rejected states.
 - Tests for jitter, stable adjacent traffic, crossing, missing frames, and timestamps.
 
+Implemented as bounded per-track state with a median signed-distance window, stable-phase
+debounce, separate approaching and entered thresholds, candidate timeout, and configurable
+missing-observation tolerance. Ego-motion `unknown` observations cannot advance or confirm
+a candidate. Confirmation requires both consecutive entered observations and elapsed-time
+evidence; rejected tracks can re-arm after returning to a stable adjacent state.
+
 ### 4. Cut-in events and structured evidence
 
 - Configured forward corridor and explainable interaction heuristics.
@@ -96,7 +102,7 @@ Core automated tests require no GPU, model weights, or network connection.
 - [x] Milestone 2 architecture inspected and approved.
 - [x] Slice 1: lane and geometry foundation.
 - [x] Slice 2: ego-motion baseline.
-- [ ] Slice 3: temporal membership and lane-change state machine.
+- [x] Slice 3: temporal membership and lane-change state machine.
 - [ ] Slice 4: cut-in events and evidence.
 - [ ] Slice 5: pipeline and visualization integration.
 - [ ] Slice 6: regression and documentation.
