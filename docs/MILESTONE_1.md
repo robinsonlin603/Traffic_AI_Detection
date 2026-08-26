@@ -101,9 +101,17 @@ Milestone 1 已涵蓋下列自動化驗證：
 - OpenCV 暫存 MP4 讀寫與標註影片輸出。
 - CLI 與 runtime metadata。
 
-目前 Apple Silicon Mac 已確認 CPU 與 MPS 可用，CUDA 不可用符合預期。下列實機工作仍待完成：
+目前 Apple Silicon Mac 已確認 CPU 與 MPS 可用，CUDA 不可用符合預期。真實行車影片已在 MPS 完成 YOLO／BoT-SORT 分析，並確認逐幀資料、軌跡摘要與標註影片均完整產生。
 
-- 使用真實行車影片驗證 MPS 上的 YOLO／BoT-SORT。
+標註影片亦已完成人工視覺抽查，確認下列項目沒有明顯問題：
+
+- 物件邊界框位置合理。
+- Track ID 與物件移動情況相符。
+- 移動軌跡線能跟隨對應物件。
+- 標註影片可完整播放，開頭、中段與結尾畫面正常。
+
+下列實機工作仍待完成：
+
 - 在 RTX 4070 SUPER 驗證 CUDA 推論。
 - 使用同一影片比較 MPS 與 CUDA 的輸出結果。
 - 比較長影片的處理速度、資源使用及穩定性。
