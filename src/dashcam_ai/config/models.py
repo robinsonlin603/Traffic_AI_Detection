@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml  # type: ignore[import-untyped]
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from dashcam_ai.domain.lane import NormalizedPoint2D
 
@@ -51,6 +51,29 @@ class LaneMembershipConfig(BaseModel):
     boundary_margin_pixels: float = Field(default=12.0, ge=0)
 
 
+class EgoMotionConfig(BaseModel):
+    """OpenCV 背景特徵追蹤及 homography 品質門檻。"""
+
+    max_features: int = Field(default=500, gt=0)
+    feature_quality_level: float = Field(default=0.01, gt=0, le=1)
+    feature_min_distance: float = Field(default=8.0, ge=0)
+    optical_flow_window_size: int = Field(default=21, gt=0)
+    optical_flow_max_level: int = Field(default=3, ge=0)
+    ransac_reprojection_threshold: float = Field(default=3.0, gt=0)
+    minimum_tracked_features: int = Field(default=12, ge=4)
+    minimum_inliers: int = Field(default=8, ge=4)
+    minimum_inlier_ratio: float = Field(default=0.5, ge=0, le=1)
+    maximum_mean_reprojection_error: float = Field(default=2.5, ge=0)
+    mask_padding_pixels: int = Field(default=8, ge=0)
+
+    @field_validator("optical_flow_window_size")
+    @classmethod
+    def validate_odd_window_size(cls, value: int) -> int:
+        if value % 2 == 0:
+            raise ValueError("optical_flow_window_size must be odd")
+        return value
+
+
 class OutputConfig(BaseModel):
     """分析結果與標註影片的輸出設定。"""
     save_video: bool = True
@@ -69,6 +92,7 @@ class AppConfig(BaseModel):
     tracking: TrackingConfig = Field(default_factory=TrackingConfig)
     lane_geometry: LaneGeometryConfig = Field(default_factory=LaneGeometryConfig)
     lane_membership: LaneMembershipConfig = Field(default_factory=LaneMembershipConfig)
+    ego_motion: EgoMotionConfig = Field(default_factory=EgoMotionConfig)
     output: OutputConfig = Field(default_factory=OutputConfig)
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
 

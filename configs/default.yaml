@@ -27,6 +27,19 @@ lane_geometry:
 lane_membership:
   boundary_margin_pixels: 12.0
 
+ego_motion:
+  max_features: 500
+  feature_quality_level: 0.01
+  feature_min_distance: 8.0
+  optical_flow_window_size: 21
+  optical_flow_max_level: 3
+  ransac_reprojection_threshold: 3.0
+  minimum_tracked_features: 12
+  minimum_inliers: 8
+  minimum_inlier_ratio: 0.5
+  maximum_mean_reprojection_error: 2.5
+  mask_padding_pixels: 8
+
 output:
   save_video: true
   save_frames: true
