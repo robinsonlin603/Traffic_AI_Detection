@@ -48,6 +48,12 @@ tracked video frames -> configured lane geometry -> ego-motion estimate
 - OpenCV feature tracking, optical flow, RANSAC homography, and vehicle-box masks.
 - Invalid/unknown quality paths and synthetic camera-motion tests.
 
+Implemented as a previous-frame-to-current-frame homography over background features.
+Feature count, tracked count, RANSAC inliers, inlier ratio, reprojection error, and a
+bounded confidence are preserved as structured quality evidence. Vehicle boxes are
+excluded before feature detection with configurable padding. Failed input, tracking,
+homography, or quality gates return `unknown` without a transform.
+
 ### 3. Temporal membership and lane-change state machine
 
 - Smoothing, hysteresis, debounce, minimum duration, and occlusion tolerance.
@@ -89,7 +95,7 @@ Core automated tests require no GPU, model weights, or network connection.
 
 - [x] Milestone 2 architecture inspected and approved.
 - [x] Slice 1: lane and geometry foundation.
-- [ ] Slice 2: ego-motion baseline.
+- [x] Slice 2: ego-motion baseline.
 - [ ] Slice 3: temporal membership and lane-change state machine.
 - [ ] Slice 4: cut-in events and evidence.
 - [ ] Slice 5: pipeline and visualization integration.
