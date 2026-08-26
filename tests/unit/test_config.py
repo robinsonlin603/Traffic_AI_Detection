@@ -14,3 +14,5 @@ def test_default_configuration_loads() -> None:
     assert config.lane_membership.boundary_margin_pixels == 12.0
     assert config.ego_motion.minimum_inliers == 8
     assert config.ego_motion.optical_flow_window_size == 21
+    assert config.temporal_lane.smoothing_window_frames == 3
+    assert config.temporal_lane.maximum_missing_frames == 2

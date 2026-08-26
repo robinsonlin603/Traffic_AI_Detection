@@ -74,6 +74,20 @@ class EgoMotionConfig(BaseModel):
         return value
 
 
+class TemporalLaneConfig(BaseModel):
+    """車道歸屬時間平滑、遲滯、缺失容忍與確認門檻。"""
+
+    smoothing_window_frames: int = Field(default=3, gt=0)
+    approaching_distance_pixels: float = Field(default=40.0, gt=0)
+    entered_distance_pixels: float = Field(default=20.0, gt=0)
+    debounce_frames: int = Field(default=2, gt=0)
+    minimum_confirmation_frames: int = Field(default=3, gt=0)
+    minimum_confirmation_duration_seconds: float = Field(default=0.1, ge=0)
+    maximum_missing_frames: int = Field(default=2, ge=0)
+    candidate_timeout_seconds: float = Field(default=2.0, gt=0)
+    history_size: int = Field(default=30, gt=0)
+
+
 class OutputConfig(BaseModel):
     """分析結果與標註影片的輸出設定。"""
     save_video: bool = True
@@ -93,6 +107,7 @@ class AppConfig(BaseModel):
     lane_geometry: LaneGeometryConfig = Field(default_factory=LaneGeometryConfig)
     lane_membership: LaneMembershipConfig = Field(default_factory=LaneMembershipConfig)
     ego_motion: EgoMotionConfig = Field(default_factory=EgoMotionConfig)
+    temporal_lane: TemporalLaneConfig = Field(default_factory=TemporalLaneConfig)
     output: OutputConfig = Field(default_factory=OutputConfig)
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
 
