@@ -179,6 +179,7 @@ def analyze(
         save_video=output.save_video if save_video is None else save_video,
         save_frames=output.save_frames if save_frames is None else save_frames,
         codec=output.codec,
+        minimum_track_length=config.tracking.minimum_track_length,
         scene_analyzer=_build_scene_analyzer(config),
     )
     summary = analyzer.analyze(input_path, resolved_output_path)

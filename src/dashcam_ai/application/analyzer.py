@@ -41,16 +41,20 @@ class Analyzer:
         save_frames: bool = True,
         codec: str = "mp4v",
         progress_interval: int = 100,
+        minimum_track_length: int = 1,
         reader_factory: Callable[[Path], Any] = OpenCVVideoReader,
         scene_analyzer: SceneAnalysisBackend | None = None,
     ) -> None:
         if progress_interval <= 0:
             raise ValueError("progress_interval must be positive")
+        if minimum_track_length <= 0:
+            raise ValueError("minimum_track_length must be positive")
         self.perception = perception
         self.save_video = save_video
         self.save_frames = save_frames
         self.codec = codec
         self.progress_interval = progress_interval
+        self.minimum_track_length = minimum_track_length
         self.reader_factory = reader_factory
         self.scene_analyzer = scene_analyzer
 
@@ -152,6 +156,7 @@ class Analyzer:
                     observations=items,
                 )
                 for track_id, items in sorted(observations.items())
+                if len(items) >= self.minimum_track_length
             ]
             store.write_tracks(tracks)
             if (
@@ -165,7 +170,7 @@ class Analyzer:
         elapsed = time.monotonic() - started
         summary = AnalysisSummary(
             frames_processed=frames_processed,
-            tracks_created=len(observations),
+            tracks_created=len(tracks),
             events_created=len(events),
             elapsed_seconds=elapsed,
             processing_fps=frames_processed / elapsed if elapsed else 0.0,
