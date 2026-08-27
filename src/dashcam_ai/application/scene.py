@@ -166,6 +166,20 @@ class StreamingSceneAnalyzer:
             self._events[event_id] = rejected
             self._cascade_cutin_rejection(rejected)
 
+        for event_id, event in tuple(self._events.items()):
+            if not isinstance(event, CutInEvent):
+                continue
+            if event.status is not EventStatus.CANDIDATE:
+                continue
+            self._events[event_id] = event.model_copy(
+                update={
+                    "status": EventStatus.REJECTED,
+                    "frame_id": frame_id,
+                    "timestamp": timestamp,
+                    "reason": "video ended before cut-in confirmation",
+                }
+            )
+
     def _record_lane_event(
         self, temporal: TemporalLaneState, output: list[LaneChangeEvent]
     ) -> LaneChangeEvent | None:

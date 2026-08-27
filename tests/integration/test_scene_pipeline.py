@@ -218,6 +218,38 @@ def test_video_end_rejects_unfinished_candidate(tmp_path: Path) -> None:
     assert all(event["status"] == "rejected" for event in events)
 
 
+def test_video_end_rejects_cutin_candidate_after_confirmed_lane_change(
+    tmp_path: Path,
+) -> None:
+    observations = [
+        [tracked(300, 40)],
+        [tracked(300, 42)],
+        [tracked(380, 46)],
+        [tracked(410, 47)],
+        [tracked(440, 48)],
+        [tracked(450, 49)],
+    ]
+    analyzer = Analyzer(
+        SequenceBackend(observations),
+        save_video=False,
+        save_frames=True,
+        reader_factory=lambda source: ArrayReader(source, len(observations)),
+        scene_analyzer=scene_analyzer(),
+    )
+    output = tmp_path / "unfinished-cutin"
+
+    analyzer.analyze(Path("synthetic.mp4"), output)
+
+    events: list[dict[str, Any]] = json.loads((output / "events.json").read_text())
+    lane_event = next(event for event in events if event["event_type"] == "lane_change")
+    cutin_event = next(event for event in events if event["event_type"] == "cut_in")
+    assert lane_event["status"] == "confirmed"
+    assert cutin_event["status"] == "rejected"
+    assert cutin_event["frame_id"] == len(observations) - 1
+    assert cutin_event["reason"] == "video ended before cut-in confirmation"
+    assert all(event["status"] != "candidate" for event in events)
+
+
 def test_terminal_event_is_not_overwritten_by_later_frames() -> None:
     scene = scene_analyzer()
     sequence = [(300, 40), (300, 42), (380, 46), (410, 50), (440, 56), (450, 64)]
