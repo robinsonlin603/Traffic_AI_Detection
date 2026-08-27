@@ -10,6 +10,7 @@ def test_default_configuration_loads() -> None:
     config = load_config(Path("configs/default.yaml"))
 
     assert config.tracking.tracker == "botsort.yaml"
+    assert config.tracking.minimum_track_length == 2
     assert config.detection.imgsz == 1280
     assert "car" in config.detection.classes
     assert len(config.lane_geometry.ego_lane_polygon) == 4

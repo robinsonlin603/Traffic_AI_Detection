@@ -111,3 +111,34 @@ def test_analyzer_rejects_non_positive_progress_interval() -> None:
 
     with pytest.raises(ValueError, match="progress_interval must be positive"):
         Analyzer(backend, progress_interval=0)
+
+
+def test_analyzer_filters_tracks_shorter_than_configured_minimum(tmp_path: Path) -> None:
+    backend = DetectorTrackerBackend(
+        FakeDetector([[car(100), car(500)], [car(110)]]),
+        CentroidTracker(maximum_distance=50),
+    )
+    analyzer = Analyzer(
+        backend,
+        save_video=False,
+        save_frames=True,
+        minimum_track_length=2,
+        reader_factory=FakeReader,
+    )
+    output = tmp_path / "filtered"
+
+    summary = analyzer.analyze(Path("synthetic.mp4"), output)
+
+    tracks: list[dict[str, Any]] = json.loads((output / "tracks.json").read_text())
+    frames = [json.loads(line) for line in (output / "frames.jsonl").read_text().splitlines()]
+    assert summary.tracks_created == 1
+    assert len(tracks) == 1
+    assert len(tracks[0]["observations"]) == 2
+    assert len(frames[0]["objects"]) == 2
+
+
+def test_analyzer_rejects_non_positive_minimum_track_length() -> None:
+    backend = DetectorTrackerBackend(FakeDetector([]), CentroidTracker())
+
+    with pytest.raises(ValueError, match="minimum_track_length must be positive"):
+        Analyzer(backend, minimum_track_length=0)
