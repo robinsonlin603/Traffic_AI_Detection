@@ -106,6 +106,19 @@ place text on dark collision-aware backgrounds so crowded distant detections rem
 - Milestone 1 CPU/MPS/CUDA behavior and artifact compatibility checks.
 - README usage, calibration, limitations, and acceptance notes.
 
+Completed with a full automated regression, explicit Milestone 1 perception-only artifact
+coverage, and validation that default, macOS, and NVIDIA configurations contain the complete
+Milestone 2 sections. README now documents event states, calibration order, visualization,
+limitations, and device-specific validation status.
+
+The Apple Silicon MPS acceptance run processed all 625 frames of `samples/test1.mp4`. After
+ego-lane calibration, Track 6 no longer produced a confirmed lane change, and end-of-video
+candidates were finalized as rejected. The resulting event artifact contained 24 rejected,
+zero candidate, and zero confirmed events. Synthetic integration coverage verifies the
+positive confirmation path; a real positive lane-change/cut-in clip remains an explicit
+acceptance gap. CUDA configuration and unavailable-device behavior are covered automatically,
+but Milestone 2 has not yet been run on the target NVIDIA hardware.
+
 ## Verification gates
 
 Each slice must pass its focused tests plus the existing test suite. The final gate is:
@@ -126,7 +139,7 @@ Core automated tests require no GPU, model weights, or network connection.
 - [x] Slice 3: temporal membership and lane-change state machine.
 - [x] Slice 4: cut-in events and evidence.
 - [x] Slice 5: pipeline and visualization integration.
-- [ ] Slice 6: regression and documentation.
+- [x] Slice 6: regression and documentation.
 
 ## Risks
 
