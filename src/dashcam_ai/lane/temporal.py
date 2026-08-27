@@ -222,7 +222,7 @@ class TemporalLaneTracker:
             entered_duration = timestamp - state.entered_timestamp
             if (
                 state.entered_count >= self._minimum_confirmation_frames
-                and entered_duration >= self._minimum_confirmation_duration
+                and entered_duration + 1e-9 >= self._minimum_confirmation_duration
                 and state.valid_motion_count >= self._minimum_confirmation_frames
             ):
                 state.status = LaneChangeStatus.CONFIRMED

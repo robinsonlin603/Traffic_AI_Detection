@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from enum import StrEnum
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -53,6 +54,7 @@ class LaneChangeEvent(BaseModel):
     """由 temporal lane state 形成的換道事件。"""
 
     model_config = ConfigDict(frozen=True)
+    event_type: Literal["lane_change"] = "lane_change"
     event_id: str = Field(min_length=1)
     status: EventStatus
     track_id: int = Field(ge=0)
@@ -75,6 +77,7 @@ class CutInEvent(BaseModel):
     """進入前方 corridor 的可解釋 image-space 切入事件。"""
 
     model_config = ConfigDict(frozen=True)
+    event_type: Literal["cut_in"] = "cut_in"
     event_id: str = Field(min_length=1)
     lane_change_event_id: str = Field(min_length=1)
     status: EventStatus

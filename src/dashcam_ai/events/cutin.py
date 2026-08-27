@@ -13,7 +13,7 @@ from dashcam_ai.domain.events import (
 from dashcam_ai.domain.geometry import BBox
 from dashcam_ai.domain.lane import LaneMembership
 from dashcam_ai.domain.motion import EgoMotionStatus
-from dashcam_ai.events.corridor import ForwardCorridor
+from dashcam_ai.domain.scene import ForwardCorridor
 
 
 class CutInDetector:

@@ -64,12 +64,15 @@ def test_fake_pipeline_writes_normalized_artifacts(tmp_path: Path) -> None:
 
     assert summary.frames_processed == 2
     assert summary.tracks_created == 1
+    assert summary.events_created == 0
     tracks: list[dict[str, Any]] = json.loads((output / "tracks.json").read_text())
     assert len(tracks) == 1
     assert len(tracks[0]["observations"]) == 2
     assert tracks[0]["observations"][0]["bottom_center"] == {"x": 150.0, "y": 250.0}
     assert json.loads((output / "events.json").read_text()) == []
     assert len((output / "frames.jsonl").read_text().splitlines()) == 2
+    first_frame = json.loads((output / "frames.jsonl").read_text().splitlines()[0])
+    assert first_frame["analysis"] is None
 
 
 def test_fake_pipeline_reports_progress(

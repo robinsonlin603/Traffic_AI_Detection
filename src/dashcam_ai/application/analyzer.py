@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from dashcam_ai.application.perception import PerceptionBackend
+from dashcam_ai.application.scene import SceneAnalysisBackend
 from dashcam_ai.domain.perception import Track, TrackObservation
 from dashcam_ai.domain.video import FrameRecord
 from dashcam_ai.logging import get_logger
@@ -24,6 +25,7 @@ class AnalysisSummary:
     """一次影片分析完成後的效能與輸出摘要。"""
     frames_processed: int
     tracks_created: int
+    events_created: int
     elapsed_seconds: float
     processing_fps: float
     output_directory: Path
@@ -40,6 +42,7 @@ class Analyzer:
         codec: str = "mp4v",
         progress_interval: int = 100,
         reader_factory: Callable[[Path], Any] = OpenCVVideoReader,
+        scene_analyzer: SceneAnalysisBackend | None = None,
     ) -> None:
         if progress_interval <= 0:
             raise ValueError("progress_interval must be positive")
@@ -49,6 +52,7 @@ class Analyzer:
         self.codec = codec
         self.progress_interval = progress_interval
         self.reader_factory = reader_factory
+        self.scene_analyzer = scene_analyzer
 
     def analyze(self, source: Path, output_directory: Path) -> AnalysisSummary:
         """分析來源影片，將所有成果寫入指定輸出目錄。"""
@@ -58,6 +62,8 @@ class Analyzer:
         observations: dict[int, list[TrackObservation]] = defaultdict(list)
         track_classes: dict[int, str] = {}
         frames_processed = 0
+        last_frame_id: int | None = None
+        last_timestamp: float | None = None
         writer: OpenCVVideoWriter | None = None
         annotator = OpenCVAnnotator()
         with self.reader_factory(source) as reader, ArtifactStore(
@@ -66,7 +72,7 @@ class Analyzer:
             runtime_metadata = getattr(self.perception, "runtime_metadata", None)
             metadata = reader.metadata.model_copy(update={"runtime": runtime_metadata})
             store.write_metadata(metadata)
-            store.write_events_placeholder()
+            store.write_events([])
             logger.info("video_loaded", **metadata.model_dump())
             if runtime_metadata is not None:
                 logger.info("runtime_resolved", **runtime_metadata.model_dump())
@@ -77,11 +83,24 @@ class Analyzer:
             try:
                 for video_frame in reader:
                     tracked = self.perception.process(video_frame.image)
+                    analysis = (
+                        self.scene_analyzer.process(
+                            video_frame.image,
+                            tracked,
+                            video_frame.frame_id,
+                            video_frame.timestamp,
+                            reader.metadata.width,
+                            reader.metadata.height,
+                        )
+                        if self.scene_analyzer is not None
+                        else None
+                    )
                     store.write_frame(
                         FrameRecord(
                             frame_id=video_frame.frame_id,
                             timestamp=video_frame.timestamp,
                             objects=tracked,
+                            analysis=analysis,
                         )
                     )
                     for obj in tracked:
@@ -92,8 +111,10 @@ class Analyzer:
                             )
                         )
                     if writer is not None:
-                        writer.write(annotator.annotate(video_frame.image, tracked))
+                        writer.write(annotator.annotate(video_frame.image, tracked, analysis))
                     frames_processed += 1
+                    last_frame_id = video_frame.frame_id
+                    last_timestamp = video_frame.timestamp
                     total_frames = reader.metadata.frame_count
                     if frames_processed % self.progress_interval == 0 or (
                         total_frames > 0 and frames_processed == total_frames
@@ -133,10 +154,19 @@ class Analyzer:
                 for track_id, items in sorted(observations.items())
             ]
             store.write_tracks(tracks)
+            if (
+                self.scene_analyzer is not None
+                and last_frame_id is not None
+                and last_timestamp is not None
+            ):
+                self.scene_analyzer.finalize(last_frame_id, last_timestamp)
+            events = self.scene_analyzer.events() if self.scene_analyzer is not None else []
+            store.write_events(events)
         elapsed = time.monotonic() - started
         summary = AnalysisSummary(
             frames_processed=frames_processed,
             tracks_created=len(observations),
+            events_created=len(events),
             elapsed_seconds=elapsed,
             processing_fps=frames_processed / elapsed if elapsed else 0.0,
             output_directory=output_directory,
@@ -145,6 +175,7 @@ class Analyzer:
             "video_completed",
             frames_processed=summary.frames_processed,
             tracks_created=summary.tracks_created,
+            events_created=summary.events_created,
             elapsed_seconds=round(summary.elapsed_seconds, 3),
             processing_fps=round(summary.processing_fps, 3),
         )
