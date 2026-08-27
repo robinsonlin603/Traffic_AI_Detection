@@ -21,6 +21,10 @@ from dashcam_ai.lane.temporal import TemporalLaneTracker
 from dashcam_ai.logging import configure_logging
 from dashcam_ai.motion.opencv import OpenCVEgoMotionEstimator
 from dashcam_ai.runtime.device import inspect_devices
+from dashcam_ai.validation.records import SUPPORTED_PLATFORMS
+from dashcam_ai.validation.render import write_report
+from dashcam_ai.validation.runner import _run_git, build_validation_record
+from dashcam_ai.validation.status import inspect_report, milestone_status
 
 app = typer.Typer(no_args_is_help=True, help="Analyze motorcycle dashcam videos locally.")
 
@@ -45,6 +49,100 @@ def devices() -> None:
             indent=2,
         )
     )
+
+
+@app.command("validate")
+def validate_platform(
+    milestone: Annotated[str, typer.Option("--milestone")] = "2",
+    platform_id: Annotated[str, typer.Option("--platform")] = "cpu",
+) -> None:
+    """執行共通 gates 並寫入目前平台的 Git-friendly 驗證報告。"""
+    normalized_milestone = (
+        milestone if milestone.startswith("milestone-") else f"milestone-{milestone}"
+    )
+    if normalized_milestone != "milestone-2":
+        raise typer.BadParameter("currently supported milestone: 2", param_hint="--milestone")
+    if platform_id not in SUPPORTED_PLATFORMS:
+        raise typer.BadParameter(
+            f"supported platforms: {', '.join(sorted(SUPPORTED_PLATFORMS))}",
+            param_hint="--platform",
+        )
+    root = Path.cwd()
+    record = build_validation_record(root, normalized_milestone, platform_id)
+    json_path, markdown_path = write_report(root, record)
+    typer.echo(
+        json.dumps(
+            {
+                "report": str(json_path),
+                "summary": str(markdown_path),
+                "source_commit": record.source_commit,
+                "verdict": record.verdict.value,
+                "reasons": record.reasons,
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
+    if record.verdict.value != "passed":
+        raise typer.Exit(code=1)
+
+
+@app.command("validation-status")
+def validation_status(
+    report: Annotated[Path, typer.Argument(exists=True, dir_okay=False)],
+) -> None:
+    """檢查單一報告是否適用於目前 checkout。"""
+    root = Path.cwd()
+    try:
+        record, fresh = inspect_report(report, root)
+    except ValueError as error:
+        raise typer.BadParameter(str(error), param_hint="report") from error
+    typer.echo(
+        json.dumps(
+            {
+                "milestone": record.milestone,
+                "platform": record.platform,
+                "tested_commit": record.source_commit,
+                "current_commit": _run_git(root, "rev-parse", "HEAD"),
+                "freshness": "current" if fresh else "stale",
+                "worktree": "dirty" if record.worktree_dirty else "clean",
+                "gates": {gate.name: gate.status.value for gate in record.gates},
+                "accelerator_available": record.environment.accelerator_available,
+                "accelerator_name": record.environment.accelerator_name,
+                "recorded_verdict": record.verdict.value,
+                "verdict_for_current_commit": record.verdict.value if fresh else "invalid",
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
+    if not fresh or record.verdict.value != "passed":
+        raise typer.Exit(code=1)
+
+
+@app.command("milestone-status")
+def show_milestone_status(
+    milestone: Annotated[str, typer.Option("--milestone")] = "2",
+) -> None:
+    """彙整目前 commit 所需的 Mac 與 Windows 平台證據。"""
+    normalized = milestone if milestone.startswith("milestone-") else f"milestone-{milestone}"
+    try:
+        statuses, overall = milestone_status(Path.cwd(), normalized)
+    except ValueError as error:
+        raise typer.BadParameter(str(error), param_hint="--milestone") from error
+    typer.echo(
+        json.dumps(
+            {
+                "milestone": normalized,
+                "platforms": [item.__dict__ for item in statuses],
+                "verdict": overall,
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
+    if overall != "passed":
+        raise typer.Exit(code=1)
 
 
 @app.command()
