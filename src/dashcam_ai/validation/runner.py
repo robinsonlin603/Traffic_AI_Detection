@@ -23,6 +23,30 @@ from dashcam_ai.validation.records import (
 MAX_OUTPUT_CHARS = 4000
 
 
+def _portable_command(command: list[str], root: Path) -> list[str]:
+    """Remove machine-specific absolute paths from persisted command evidence."""
+    portable: list[str] = []
+    resolved_python = Path(sys.executable).resolve()
+    for index, argument in enumerate(command):
+        path = Path(argument)
+        if index == 0 and path.is_absolute() and path.resolve() == resolved_python:
+            portable.append("python")
+        elif path.is_absolute():
+            try:
+                portable.append(path.resolve().relative_to(root.resolve()).as_posix())
+            except ValueError:
+                portable.append(path.name)
+        else:
+            portable.append(argument)
+    return portable
+
+
+def _redact_text(value: str, root: Path) -> str:
+    """Redact repository and home paths that tools may print in diagnostics."""
+    redacted = value.replace(str(root.resolve()), "<repo>")
+    return redacted.replace(str(Path.home().resolve()), "<home>")
+
+
 def _package_version(name: str) -> str | None:
     try:
         return version(name)
@@ -42,20 +66,23 @@ class GateRunner:
 
     def run(self, name: str, command: list[str], root: Path) -> GateResult:
         started = monotonic()
+        persisted_command = _portable_command(command, root)
         try:
             result = subprocess.run(command, cwd=root, capture_output=True, text=True, check=False)
         except (FileNotFoundError, OSError) as error:
             return GateResult(
                 name=name,
-                command=command,
+                command=persisted_command,
                 status=ResultStatus.BLOCKED,
                 duration_seconds=monotonic() - started,
-                output_excerpt=str(error)[-MAX_OUTPUT_CHARS:],
+                output_excerpt=_redact_text(str(error), root)[-MAX_OUTPUT_CHARS:],
             )
-        output = "\n".join(part for part in (result.stdout, result.stderr) if part)
+        output = _redact_text(
+            "\n".join(part for part in (result.stdout, result.stderr) if part), root
+        )
         return GateResult(
             name=name,
-            command=command,
+            command=persisted_command,
             status=ResultStatus.PASSED if result.returncode == 0 else ResultStatus.FAILED,
             exit_code=result.returncode,
             duration_seconds=monotonic() - started,

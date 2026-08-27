@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "milestone": "milestone-2",
+  "platform": "macos-mps",
+  "source_commit": "69817106ebb951063a5441eae9ceb4b37b60d97b",
+  "worktree_dirty": false,
+  "started_at": "2026-08-27T06:59:36.401078Z",
+  "finished_at": "2026-08-27T06:59:40.606994Z",
+  "environment": {
+    "operating_system": "Darwin",
+    "operating_system_release": "25.5.0",
+    "python_version": "3.12.11",
+    "torch_version": "2.13.0",
+    "cuda_version": null,
+    "ultralytics_version": "8.4.127",
+    "opencv_version": "4.14.0.94",
+    "accelerator": "mps",
+    "accelerator_available": true,
+    "accelerator_name": "Apple Metal Performance Shaders"
+  },
+  "gates": [
+    {
+      "name": "pytest",
+      "command": [
+        "python",
+        "-m",
+        "pytest"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "duration_seconds": 2.372299082984682,
+      "output_excerpt": "........................................................................ [ 80%]\n..................                                                       [100%]\n90 passed in 1.49s\n"
+    },
+    {
+      "name": "ruff",
+      "command": [
+        "python",
+        "-m",
+        "ruff",
+        "check",
+        "."
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "duration_seconds": 0.08658962504705414,
+      "output_excerpt": "All checks passed!\n"
+    },
+    {
+      "name": "mypy",
+      "command": [
+        "python",
+        "-m",
+        "mypy",
+        "src"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "duration_seconds": 0.6254726669867523,
+      "output_excerpt": "Success: no issues found in 54 source files\n"
+    }
+  ],
+  "acceptance_run": null,
+  "verdict": "passed",
+  "reasons": []
+}
