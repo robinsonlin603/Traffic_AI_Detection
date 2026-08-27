@@ -23,6 +23,28 @@ def test_default_configuration_loads() -> None:
     assert config.cut_in.minimum_confirmed_confidence == 0.65
 
 
+@pytest.mark.parametrize(
+    ("path", "device"),
+    [
+        (Path("configs/default.yaml"), "auto"),
+        (Path("configs/mac.yaml"), "mps"),
+        (Path("configs/nvidia.yaml"), "cuda:0"),
+    ],
+)
+def test_platform_configurations_include_milestone_2_sections(
+    path: Path, device: str
+) -> None:
+    config = load_config(path)
+
+    assert config.detection.device == device
+    assert config.lane_geometry.enabled is True
+    assert len(config.lane_geometry.ego_lane_polygon) == 4
+    assert config.ego_motion.minimum_tracked_features >= 4
+    assert config.temporal_lane.minimum_confirmation_frames > 0
+    assert len(config.forward_corridor.polygon) >= 3
+    assert config.cut_in.minimum_confirmed_confidence > 0
+
+
 def test_cutin_configuration_requires_positive_weight_sum() -> None:
     with pytest.raises(ValidationError, match="positive sum"):
         CutInConfig(
