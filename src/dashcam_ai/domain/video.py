@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from dashcam_ai.domain.perception import TrackedObject
 from dashcam_ai.domain.runtime import RuntimeMetadata
+from dashcam_ai.domain.scene import FrameSceneAnalysis
 
 
 class VideoMetadata(BaseModel):
@@ -28,3 +29,4 @@ class FrameRecord(BaseModel):
     frame_id: int = Field(ge=0)
     timestamp: float = Field(ge=0)
     objects: list[TrackedObject] = Field(default_factory=list)
+    analysis: FrameSceneAnalysis | None = None

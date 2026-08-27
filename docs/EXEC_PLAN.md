@@ -86,6 +86,20 @@ These heuristics do not represent physical distance or TTC.
 - Lane, membership, trajectory, candidate, and confirmed-event annotation.
 - Deterministic fake-pipeline and synthetic OpenCV integration tests.
 
+Implemented as an optional `StreamingSceneAnalyzer` injected into the existing video
+analyzer. It carries only bounded previous-frame, per-track, and latest-event state. Frame
+JSONL records can include lane geometry, ego motion, corridor, membership, temporal state,
+and event snapshots; `events.json` stores deduplicated latest event states. Missing-track
+rejection cascades to linked cut-in candidates. Annotation now draws lane geometry, forward
+corridor, membership/status labels, trajectories, and event banners while the legacy
+perception-only analyzer path remains supported.
+
+Event lifecycle finalization rejects candidates that remain incomplete at end-of-video with
+an explicit reason. Confirmed and rejected events are terminal snapshots: their end frame,
+timestamp, confidence, and evidence are frozen instead of being overwritten by later frames.
+Track overlays use compact ID/class labels, reserve a second line for actionable states, and
+place text on dark collision-aware backgrounds so crowded distant detections remain legible.
+
 ### 6. Regression and documentation
 
 - Full pytest, Ruff, and strict Mypy verification.
@@ -111,7 +125,7 @@ Core automated tests require no GPU, model weights, or network connection.
 - [x] Slice 2: ego-motion baseline.
 - [x] Slice 3: temporal membership and lane-change state machine.
 - [x] Slice 4: cut-in events and evidence.
-- [ ] Slice 5: pipeline and visualization integration.
+- [x] Slice 5: pipeline and visualization integration.
 - [ ] Slice 6: regression and documentation.
 
 ## Risks

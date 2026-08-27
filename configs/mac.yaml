@@ -10,10 +10,10 @@ tracking:
 lane_geometry:
   enabled: true
   ego_lane_polygon:
-    - {x: 0.44, y: 0.45}
-    - {x: 0.56, y: 0.45}
-    - {x: 0.90, y: 1.00}
-    - {x: 0.10, y: 1.00}
+    - { x: 0.44, y: 0.45 }
+    - { x: 0.50, y: 0.45 }
+    - { x: 0.76, y: 1.00 }
+    - { x: 0.10, y: 1.00 }
   confidence: 1.0
 lane_membership:
   boundary_margin_pixels: 12.0
@@ -41,10 +41,10 @@ temporal_lane:
   history_size: 30
 forward_corridor:
   polygon:
-    - {x: 0.43, y: 0.55}
-    - {x: 0.57, y: 0.55}
-    - {x: 0.78, y: 1.00}
-    - {x: 0.22, y: 1.00}
+    - { x: 0.43, y: 0.55 }
+    - { x: 0.57, y: 0.55 }
+    - { x: 0.78, y: 1.00 }
+    - { x: 0.22, y: 1.00 }
 cut_in:
   evidence_history_size: 12
   minimum_bbox_expansion_ratio: 0.05
