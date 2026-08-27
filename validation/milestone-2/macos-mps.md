@@ -1,6 +1,6 @@
 # milestone-2 — macos-mps
 
-- Tested source commit: `69817106ebb951063a5441eae9ceb4b37b60d97b`
+- Tested source commit: `cef12052f6c636ca64631f997d5ef2d7bf5937fa`
 - Worktree clean: **yes**
 - Accelerator: `mps` (available)
 - Accelerator name: `Apple Metal Performance Shaders`
