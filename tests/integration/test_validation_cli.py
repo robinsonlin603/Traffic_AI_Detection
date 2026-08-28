@@ -15,10 +15,10 @@ from dashcam_ai.validation.render import write_report
 runner = CliRunner()
 
 
-def passing_record(commit: str, platform_id: str = "windows-cuda") -> ValidationRecord:
+def passing_record(commit: str, platform_id: str = "linux-cuda") -> ValidationRecord:
     now = datetime.now(UTC)
-    accelerator = "cuda" if platform_id == "windows-cuda" else "mps"
-    operating_system = "Windows" if platform_id == "windows-cuda" else "Darwin"
+    accelerator = "cuda" if platform_id == "linux-cuda" else "mps"
+    operating_system = "Linux" if platform_id == "linux-cuda" else "Darwin"
     return ValidationRecord(
         milestone="milestone-2",
         platform=platform_id,
@@ -57,7 +57,7 @@ def test_validation_status_marks_an_old_commit_stale(monkeypatch, tmp_path: Path
     )
     monkeypatch.setattr("dashcam_ai.cli._run_git", lambda root, *args: "b" * 40)
     result = runner.invoke(
-        app, ["validation-status", "validation/milestone-2/windows-cuda.json"]
+        app, ["validation-status", "validation/milestone-2/linux-cuda.json"]
     )
     assert result.exit_code == 1
     assert '"freshness": "stale"' in result.stdout
@@ -73,7 +73,7 @@ def test_milestone_requires_both_platforms(monkeypatch, tmp_path: Path) -> None:
     )
     result = runner.invoke(app, ["milestone-status", "--milestone", "2"])
     assert result.exit_code == 1
-    assert '"platform": "windows-cuda"' in result.stdout
+    assert '"platform": "linux-cuda"' in result.stdout
     assert '"status": "missing"' in result.stdout
     assert '"verdict": "blocked"' in result.stdout
 

@@ -8,9 +8,9 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-SUPPORTED_PLATFORMS = {"macos-mps", "windows-cuda", "cpu"}
+SUPPORTED_PLATFORMS = {"macos-mps", "linux-cuda", "cpu"}
 REQUIRED_GATES = {"pytest", "ruff", "mypy"}
-MILESTONE_PLATFORMS = {"milestone-2": {"macos-mps", "windows-cuda"}}
+MILESTONE_PLATFORMS = {"milestone-2": {"macos-mps", "linux-cuda"}}
 
 
 class ResultStatus(StrEnum):
@@ -91,7 +91,7 @@ class ValidationRecord(BaseModel):
 def expected_accelerator(platform_id: str) -> Literal["cpu", "mps", "cuda"]:
     mapping: dict[str, Literal["cpu", "mps", "cuda"]] = {
         "macos-mps": "mps",
-        "windows-cuda": "cuda",
+        "linux-cuda": "cuda",
         "cpu": "cpu",
     }
     if platform_id not in mapping:
@@ -109,7 +109,7 @@ def calculate_verdict(
     """Return a deterministic verdict; blocked evidence never becomes a pass."""
     expected = expected_accelerator(platform)
     reasons: list[str] = []
-    expected_os = {"macos-mps": "Darwin", "windows-cuda": "Windows"}.get(platform)
+    expected_os = {"macos-mps": "Darwin", "linux-cuda": "Linux"}.get(platform)
     gate_names = {gate.name for gate in gates}
     missing = sorted(REQUIRED_GATES - gate_names)
     if missing:
