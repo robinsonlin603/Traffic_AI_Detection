@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "milestone": "milestone-2",
+  "platform": "linux-cuda",
+  "source_commit": "c7d77e31d2b33a06e86cd19605fe8159f27ffdbe",
+  "worktree_dirty": false,
+  "started_at": "2026-08-28T02:40:52.622747Z",
+  "finished_at": "2026-08-28T02:41:15.817853Z",
+  "environment": {
+    "operating_system": "Linux",
+    "operating_system_release": "6.18.33.2-microsoft-standard-WSL2",
+    "python_version": "3.12.3",
+    "torch_version": "2.13.0",
+    "cuda_version": "13.0",
+    "ultralytics_version": "8.4.129",
+    "opencv_version": "4.14.0.94",
+    "accelerator": "cuda",
+    "accelerator_available": true,
+    "accelerator_name": "NVIDIA GeForce RTX 4070 SUPER"
+  },
+  "gates": [
+    {
+      "name": "pytest",
+      "command": [
+        "python",
+        "-m",
+        "pytest"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "duration_seconds": 8.586196100979578,
+      "output_excerpt": "........................................................................ [ 75%]\n.......................                                                  [100%]\n95 passed in 4.44s\n"
+    },
+    {
+      "name": "ruff",
+      "command": [
+        "python",
+        "-m",
+        "ruff",
+        "check",
+        "."
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "duration_seconds": 0.3847123369923793,
+      "output_excerpt": "All checks passed!\n"
+    },
+    {
+      "name": "mypy",
+      "command": [
+        "python",
+        "-m",
+        "mypy",
+        "src"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "duration_seconds": 4.653851281997049,
+      "output_excerpt": "Success: no issues found in 54 source files\n"
+    }
+  ],
+  "acceptance_run": null,
+  "verdict": "passed",
+  "reasons": []
+}

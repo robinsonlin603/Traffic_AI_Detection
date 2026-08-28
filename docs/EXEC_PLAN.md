@@ -133,7 +133,7 @@ Core automated tests require no GPU, model weights, or network connection.
 
 Cross-platform evidence for this milestone is governed by the repository-root `AGENTS.md` and
 stored under `validation/`. Run `dashcam-ai milestone-status --milestone 2` to compare current
-Mac MPS and Windows CUDA reports with the checked-out source commit. A result from either platform
+macOS MPS and Linux CUDA reports with the checked-out source commit. A result from either platform
 does not prove the other platform, and missing or stale evidence keeps the cross-platform verdict
 blocked.
 

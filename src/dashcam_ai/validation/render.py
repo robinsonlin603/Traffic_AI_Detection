@@ -14,7 +14,7 @@ def report_paths(root: Path, milestone: str, platform_id: str) -> tuple[Path, Pa
     safe_milestone = milestone if milestone.startswith("milestone-") else f"milestone-{milestone}"
     if safe_milestone != "milestone-2":
         raise ValueError(f"unsupported milestone: {safe_milestone}")
-    if platform_id not in {"macos-mps", "windows-cuda", "cpu"}:
+    if platform_id not in {"macos-mps", "linux-cuda", "cpu"}:
         raise ValueError(f"unsupported platform: {platform_id}")
     directory = root / "validation" / safe_milestone
     return directory / f"{platform_id}.json", directory / f"{platform_id}.md"

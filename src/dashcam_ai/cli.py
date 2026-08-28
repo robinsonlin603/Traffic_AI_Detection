@@ -124,7 +124,7 @@ def validation_status(
 def show_milestone_status(
     milestone: Annotated[str, typer.Option("--milestone")] = "2",
 ) -> None:
-    """彙整目前 commit 所需的 Mac 與 Windows 平台證據。"""
+    """彙整目前 commit 所需的 macOS 與 Linux 平台證據。"""
     normalized = milestone if milestone.startswith("milestone-") else f"milestone-{milestone}"
     try:
         statuses, overall = milestone_status(Path.cwd(), normalized)

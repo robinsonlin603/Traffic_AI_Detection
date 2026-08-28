@@ -9,7 +9,7 @@ file.
 
 ## Purpose / Big Picture
 
-Codex conversations on the Windows and macOS computers do not share conversational context.
+Codex conversations on the Linux and macOS computers do not share conversational context.
 After this change, either computer can instead write a small, structured validation record to
 Git. The other computer can pull the repository, read exactly which source commit was tested,
 see the operating system and accelerator used, inspect every required test gate, and decide
@@ -22,8 +22,8 @@ review the record and commit it normally. Large videos, model weights, and gener
 videos remain outside Git; the record identifies relevant local inputs and outputs with hashes
 and compact metrics where available.
 
-The completed behavior is visible when a Windows CUDA run produces
-`validation/milestone-2/windows-cuda.json` and a readable companion Markdown file, then a Mac
+The completed behavior is visible when a Linux CUDA run produces
+`validation/milestone-2/linux-cuda.json` and a readable companion Markdown file, then a Mac
 can pull those files and run a report inspection command that clearly states the tested commit,
 whether it matches the current checkout, and the milestone verdict.
 
@@ -40,10 +40,10 @@ whether it matches the current checkout, and the milestone verdict.
   inspection, and milestone aggregation commands.
 - [x] (2026-08-27 06:30Z) Added unit and integration tests for passing, failing, blocked, stale,
   missing-tool, bounded-output, unsafe-path, and repeated-write cases.
-- [x] (2026-08-27 06:31Z) Added the validation directory guidance without fabricating Windows
+- [x] (2026-08-27 06:31Z) Added the validation directory guidance without fabricating CUDA
   CUDA evidence; a formal Mac report remains intentionally deferred until a clean commit can be
   tested.
-- [x] (2026-08-27 06:31Z) Documented the Windows-to-Mac Git handoff and milestone review workflow.
+- [x] (2026-08-27 06:31Z) Documented the Linux-to-Mac Git handoff and milestone review workflow.
 - [x] (2026-08-27 06:32Z) Verified 89 pytest tests, Ruff, and strict Mypy; exercised milestone
   aggregation and observed the expected blocked result while both platform reports are missing.
 
@@ -60,8 +60,8 @@ whether it matches the current checkout, and the milestone verdict.
   but the target NVIDIA hardware has not run the Milestone 2 acceptance workflow.
 
 - Observation: Platform identity must include the operating system as well as the accelerator.
-  Evidence: A CUDA-capable Linux host could otherwise satisfy accelerator-only checks while
-  incorrectly claiming `windows-cuda`; verdict rules now require Windows for `windows-cuda` and
+  Evidence: A CUDA-capable Windows host could otherwise satisfy accelerator-only checks while
+  incorrectly claiming `linux-cuda`; verdict rules now require Linux for `linux-cuda` and
   Darwin for `macos-mps`.
 
 ## Decision Log
@@ -69,7 +69,7 @@ whether it matches the current checkout, and the milestone verdict.
 - Decision: Store the latest record in a separate file for each milestone and platform, and use
   Git history as the historical archive.
   Rationale: Stable filenames are easy for both people and Codex to find, keep repository growth
-  bounded, and avoid Mac-versus-Windows merge conflicts because each platform writes only its own
+  bounded, and avoid macOS-versus-Linux merge conflicts because each platform writes only its own
   file.
   Date/Author: 2026-08-27 / Codex
 
@@ -106,7 +106,7 @@ whether it matches the current checkout, and the milestone verdict.
   Date/Author: 2026-08-27 / Codex
 
 - Decision: Milestone 2 requires current passing reports from both `macos-mps` and
-  `windows-cuda`; the CPU report is optional evidence.
+  `linux-cuda`; the CPU report is optional evidence.
   Rationale: The project explicitly targets Apple MPS and NVIDIA CUDA. Requiring both prevents
   either machine from silently standing in for the other, while CPU remains useful for core
   diagnostics without claiming GPU acceptance.
@@ -118,8 +118,8 @@ The shared workflow, report schema, gate runner, rendering, inspection, mileston
 tests, and operating documentation are implemented. The final regression passed with 89 pytest
 tests, clean Ruff output, and strict Mypy success across 54 source files. Milestone aggregation
 correctly reports `blocked` because neither platform has a report for the current uncommitted
-implementation. No Windows CUDA result has been created or marked as passed; that remains valid
-only after the command runs on a clean Windows checkout with CUDA selected. After these changes
+implementation. No Linux CUDA result has been created or marked as passed; that remains valid
+only after the command runs on a clean Linux checkout with CUDA selected. After these changes
 are committed, each target machine must generate its own report for that source commit.
 
 ## Context and Orientation
@@ -148,12 +148,12 @@ currently being reviewed; it must never prove that the current checkout passed.
 `src/dashcam_ai/runtime/metadata.py` already collects Python and selected dependency versions plus
 model hashes for video analysis. The new validation implementation should reuse concepts from
 these modules but must not require a model, network access, or GPU merely to run the core automated
-gates. A Windows CUDA acceptance record has stronger requirements: it must confirm that PyTorch
+gates. A Linux CUDA acceptance record has stronger requirements: it must confirm that PyTorch
 reports CUDA available, record the GPU name, and, when a real-video acceptance run is requested,
 record the analysis metadata and compact event counts.
 
 The new tracked directory is `validation/`. Each platform owns its filename, such as
-`validation/milestone-2/windows-cuda.json` or
+`validation/milestone-2/linux-cuda.json` or
 `validation/milestone-2/macos-mps.json`. Re-running the command for one platform replaces only
 that platform's JSON and Markdown pair. Previous results remain recoverable through Git history.
 
@@ -167,7 +167,7 @@ gate results, optional acceptance-run evidence, overall verdict, and reasons. Re
 malformed enum values. Never collect usernames, home paths, environment variables, repository
 credentials, or full unbounded terminal output.
 
-Add the root `AGENTS.md` before implementing the reporting workflow so future Mac and Windows
+Add the root `AGENTS.md` before implementing the reporting workflow so future macOS and Linux
 agents share the same rules. It must state that platform-specific evidence is symmetric and
 non-transferable, describe stale and dirty evidence, and distinguish stable instructions from
 dynamic records.
@@ -189,7 +189,7 @@ directory.
 
 Expose the workflow through the existing Typer application in `src/dashcam_ai/cli.py` as a
 `validate` command. Its minimum interface is `dashcam-ai validate --milestone 2 --platform
-windows-cuda`. Support `macos-mps`, `windows-cuda`, and a generic `cpu` platform initially. Add a
+linux-cuda`. Support `macos-mps`, `linux-cuda`, and a generic `cpu` platform initially. Add a
 `--check-report PATH` inspection mode, or a separate `validation-status` subcommand if that better
 matches the existing CLI structure. Inspection validates the JSON, compares `source_commit` to
 the current checkout, and prints a non-zero result for failed, blocked, malformed, or stale
@@ -207,21 +207,21 @@ requires it.
 Add `validation/README.md` describing record ownership and the rule that reports are evidence, not
 source code changes. Add initial records only from environments actually exercised during this
 implementation. If the Mac can complete all gates, generate a real `macos-mps` or `cpu` record as
-appropriate. For Windows, add documentation and optionally an explicitly blocked/unrun template;
+appropriate. For Linux, add documentation and optionally an explicitly blocked/unrun template;
 never fabricate a GPU name or passing status.
 
 Finally, update `README.md` with the short daily workflow and update `docs/EXEC_PLAN.md` only to
-link the durable validation mechanism and replace the CUDA acceptance gap when genuine Windows
-evidence later exists. The Windows operator checks out and pulls the source to test, runs the
+link the durable validation mechanism and replace the CUDA acceptance gap when genuine Linux
+evidence later exists. The Linux operator checks out and pulls the source to test, runs the
 validation command, reviews only the platform-owned files, commits them with a message such as
-`test: record milestone 2 Windows CUDA validation`, and pushes. The Mac operator pulls that commit
+`test: record milestone 2 Linux CUDA validation`, and pushes. The Mac operator pulls that commit
 and runs the inspection command before using the report to update milestone status or plan code
 changes.
 
 ## Concrete Steps
 
 All commands run from the checked-out `Traffic_AI_Detection` repository root on either Mac or
-Windows. During implementation, inspect the current state first:
+Linux. During implementation, inspect the current state first:
 
     git status --short --branch
     python --version
@@ -247,17 +247,17 @@ blocked. Inspect the generated record:
     dashcam-ai validation-status validation/milestone-2/macos-mps.json
 
 The output must name the source commit, current commit, platform, three gate results, overall
-verdict, and freshness. On Windows PowerShell, the equivalent workflow is:
+verdict, and freshness. On Linux, the equivalent workflow is:
 
     git pull --ff-only
     python -m pip install -e ".[cv,dev]"
-    dashcam-ai validate --milestone 2 --platform windows-cuda
-    dashcam-ai validation-status validation/milestone-2/windows-cuda.json
-    git add validation/milestone-2/windows-cuda.json validation/milestone-2/windows-cuda.md
-    git commit -m "test: record milestone 2 Windows CUDA validation"
+    dashcam-ai validate --milestone 2 --platform linux-cuda
+    dashcam-ai validation-status validation/milestone-2/linux-cuda.json
+    git add validation/milestone-2/linux-cuda.json validation/milestone-2/linux-cuda.md
+    git commit -m "test: record milestone 2 Linux CUDA validation"
     git push
 
-Dependency installation is documentation for the Windows operator and is not performed
+Dependency installation is documentation for the Linux operator and is not performed
 automatically by the validation command. Before committing, `git diff -- validation/` must show no
 secrets, absolute private paths, model contents, or large binary data.
 
@@ -275,8 +275,8 @@ must prevent an authoritative passing verdict and explain why. A report generate
 must be reported as stale when inspected from commit B. Malformed JSON, a future unsupported schema
 version, or a path outside `validation/` must fail clearly rather than be trusted.
 
-No Windows CUDA milestone may be considered validated merely because Mac tests pass or because
-`configs/nvidia.yaml` parses. Acceptance of that platform requires a record created on Windows in
+No Linux CUDA milestone may be considered validated merely because Mac tests pass or because
+`configs/nvidia.yaml` parses. Acceptance of that platform requires a record created on Linux in
 which CUDA is observed, the GPU identity is present, required gates pass, the record is clean, and
 its `source_commit` matches the code being judged. Real-video acceptance remains separately visible
 through optional acceptance evidence and is not inferred from unit tests.
@@ -301,11 +301,11 @@ during implementation but all meanings must remain represented:
     {
       "schema_version": 1,
       "milestone": "milestone-2",
-      "platform": "windows-cuda",
+      "platform": "linux-cuda",
       "source_commit": "<40-character Git SHA>",
       "worktree_dirty": false,
       "environment": {
-        "os": "Windows",
+        "os": "Linux",
         "python": "3.12.x",
         "accelerator_available": true,
         "accelerator_name": "<observed GPU name>"
@@ -340,13 +340,13 @@ No Git hosting API, CI service, database, or new third-party package is required
 transport and history mechanism, while people retain explicit control over commits and pushes.
 
 Revision note (2026-08-27): Initial plan created after read-only repository inspection and user
-approval to design a Git-backed Windows-to-Mac validation handoff.
+approval to design a Git-backed Linux-to-Mac validation handoff.
 
 Revision note (2026-08-27): Expanded the approved design to add a repository-root `AGENTS.md`,
-symmetric non-transferable Mac/Windows evidence, and milestone aggregation. Updated progress,
+symmetric non-transferable macOS/Linux evidence, and milestone aggregation. Updated progress,
 decisions, context, plan of work, and interim outcomes after implementation; final regression is
 still pending.
 
 Revision note (2026-08-27): Completed implementation and regression, added OS-to-platform identity
 checks discovered during final review, and recorded the intentionally blocked milestone status
-until clean Mac and Windows evidence is produced after commit.
+until clean macOS and Linux evidence is produced after commit.

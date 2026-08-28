@@ -13,11 +13,11 @@ from dashcam_ai.validation.records import (
 
 
 def environment(
-    accelerator: str = "cuda", available: bool = True, operating_system: str = "Windows"
+    accelerator: str = "cuda", available: bool = True, operating_system: str = "Linux"
 ) -> EnvironmentEvidence:
     return EnvironmentEvidence(
         operating_system=operating_system,
-        operating_system_release="11",
+        operating_system_release="6.6",
         python_version="3.12.1",
         accelerator=accelerator,
         accelerator_available=available,
@@ -40,7 +40,7 @@ def gates(status: ResultStatus = ResultStatus.PASSED) -> list[GateResult]:
 
 def test_clean_matching_platform_with_all_gates_passes() -> None:
     assert calculate_verdict(
-        platform="windows-cuda",
+        platform="linux-cuda",
         worktree_dirty=False,
         environment=environment(),
         gates=gates(),
@@ -49,7 +49,7 @@ def test_clean_matching_platform_with_all_gates_passes() -> None:
 
 def test_dirty_worktree_is_blocked() -> None:
     verdict, reasons = calculate_verdict(
-        platform="windows-cuda",
+        platform="linux-cuda",
         worktree_dirty=True,
         environment=environment(),
         gates=gates(),
@@ -60,7 +60,7 @@ def test_dirty_worktree_is_blocked() -> None:
 
 def test_failed_gate_wins_over_blocked_environment() -> None:
     verdict, reasons = calculate_verdict(
-        platform="windows-cuda",
+        platform="linux-cuda",
         worktree_dirty=False,
         environment=environment(available=False),
         gates=gates(ResultStatus.FAILED),
@@ -81,15 +81,15 @@ def test_platform_result_cannot_be_transferred_to_another_accelerator() -> None:
     assert any("expected mps" in reason for reason in reasons)
 
 
-def test_cuda_result_from_another_os_cannot_claim_windows() -> None:
+def test_cuda_result_from_another_os_cannot_claim_linux() -> None:
     verdict, reasons = calculate_verdict(
-        platform="windows-cuda",
+        platform="linux-cuda",
         worktree_dirty=False,
-        environment=environment(operating_system="Linux"),
+        environment=environment(operating_system="Windows"),
         gates=gates(),
     )
     assert verdict == ResultStatus.BLOCKED
-    assert any("expected Windows" in reason for reason in reasons)
+    assert any("expected Linux" in reason for reason in reasons)
 
 
 def test_record_rejects_a_fabricated_verdict() -> None:
@@ -97,7 +97,7 @@ def test_record_rejects_a_fabricated_verdict() -> None:
     with pytest.raises(ValidationError, match="do not match"):
         ValidationRecord(
             milestone="milestone-2",
-            platform="windows-cuda",
+            platform="linux-cuda",
             source_commit="a" * 40,
             worktree_dirty=True,
             started_at=now,

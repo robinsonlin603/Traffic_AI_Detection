@@ -5,7 +5,7 @@ These instructions apply to every agent working anywhere in this repository.
 ## Shared project context
 
 Git-tracked plans and validation records are the durable context shared between macOS and
-Windows. Conversation history is not evidence of project state.
+Linux. Conversation history is not evidence of project state.
 
 Before changing code, inspect the current branch, commit, worktree status, the active milestone
 documents under `docs/`, and the latest reports under `validation/`. Compare every report's
@@ -14,9 +14,9 @@ documents under `docs/`, and the latest reports under `validation/`. Compare eve
 
 ## Platform validation
 
-Platform-specific validation is symmetric and non-transferable. A passing macOS MPS, Windows
+Platform-specific validation is symmetric and non-transferable. A passing macOS MPS, Linux
 CUDA, or CPU result validates only the recorded platform and exact source commit. Never infer
-Windows CUDA success from macOS MPS, macOS MPS success from Windows CUDA, or either GPU platform
+Linux CUDA success from macOS MPS, macOS MPS success from Linux CUDA, or either GPU platform
 from CPU. Platform-independent pytest, Ruff, and Mypy results may be useful for the exact recorded
 source commit, but they do not prove another platform's accelerator behavior.
 
