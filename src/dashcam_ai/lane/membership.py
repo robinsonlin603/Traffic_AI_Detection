@@ -46,22 +46,32 @@ def _inside_polygon(point: Point2D, polygon: list[Point2D]) -> bool:
 class LaneMembershipEvaluator:
     """使用邊界帶避免錨點在車道線附近反覆跳動。"""
 
-    def __init__(self, boundary_margin: float) -> None:
+    def __init__(
+        self, boundary_margin: float, minimum_geometry_confidence: float = 0.0
+    ) -> None:
         if boundary_margin < 0:
             raise ValueError("boundary margin must not be negative")
+        if not 0 <= minimum_geometry_confidence <= 1:
+            raise ValueError("minimum geometry confidence must be between zero and one")
         self.boundary_margin = boundary_margin
+        self.minimum_geometry_confidence = minimum_geometry_confidence
 
     def evaluate(self, anchor: Point2D, geometry: LaneGeometry) -> LaneMembershipFeature:
         """正 signed distance 表示 polygon 內，負值表示外部。"""
-        reference_lane = geometry.reference_lane
-        if geometry.status is LaneGeometryStatus.UNKNOWN or reference_lane is None:
+        if (
+            geometry.status is LaneGeometryStatus.UNKNOWN
+            or not geometry.lanes
+            or geometry.confidence < self.minimum_geometry_confidence
+        ):
             return LaneMembershipFeature(
                 membership=LaneMembership.UNKNOWN,
                 anchor=anchor,
                 geometry_confidence=geometry.confidence,
             )
 
-        inside = _inside_polygon(anchor, list(reference_lane.polygon))
+        containing = [
+            lane for lane in geometry.lanes if _inside_polygon(anchor, list(lane.polygon))
+        ]
         distances = [
             (
                 min(
@@ -79,16 +89,27 @@ class LaneMembershipEvaluator:
                 geometry_confidence=geometry.confidence,
             )
         distance, boundary_id = min(distances)
-        signed_distance = distance if inside else -distance
+        boundary = next(
+            item for item in geometry.boundaries if item.boundary_id == boundary_id
+        )
+        signed_distance = distance if containing else -distance
         if distance <= self.boundary_margin:
-            membership = LaneMembership.BOUNDARY
-        elif inside:
-            membership = LaneMembership.INSIDE
+            membership = LaneMembership.NEAR_BOUNDARY
+            lane_id = containing[0].lane_id if len(containing) == 1 else None
+        elif len(containing) == 1:
+            membership = LaneMembership.INSIDE_LANE
+            lane_id = containing[0].lane_id
+        elif not containing:
+            membership = LaneMembership.OUTSIDE_CONFIGURED_LANES
+            lane_id = None
         else:
-            membership = LaneMembership.OUTSIDE
+            membership = LaneMembership.UNKNOWN
+            lane_id = None
         return LaneMembershipFeature(
             membership=membership,
             anchor=anchor,
+            lane_id=lane_id,
+            boundary_lane_ids=(boundary.left_lane_id, boundary.right_lane_id),
             signed_boundary_distance=signed_distance,
             nearest_boundary_id=boundary_id,
             geometry_confidence=geometry.confidence,

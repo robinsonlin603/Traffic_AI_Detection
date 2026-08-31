@@ -76,6 +76,7 @@ class LaneMembershipConfig(BaseModel):
     """車道邊界帶設定；時間平滑參數於後續 slice 加入。"""
 
     boundary_margin_pixels: float = Field(default=12.0, ge=0)
+    minimum_geometry_confidence: float = Field(default=0.5, ge=0, le=1)
 
 
 class EgoMotionConfig(BaseModel):

@@ -20,10 +20,13 @@ class LaneGeometryProvenance(StrEnum):
 
 
 class LaneMembership(StrEnum):
-    OUTSIDE = "outside"
-    BOUNDARY = "boundary"
-    INSIDE = "inside"
+    OUTSIDE_CONFIGURED_LANES = "outside_configured_lanes"
+    NEAR_BOUNDARY = "near_boundary"
+    INSIDE_LANE = "inside_lane"
     UNKNOWN = "unknown"
+    OUTSIDE = "outside_configured_lanes"
+    BOUNDARY = "near_boundary"
+    INSIDE = "inside_lane"
 
 
 class NormalizedPoint2D(BaseModel):
@@ -124,24 +127,14 @@ class LaneGeometry(BaseModel):
                 raise ValueError("lane boundary references an unknown lane")
         return self
 
-    @property
-    def reference_lane(self) -> LaneRegion | None:
-        """Slice 1 相容層；Slice 2 一般 membership 完成後移除。"""
-        if not self.lanes:
-            return None
-        for lane in self.lanes:
-            if lane.lane_id == "lane_center":
-                return lane
-        ordered = sorted(self.lanes, key=lambda lane: lane.lateral_order)
-        return ordered[len(ordered) // 2]
-
-
 class LaneMembershipFeature(BaseModel):
     """單一錨點的車道歸屬與穩定幾何特徵。"""
 
     model_config = ConfigDict(frozen=True)
     membership: LaneMembership
     anchor: Point2D
+    lane_id: str | None = None
+    boundary_lane_ids: tuple[str, str] | None = None
     signed_boundary_distance: float | None = None
     nearest_boundary_id: str | None = None
     geometry_confidence: float = Field(ge=0, le=1)

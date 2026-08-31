@@ -213,7 +213,8 @@ def _build_scene_analyzer(config: AppConfig) -> StreamingSceneAnalyzer | None:
             lane.lanes, lane.boundaries, lane.confidence
         ),
         membership_evaluator=LaneMembershipEvaluator(
-            config.lane_membership.boundary_margin_pixels
+            config.lane_membership.boundary_margin_pixels,
+            config.lane_membership.minimum_geometry_confidence,
         ),
         motion_estimator=OpenCVEgoMotionEstimator(
             max_features=motion.max_features,
