@@ -57,6 +57,8 @@ class TemporalLaneObservation(BaseModel):
     frame_id: int = Field(ge=0)
     timestamp: float = Field(ge=0)
     membership: LaneMembership
+    lane_id: str | None = None
+    stable_lane_id: str | None = None
     signed_boundary_distance: float | None = None
     smoothed_signed_boundary_distance: float | None = None
     nearest_boundary_id: str | None = None
@@ -73,6 +75,8 @@ class TemporalLaneState(BaseModel):
     status: LaneChangeStatus
     frame_id: int = Field(ge=0)
     timestamp: float = Field(ge=0)
+    observed_lane_id: str | None = None
+    stable_lane_id: str | None = None
     candidate_started_frame: int | None = Field(default=None, ge=0)
     candidate_started_timestamp: float | None = Field(default=None, ge=0)
     entered_started_frame: int | None = Field(default=None, ge=0)

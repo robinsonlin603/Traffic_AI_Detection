@@ -29,6 +29,9 @@ class _TrackState:
     status: LaneChangeStatus = LaneChangeStatus.IDLE
     pending_phase: LaneRelationPhase = LaneRelationPhase.UNKNOWN
     pending_count: int = 0
+    stable_lane_id: str | None = None
+    pending_lane_id: str | None = None
+    pending_lane_count: int = 0
     missing_count: int = 0
     valid_motion_count: int = 0
     saw_adjacent: bool = False
@@ -146,6 +149,8 @@ class TemporalLaneTracker:
                 frame_id=frame_id,
                 timestamp=timestamp,
                 membership=feature.membership,
+                lane_id=feature.lane_id,
+                stable_lane_id=state.stable_lane_id,
                 signed_boundary_distance=feature.signed_boundary_distance,
                 nearest_boundary_id=feature.nearest_boundary_id,
                 ego_motion_status=ego_motion_status,
@@ -164,7 +169,9 @@ class TemporalLaneTracker:
         while len(state.distances) > self._smoothing_window:
             state.distances.popleft()
         smoothed = float(median(state.distances))
-        raw_phase = self._classify(feature.membership, smoothed)
+        self._stabilize_lane(state, feature)
+        legacy_membership, legacy_distance = self._legacy_relation(feature, smoothed)
+        raw_phase = self._classify(legacy_membership, legacy_distance)
         stable_phase = self._debounce(state, raw_phase)
         if stable_phase is not None:
             state.phase = stable_phase
@@ -174,6 +181,8 @@ class TemporalLaneTracker:
             frame_id=frame_id,
             timestamp=timestamp,
             membership=feature.membership,
+            lane_id=feature.lane_id,
+            stable_lane_id=state.stable_lane_id,
             signed_boundary_distance=distance,
             smoothed_signed_boundary_distance=smoothed,
             nearest_boundary_id=feature.nearest_boundary_id,
@@ -195,9 +204,9 @@ class TemporalLaneTracker:
         )
 
     def _classify(self, membership: LaneMembership, distance: float) -> LaneRelationPhase:
-        if membership is LaneMembership.BOUNDARY:
+        if membership is LaneMembership.NEAR_BOUNDARY:
             return LaneRelationPhase.CROSSING
-        if membership is LaneMembership.INSIDE:
+        if membership is LaneMembership.INSIDE_LANE:
             return (
                 LaneRelationPhase.ENTERED
                 if distance >= self._entered_distance
@@ -206,6 +215,36 @@ class TemporalLaneTracker:
         if distance > -self._approaching_distance:
             return LaneRelationPhase.APPROACHING
         return LaneRelationPhase.ADJACENT
+
+    def _stabilize_lane(
+        self, state: _TrackState, feature: LaneMembershipFeature
+    ) -> None:
+        if feature.membership is LaneMembership.INSIDE_LANE and feature.lane_id:
+            candidate = feature.lane_id
+        elif feature.membership is LaneMembership.OUTSIDE_CONFIGURED_LANES:
+            candidate = ""
+        else:
+            return
+        if candidate == state.pending_lane_id:
+            state.pending_lane_count += 1
+        else:
+            state.pending_lane_id = candidate
+            state.pending_lane_count = 1
+        if state.pending_lane_count >= self._debounce_frames:
+            state.stable_lane_id = candidate or None
+
+    @staticmethod
+    def _legacy_relation(
+        feature: LaneMembershipFeature, distance: float
+    ) -> tuple[LaneMembership, float]:
+        """Slice 2 相容層；Slice 3 以一般 lane timeline 取代。"""
+        if feature.membership is LaneMembership.NEAR_BOUNDARY:
+            return LaneMembership.NEAR_BOUNDARY, distance
+        if feature.membership is LaneMembership.INSIDE_LANE:
+            if feature.lane_id in {None, "lane_center"}:
+                return LaneMembership.INSIDE_LANE, abs(distance)
+            return LaneMembership.OUTSIDE_CONFIGURED_LANES, -abs(distance)
+        return feature.membership, distance
 
     def _debounce(
         self, state: _TrackState, raw_phase: LaneRelationPhase
@@ -387,6 +426,7 @@ class TemporalLaneTracker:
         if state.missing_count <= self._maximum_missing:
             return
         state.phase = LaneRelationPhase.UNKNOWN
+        state.stable_lane_id = None
         if state.status is LaneChangeStatus.CANDIDATE:
             self._reject(state, "temporal evidence missing beyond tolerance")
 
@@ -426,6 +466,8 @@ class TemporalLaneTracker:
             status=state.status,
             frame_id=frame_id,
             timestamp=timestamp,
+            observed_lane_id=(state.history[-1].lane_id if state.history else None),
+            stable_lane_id=state.stable_lane_id,
             candidate_started_frame=state.candidate_frame,
             candidate_started_timestamp=state.candidate_timestamp,
             entered_started_frame=state.entered_frame,
