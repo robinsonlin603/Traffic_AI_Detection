@@ -37,9 +37,12 @@ class OpenCVAnnotator:
         occupied_labels: list[LabelBox] = []
         if analysis is not None:
             geometry = analysis.lane_geometry
-            if geometry.ego_lane is not None:
+            if geometry.reference_lane is not None:
                 lane_points = np.asarray(
-                    [(round(point.x), round(point.y)) for point in geometry.ego_lane.polygon],
+                    [
+                        (round(point.x), round(point.y))
+                        for point in geometry.reference_lane.polygon
+                    ],
                     dtype=np.int32,
                 )
                 cv2.polylines(output, [lane_points], True, (80, 220, 220), 2)

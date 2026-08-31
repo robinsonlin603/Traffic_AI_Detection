@@ -53,14 +53,15 @@ class LaneMembershipEvaluator:
 
     def evaluate(self, anchor: Point2D, geometry: LaneGeometry) -> LaneMembershipFeature:
         """正 signed distance 表示 polygon 內，負值表示外部。"""
-        if geometry.status is LaneGeometryStatus.UNKNOWN or geometry.ego_lane is None:
+        reference_lane = geometry.reference_lane
+        if geometry.status is LaneGeometryStatus.UNKNOWN or reference_lane is None:
             return LaneMembershipFeature(
                 membership=LaneMembership.UNKNOWN,
                 anchor=anchor,
                 geometry_confidence=geometry.confidence,
             )
 
-        inside = _inside_polygon(anchor, geometry.ego_lane.polygon)
+        inside = _inside_polygon(anchor, list(reference_lane.polygon))
         distances = [
             (
                 min(

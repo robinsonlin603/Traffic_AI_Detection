@@ -39,20 +39,56 @@ class NormalizedPoint2D(BaseModel):
         return Point2D(x=self.x * width, y=self.y * height)
 
 
+class NormalizedLaneRegion(BaseModel):
+    """與影片解析度無關的 configured lane polygon。"""
+
+    model_config = ConfigDict(frozen=True, populate_by_name=True)
+    lane_id: str = Field(min_length=1, validation_alias="id", serialization_alias="id")
+    lateral_order: int
+    polygon: tuple[NormalizedPoint2D, ...] = Field(min_length=3)
+
+
+class NormalizedLaneBoundary(BaseModel):
+    """分隔兩條 configured lane 的 normalized polyline。"""
+
+    model_config = ConfigDict(frozen=True, populate_by_name=True)
+    boundary_id: str = Field(
+        min_length=1, validation_alias="id", serialization_alias="id"
+    )
+    left_lane_id: str = Field(min_length=1)
+    right_lane_id: str = Field(min_length=1)
+    points: tuple[NormalizedPoint2D, ...] = Field(min_length=2)
+
+    @model_validator(mode="after")
+    def validate_distinct_lanes(self) -> NormalizedLaneBoundary:
+        if self.left_lane_id == self.right_lane_id:
+            raise ValueError("lane boundary must separate two distinct lanes")
+        return self
+
+
 class LaneBoundary(BaseModel):
     model_config = ConfigDict(frozen=True)
     boundary_id: str = Field(min_length=1)
-    points: list[Point2D] = Field(min_length=2)
+    left_lane_id: str = Field(min_length=1)
+    right_lane_id: str = Field(min_length=1)
+    points: tuple[Point2D, ...] = Field(min_length=2)
+
+    @model_validator(mode="after")
+    def validate_distinct_lanes(self) -> LaneBoundary:
+        if self.left_lane_id == self.right_lane_id:
+            raise ValueError("lane boundary must separate two distinct lanes")
+        return self
 
 
 class LaneRegion(BaseModel):
     model_config = ConfigDict(frozen=True)
-    region_id: str = Field(min_length=1)
-    polygon: list[Point2D] = Field(min_length=3)
+    lane_id: str = Field(min_length=1)
+    lateral_order: int
+    polygon: tuple[Point2D, ...] = Field(min_length=3)
 
 
 class LaneGeometry(BaseModel):
-    """單幀可用的自車車道區域、邊界及品質資訊。"""
+    """單幀可用的一般車道區域、共享邊界及品質資訊。"""
 
     model_config = ConfigDict(frozen=True)
     status: LaneGeometryStatus
@@ -60,17 +96,44 @@ class LaneGeometry(BaseModel):
     confidence: float = Field(ge=0, le=1)
     frame_width: int = Field(gt=0)
     frame_height: int = Field(gt=0)
-    ego_lane: LaneRegion | None = None
-    boundaries: list[LaneBoundary] = Field(default_factory=list)
+    lanes: tuple[LaneRegion, ...] = ()
+    boundaries: tuple[LaneBoundary, ...] = ()
     reason: str | None = None
 
     @model_validator(mode="after")
     def validate_status_payload(self) -> LaneGeometry:
-        if self.status is LaneGeometryStatus.VALID and self.ego_lane is None:
-            raise ValueError("valid lane geometry requires an ego lane region")
-        if self.status is LaneGeometryStatus.UNKNOWN and self.ego_lane is not None:
-            raise ValueError("unknown lane geometry cannot contain an ego lane region")
+        if self.status is LaneGeometryStatus.VALID and not self.lanes:
+            raise ValueError("valid lane geometry requires at least one lane region")
+        if self.status is LaneGeometryStatus.UNKNOWN and (self.lanes or self.boundaries):
+            raise ValueError("unknown lane geometry cannot contain lanes or boundaries")
+        lane_ids = [lane.lane_id for lane in self.lanes]
+        orders = [lane.lateral_order for lane in self.lanes]
+        boundary_ids = [boundary.boundary_id for boundary in self.boundaries]
+        if len(set(lane_ids)) != len(lane_ids):
+            raise ValueError("lane geometry lane IDs must be unique")
+        if len(set(orders)) != len(orders):
+            raise ValueError("lane geometry lateral orders must be unique")
+        if len(set(boundary_ids)) != len(boundary_ids):
+            raise ValueError("lane geometry boundary IDs must be unique")
+        known_lanes = set(lane_ids)
+        for boundary in self.boundaries:
+            if {
+                boundary.left_lane_id,
+                boundary.right_lane_id,
+            } - known_lanes:
+                raise ValueError("lane boundary references an unknown lane")
         return self
+
+    @property
+    def reference_lane(self) -> LaneRegion | None:
+        """Slice 1 相容層；Slice 2 一般 membership 完成後移除。"""
+        if not self.lanes:
+            return None
+        for lane in self.lanes:
+            if lane.lane_id == "lane_center":
+                return lane
+        ordered = sorted(self.lanes, key=lambda lane: lane.lateral_order)
+        return ordered[len(ordered) // 2]
 
 
 class LaneMembershipFeature(BaseModel):

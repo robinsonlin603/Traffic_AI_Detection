@@ -8,7 +8,11 @@ from typing import Any
 import yaml  # type: ignore[import-untyped]
 from pydantic import BaseModel, Field, field_validator, model_validator
 
-from dashcam_ai.domain.lane import NormalizedPoint2D
+from dashcam_ai.domain.lane import (
+    NormalizedLaneBoundary,
+    NormalizedLaneRegion,
+    NormalizedPoint2D,
+)
 
 
 class DetectionConfig(BaseModel):
@@ -29,20 +33,43 @@ class TrackingConfig(BaseModel):
 
 
 class LaneGeometryConfig(BaseModel):
-    """人工校正的 normalized 自車車道與其可信度。"""
+    """人工校正的一般 normalized lanes、共享邊界與可信度。"""
 
     enabled: bool = True
-    ego_lane_polygon: list[NormalizedPoint2D] = Field(
+    lanes: list[NormalizedLaneRegion] = Field(
         default_factory=lambda: [
-            NormalizedPoint2D(x=0.44, y=0.45),
-            NormalizedPoint2D(x=0.56, y=0.45),
-            NormalizedPoint2D(x=0.90, y=1.00),
-            NormalizedPoint2D(x=0.10, y=1.00),
+            NormalizedLaneRegion(
+                lane_id="lane_center",
+                lateral_order=0,
+                polygon=(
+                    NormalizedPoint2D(x=0.44, y=0.45),
+                    NormalizedPoint2D(x=0.56, y=0.45),
+                    NormalizedPoint2D(x=0.90, y=1.00),
+                    NormalizedPoint2D(x=0.10, y=1.00),
+                ),
+            )
         ],
-        min_length=4,
-        max_length=4,
+        min_length=1,
     )
+    boundaries: list[NormalizedLaneBoundary] = Field(default_factory=list)
     confidence: float = Field(default=1.0, ge=0, le=1)
+
+    @model_validator(mode="after")
+    def validate_topology(self) -> LaneGeometryConfig:
+        lane_ids = [lane.lane_id for lane in self.lanes]
+        orders = [lane.lateral_order for lane in self.lanes]
+        boundary_ids = [boundary.boundary_id for boundary in self.boundaries]
+        if len(set(lane_ids)) != len(lane_ids):
+            raise ValueError("lane IDs must be unique")
+        if len(set(orders)) != len(orders):
+            raise ValueError("lane lateral orders must be unique")
+        if len(set(boundary_ids)) != len(boundary_ids):
+            raise ValueError("boundary IDs must be unique")
+        known_lanes = set(lane_ids)
+        for boundary in self.boundaries:
+            if {boundary.left_lane_id, boundary.right_lane_id} - known_lanes:
+                raise ValueError("boundary references an unknown lane")
+        return self
 
 
 class LaneMembershipConfig(BaseModel):

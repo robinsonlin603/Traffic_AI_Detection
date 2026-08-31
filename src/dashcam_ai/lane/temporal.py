@@ -369,9 +369,9 @@ class TemporalLaneTracker:
 
     @staticmethod
     def _adjacent_lane(boundary_id: str | None) -> LanePosition:
-        if boundary_id == "left":
+        if boundary_id in {"left", "boundary_left"}:
             return LanePosition.LEFT_ADJACENT
-        if boundary_id == "right":
+        if boundary_id in {"right", "boundary_right"}:
             return LanePosition.RIGHT_ADJACENT
         return LanePosition.UNKNOWN
 

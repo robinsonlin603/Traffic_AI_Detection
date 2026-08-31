@@ -209,7 +209,9 @@ def _build_scene_analyzer(config: AppConfig) -> StreamingSceneAnalyzer | None:
     temporal = config.temporal_lane
     cutin = config.cut_in
     return StreamingSceneAnalyzer(
-        lane_detector=ConfiguredLaneDetector(lane.ego_lane_polygon, lane.confidence),
+        lane_detector=ConfiguredLaneDetector(
+            lane.lanes, lane.boundaries, lane.confidence
+        ),
         membership_evaluator=LaneMembershipEvaluator(
             config.lane_membership.boundary_margin_pixels
         ),
