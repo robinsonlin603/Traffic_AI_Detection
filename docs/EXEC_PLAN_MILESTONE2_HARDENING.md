@@ -35,8 +35,10 @@ distance, liability, turn signals, or enforcement evidence. It does not introduc
   Milestone 2 plan, cross-platform plan, source layout, and validation reports.
 - [x] (2026-08-31 08:16Z) Converted the user's long-video review into named regression scenarios
   and approved five implementation slices.
-- [ ] Slice 1: add regression fixtures, motor-vehicle eligibility, and explicit maneuver
-  semantics.
+- [x] (2026-08-31 08:27Z) Slice 1: added video-relative regression fixtures, motor-vehicle
+  eligibility, explicit entering/leaving and source/destination lane semantics, same-track
+  multi-maneuver re-arming, and defensive cut-in gating. Focused tests passed 33 tests; the final
+  repository regression passed 102 tests, Ruff, and strict Mypy across 54 source files.
 - [ ] Slice 2: add ego-motion-compensated relative motion, direction compatibility, cut-in safety
   gates, and explainable confidence.
 - [ ] Slice 3: add dynamic lane geometry with temporal quality and safe unknown behavior.
@@ -66,6 +68,13 @@ distance, liability, turn signals, or enforcement evidence. It does not introduc
   two physical vehicles exchanging identities.
   Evidence: the user confirmed that raw tracks `#7683` and `#7684` simultaneously boxed the same
   physical vehicle while its class oscillated between car and truck.
+
+- Observation: The existing temporal tracker treated confirmation as permanently terminal for a
+  raw track, so one vehicle could not produce a later independent maneuver.
+  Evidence: before Slice 1, `TemporalLaneTracker._advance` returned for every confirmed state.
+  Slice 1 now re-arms bounded state after emitting the terminal snapshot, and the integration test
+  `test_same_track_entering_then_leaving_creates_two_lane_changes_one_cutin` proves two lane
+  changes and only one entering cut-in for one track.
 
 ## Decision Log
 
@@ -113,13 +122,24 @@ distance, liability, turn signals, or enforcement evidence. It does not introduc
   collision while preserving the user's compact format.
   Date/Author: 2026-08-31 / Codex and user
 
+- Decision: Define `LanePosition` and `ManeuverRelation` in
+  `src/dashcam_ai/domain/temporal.py`, serialize them on `TemporalLaneState` and
+  `LaneChangeEvent`, and filter event creation at `StreamingSceneAnalyzer` while retaining all
+  perception objects and frame analysis.
+  Rationale: temporal state owns the evidence that establishes the maneuver, while filtering only
+  the event boundary avoids deleting people or bicycles from ordinary detection artifacts.
+  Date/Author: 2026-08-31 / Codex
+
 ## Outcomes & Retrospective
 
-The plan is approved and authored, but no production implementation has started. The current
-branch remains a clean hardening baseline. Milestone 2 hardening cannot be declared complete until
-all five slices pass their focused and full automated gates, the reviewed scenarios have expected
-results, and fresh macOS MPS and Linux CUDA reports refer to the exact source commit. CPU evidence
-is useful but does not replace either required accelerator report.
+The plan is approved and Slice 1 is implemented. Event output now distinguishes entering from
+leaving, records source and destination lane positions, excludes non-motor vehicles without
+removing their perception records, supports consecutive maneuvers on one track, and never creates
+a cut-in for a leaving maneuver. The automated suite passes, but private-video acceptance remains
+deferred until later slices address motion, geometry, and continuity. Milestone 2 hardening cannot
+be declared complete until all five slices pass, the reviewed scenarios have expected results,
+and fresh macOS MPS and Linux CUDA reports refer to the exact source commit. CPU evidence is useful
+but does not replace either required accelerator report.
 
 ## Context and Orientation
 
@@ -422,3 +442,6 @@ logic.
 
 Revision note (2026-08-31): Initial approved Milestone 2 Hardening ExecPlan created from the
 long-video CUDA artifact audit, the user's human labels, and the five-slice delivery decision.
+
+Revision note (2026-08-31): Recorded Slice 1 event-semantics implementation, its exact domain
+placement, same-track re-arming discovery, and final automated verification results.
