@@ -14,6 +14,7 @@ from dashcam_ai.domain.geometry import BBox
 from dashcam_ai.domain.lane import LaneMembership
 from dashcam_ai.domain.motion import EgoMotionStatus
 from dashcam_ai.domain.scene import ForwardCorridor
+from dashcam_ai.domain.temporal import ManeuverRelation
 
 
 class CutInDetector:
@@ -83,7 +84,12 @@ class CutInDetector:
             )
         )
         status, reason = self._status(
-            lane_change.status, corridor_score, expansion_score, motion_score, overall
+            lane_change.status,
+            lane_change.maneuver_relation,
+            corridor_score,
+            expansion_score,
+            motion_score,
+            overall,
         )
         latest = frames[-1] if frames else None
         current_evidence = EventEvidenceFrame(
@@ -134,6 +140,7 @@ class CutInDetector:
     def _status(
         self,
         lane_status: EventStatus,
+        maneuver_relation: ManeuverRelation,
         corridor_score: float,
         expansion_score: float,
         motion_score: float,
@@ -141,6 +148,8 @@ class CutInDetector:
     ) -> tuple[EventStatus, str | None]:
         if lane_status is EventStatus.REJECTED:
             return EventStatus.REJECTED, "lane change was rejected"
+        if maneuver_relation is not ManeuverRelation.ENTERING_EGO:
+            return EventStatus.REJECTED, "lane change is not entering the ego lane"
         if corridor_score < 1.0:
             return EventStatus.REJECTED, "vehicle bottom-center is outside forward corridor"
         if expansion_score <= 0:

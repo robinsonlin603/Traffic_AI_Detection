@@ -10,7 +10,9 @@ from dashcam_ai.domain.lane import LaneMembership, LaneMembershipFeature
 from dashcam_ai.domain.motion import EgoMotionStatus
 from dashcam_ai.domain.temporal import (
     LaneChangeStatus,
+    LanePosition,
     LaneRelationPhase,
+    ManeuverRelation,
     TemporalLaneObservation,
     TemporalLaneState,
 )
@@ -25,12 +27,16 @@ class _TrackState:
     missing_count: int = 0
     valid_motion_count: int = 0
     saw_adjacent: bool = False
+    saw_inside: bool = False
     candidate_frame: int | None = None
     candidate_timestamp: float | None = None
     entered_frame: int | None = None
     entered_timestamp: float | None = None
     entered_count: int = 0
     boundary_id: str | None = None
+    maneuver_relation: ManeuverRelation = ManeuverRelation.UNKNOWN
+    from_lane: LanePosition = LanePosition.UNKNOWN
+    to_lane: LanePosition = LanePosition.UNKNOWN
     reason: str | None = None
     last_frame: int | None = None
     last_timestamp: float | None = None
@@ -184,21 +190,48 @@ class TemporalLaneTracker:
         timestamp: float,
         stable_phase: LaneRelationPhase | None,
     ) -> None:
+        if state.status is LaneChangeStatus.CONFIRMED:
+            completed_relation = state.maneuver_relation
+            self._rearm(state)
+            if completed_relation is ManeuverRelation.ENTERING_EGO:
+                state.saw_inside = True
+            elif completed_relation is ManeuverRelation.LEAVING_EGO:
+                state.saw_adjacent = True
         if stable_phase is LaneRelationPhase.ADJACENT:
             state.saw_adjacent = True
+        if stable_phase is LaneRelationPhase.ENTERED:
+            state.saw_inside = True
         if state.status is LaneChangeStatus.IDLE:
             if state.saw_adjacent and stable_phase in {
                 LaneRelationPhase.APPROACHING,
                 LaneRelationPhase.CROSSING,
             }:
-                state.status = LaneChangeStatus.CANDIDATE
-                state.candidate_frame = frame_id
-                state.candidate_timestamp = timestamp
-                state.valid_motion_count = 1
-                state.reason = None
+                self._start_candidate(
+                    state,
+                    frame_id,
+                    timestamp,
+                    ManeuverRelation.ENTERING_EGO,
+                )
+            elif state.saw_inside and stable_phase in {
+                LaneRelationPhase.APPROACHING,
+                LaneRelationPhase.CROSSING,
+            }:
+                self._start_candidate(
+                    state,
+                    frame_id,
+                    timestamp,
+                    ManeuverRelation.LEAVING_EGO,
+                )
             return
         if state.status is LaneChangeStatus.REJECTED:
-            if stable_phase is LaneRelationPhase.ADJACENT:
+            returned_to_origin = (
+                state.maneuver_relation is ManeuverRelation.ENTERING_EGO
+                and stable_phase is LaneRelationPhase.ADJACENT
+            ) or (
+                state.maneuver_relation is ManeuverRelation.LEAVING_EGO
+                and stable_phase is LaneRelationPhase.ENTERED
+            )
+            if returned_to_origin:
                 self._rearm(state)
             return
         if state.status is not LaneChangeStatus.CANDIDATE:
@@ -208,10 +241,21 @@ class TemporalLaneTracker:
         if timestamp - state.candidate_timestamp > self._candidate_timeout:
             self._reject(state, "candidate timed out")
             return
-        if stable_phase is LaneRelationPhase.ADJACENT:
-            self._reject(state, "vehicle returned to adjacent lane")
+        if (
+            state.maneuver_relation is ManeuverRelation.ENTERING_EGO
+            and stable_phase is LaneRelationPhase.ADJACENT
+        ) or (
+            state.maneuver_relation is ManeuverRelation.LEAVING_EGO
+            and stable_phase is LaneRelationPhase.ENTERED
+        ):
+            self._reject(state, "vehicle returned to origin lane")
             return
-        if stable_phase is LaneRelationPhase.ENTERED:
+        target_phase = (
+            LaneRelationPhase.ENTERED
+            if state.maneuver_relation is ManeuverRelation.ENTERING_EGO
+            else LaneRelationPhase.ADJACENT
+        )
+        if stable_phase is target_phase:
             if state.entered_frame is None:
                 state.entered_frame = frame_id
                 state.entered_timestamp = timestamp
@@ -231,6 +275,35 @@ class TemporalLaneTracker:
             state.entered_frame = None
             state.entered_timestamp = None
             state.entered_count = 0
+
+    def _start_candidate(
+        self,
+        state: _TrackState,
+        frame_id: int,
+        timestamp: float,
+        relation: ManeuverRelation,
+    ) -> None:
+        state.status = LaneChangeStatus.CANDIDATE
+        state.candidate_frame = frame_id
+        state.candidate_timestamp = timestamp
+        state.valid_motion_count = 1
+        state.maneuver_relation = relation
+        adjacent = self._adjacent_lane(state.boundary_id)
+        if relation is ManeuverRelation.ENTERING_EGO:
+            state.from_lane = adjacent
+            state.to_lane = LanePosition.EGO
+        else:
+            state.from_lane = LanePosition.EGO
+            state.to_lane = adjacent
+        state.reason = None
+
+    @staticmethod
+    def _adjacent_lane(boundary_id: str | None) -> LanePosition:
+        if boundary_id == "left":
+            return LanePosition.LEFT_ADJACENT
+        if boundary_id == "right":
+            return LanePosition.RIGHT_ADJACENT
+        return LanePosition.UNKNOWN
 
     def _handle_missing(self, state: _TrackState, timestamp: float) -> None:
         state.missing_count += 1
@@ -261,6 +334,11 @@ class TemporalLaneTracker:
         state.entered_timestamp = None
         state.entered_count = 0
         state.valid_motion_count = 0
+        state.saw_adjacent = state.phase is LaneRelationPhase.ADJACENT
+        state.saw_inside = state.phase is LaneRelationPhase.ENTERED
+        state.maneuver_relation = ManeuverRelation.UNKNOWN
+        state.from_lane = LanePosition.UNKNOWN
+        state.to_lane = LanePosition.UNKNOWN
         state.reason = None
 
     @staticmethod
@@ -284,6 +362,9 @@ class TemporalLaneTracker:
             missing_observations=state.missing_count,
             valid_motion_observations=state.valid_motion_count,
             boundary_id=state.boundary_id,
+            maneuver_relation=state.maneuver_relation,
+            from_lane=state.from_lane,
+            to_lane=state.to_lane,
             reason=state.reason,
             history=tuple(state.history),
         )
