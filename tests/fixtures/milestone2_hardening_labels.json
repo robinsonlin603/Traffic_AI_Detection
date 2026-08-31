@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "source": "human-reviewed Linux CUDA acceptance video",
+  "time_basis": "video-relative",
+  "cases": [
+    {"track_ids": [3379], "start": 400, "end": 412, "expected": ["entering_ego", "cut_in"], "stable_id": true},
+    {"track_ids": [4910], "start": 595, "end": 609, "expected": ["entering_ego", "cut_in"], "stable_id": true},
+    {"track_ids": [4984], "start": 601, "end": 609, "expected": ["entering_ego", "cut_in"], "stable_id": true},
+    {"track_ids": [7015], "start": 805, "end": 809, "expected": ["entering_ego", "cut_in"]},
+    {"track_ids": [7015], "start": 810, "end": 813, "expected": ["leaving_ego"]},
+    {"track_ids": [7683, 7684], "start": 858, "end": 873, "expected": ["entering_then_leaving"], "duplicate_tracks": true},
+    {"track_ids": [7769], "start": 821, "end": 1017, "expected": ["leaving_ego"], "fragmented_id": true},
+    {"track_ids": [10295], "start": 1121, "end": 1143, "expected": ["entering_ego", "cut_in"], "stable_id": true},
+    {"track_ids": [11661], "start": 1212, "end": 1250, "expected": ["entering_ego", "cut_in"], "stable_id": true},
+    {"track_ids": [13021], "start": 1260, "end": 1310, "expected": ["no_event"], "scene": ["oncoming", "road_curve", "occlusion"]},
+    {"track_ids": [3864], "start": 467, "end": 472, "expected": ["no_event"], "scene": ["parked"]},
+    {"track_ids": [11211], "start": 1173, "end": 1196, "expected": ["no_event"], "scene": ["road_curve"]},
+    {"track_ids": [10348], "start": 1161, "end": 1162, "expected": ["no_event"], "scene": ["configured_boundary_motion"]},
+    {"track_ids": [10348], "start": 1181, "end": 1185, "expected": ["no_event"], "scene": ["configured_boundary_motion"]},
+    {"track_ids": [10348], "start": 1190, "end": 1200, "expected": ["entering_ego"], "system_result": "rejected"},
+    {"track_ids": [21362, 21436], "start": 1834, "end": 1837, "expected": ["uncertain"], "scene": ["occlusion"], "association": "unknown"}
+  ]
+}

@@ -159,6 +159,26 @@ mypy src
 
 核心測試不需要 CUDA、模型權重或網路連線。
 
+## macOS／Linux 跨平台驗證紀錄
+
+專案根目錄的 `AGENTS.md` 定義所有 agent 共用的驗證規則，`validation/` 則保存可透過 Git 在不同電腦間交換的測試證據。平台結果互相獨立：macOS MPS 不證明 Linux CUDA，Linux CUDA 也不證明 macOS MPS；報告只適用於其中記錄的精確 source commit。
+
+在目前平台執行共通 gates 並產生 JSON 與 Markdown 報告：
+
+```bash
+dashcam-ai validate --milestone 2 --platform macos-mps
+dashcam-ai validate --milestone 2 --platform linux-cuda
+```
+
+檢查單一報告是否仍適用於目前 checkout，或彙整 Milestone 2 所需平台：
+
+```bash
+dashcam-ai validation-status validation/milestone-2/linux-cuda.json
+dashcam-ai milestone-status --milestone 2
+```
+
+若報告的 source commit 與目前 commit 不同，狀態會是 `stale`；缺少報告、dirty worktree、缺少工具或 requested accelerator 不可用時會是 `blocked`。工具只產生報告，不會自動 commit 或 push。Linux 與 macOS 的完整 Git handoff 與資料安全規則請參閱 [`validation/README.md`](validation/README.md)。
+
 ## 限制與驗收狀態
 
 - Configured polygon 不會隨彎道、坡度、鏡頭姿態或道路幾何自動改變。

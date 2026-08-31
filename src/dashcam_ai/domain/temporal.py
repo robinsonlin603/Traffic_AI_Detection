@@ -7,7 +7,11 @@ from enum import StrEnum
 from pydantic import BaseModel, ConfigDict, Field
 
 from dashcam_ai.domain.lane import LaneMembership
-from dashcam_ai.domain.motion import EgoMotionStatus
+from dashcam_ai.domain.motion import (
+    EgoMotionStatus,
+    RelativeMotionEvidence,
+    RelativeMotionSummary,
+)
 
 
 class LaneRelationPhase(StrEnum):
@@ -29,6 +33,23 @@ class LaneChangeStatus(StrEnum):
     REJECTED = "rejected"
 
 
+class LanePosition(StrEnum):
+    """以自車車道為中心描述換道前後的位置。"""
+
+    EGO = "ego"
+    LEFT_ADJACENT = "left_adjacent"
+    RIGHT_ADJACENT = "right_adjacent"
+    UNKNOWN = "unknown"
+
+
+class ManeuverRelation(StrEnum):
+    """描述一次換道是進入或離開自車車道。"""
+
+    ENTERING_EGO = "entering_ego"
+    LEAVING_EGO = "leaving_ego"
+    UNKNOWN = "unknown"
+
+
 class TemporalLaneObservation(BaseModel):
     """單一追蹤物件在某幀的 temporal lane 證據。"""
 
@@ -40,6 +61,7 @@ class TemporalLaneObservation(BaseModel):
     smoothed_signed_boundary_distance: float | None = None
     nearest_boundary_id: str | None = None
     ego_motion_status: EgoMotionStatus
+    relative_motion: RelativeMotionEvidence | None = None
 
 
 class TemporalLaneState(BaseModel):
@@ -58,5 +80,9 @@ class TemporalLaneState(BaseModel):
     missing_observations: int = Field(ge=0)
     valid_motion_observations: int = Field(ge=0)
     boundary_id: str | None = None
+    maneuver_relation: ManeuverRelation = ManeuverRelation.UNKNOWN
+    from_lane: LanePosition = LanePosition.UNKNOWN
+    to_lane: LanePosition = LanePosition.UNKNOWN
+    relative_motion: RelativeMotionSummary | None = None
     reason: str | None = None
     history: tuple[TemporalLaneObservation, ...] = ()

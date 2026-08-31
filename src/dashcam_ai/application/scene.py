@@ -10,7 +10,7 @@ from dashcam_ai.domain.lane import LaneMembership, LaneMembershipFeature
 from dashcam_ai.domain.motion import EgoMotionEstimate, EgoMotionQuality, EgoMotionStatus
 from dashcam_ai.domain.perception import TrackedObject
 from dashcam_ai.domain.scene import FrameSceneAnalysis, TrackSceneAnalysis
-from dashcam_ai.domain.temporal import TemporalLaneState
+from dashcam_ai.domain.temporal import ManeuverRelation, TemporalLaneState
 from dashcam_ai.events.corridor import ConfiguredForwardCorridor
 from dashcam_ai.events.cutin import CutInDetector
 from dashcam_ai.events.lane_change import LaneChangeEventBuilder
@@ -18,8 +18,11 @@ from dashcam_ai.lane.base import LaneDetector
 from dashcam_ai.lane.membership import LaneMembershipEvaluator
 from dashcam_ai.lane.temporal import TemporalLaneTracker
 from dashcam_ai.motion.base import EgoMotionEstimator
+from dashcam_ai.motion.relative import RelativeMotionEvaluator
 
 StructuredEvent = LaneChangeEvent | CutInEvent
+
+EVENT_ELIGIBLE_CLASSES = frozenset({"car", "truck", "bus", "motorcycle"})
 
 
 class SceneAnalysisBackend(Protocol):
@@ -47,6 +50,7 @@ class StreamingSceneAnalyzer:
         lane_detector: LaneDetector,
         membership_evaluator: LaneMembershipEvaluator,
         motion_estimator: EgoMotionEstimator,
+        relative_motion_evaluator: RelativeMotionEvaluator,
         temporal_tracker: TemporalLaneTracker,
         corridor: ConfiguredForwardCorridor,
         lane_change_builder: LaneChangeEventBuilder,
@@ -58,6 +62,7 @@ class StreamingSceneAnalyzer:
         self._lane_detector = lane_detector
         self._membership_evaluator = membership_evaluator
         self._motion_estimator = motion_estimator
+        self._relative_motion_evaluator = relative_motion_evaluator
         self._temporal = temporal_tracker
         self._corridor_factory = corridor
         self._lane_change_builder = lane_change_builder
@@ -67,6 +72,7 @@ class StreamingSceneAnalyzer:
         self._previous_boxes: dict[int, BBox] = {}
         self._last_anchors: dict[int, Point2D] = {}
         self._missing_counts: dict[int, int] = {}
+        self._event_eligible_tracks: set[int] = set()
         self._events: dict[str, StructuredEvent] = {}
 
     def process(
@@ -87,23 +93,58 @@ class StreamingSceneAnalyzer:
                 self._previous_frame, frame, list(self._previous_boxes.values())
             )
         )
+        relative_motion = {
+            obj.track_id: self._relative_motion_evaluator.evaluate(
+                self._last_anchors.get(obj.track_id),
+                obj.bbox.bottom_center,
+                motion,
+                width,
+                height,
+            )
+            for obj in objects
+        }
+        eligible_relative_motion = {
+            obj.track_id: relative_motion[obj.track_id]
+            for obj in objects
+            if obj.class_name.casefold() in EVENT_ELIGIBLE_CLASSES
+        }
+        relative_motion.update(
+            self._relative_motion_evaluator.apply_scene_consistency(
+                eligible_relative_motion
+            )
+        )
         track_results: list[TrackSceneAnalysis] = []
         frame_lane_events: list[LaneChangeEvent] = []
         frame_cutin_events: list[CutInEvent] = []
         current_ids = {obj.track_id for obj in objects}
         for obj in objects:
+            event_eligible = obj.class_name.casefold() in EVENT_ELIGIBLE_CLASSES
+            if event_eligible:
+                self._event_eligible_tracks.add(obj.track_id)
+            else:
+                self._event_eligible_tracks.discard(obj.track_id)
             membership = self._membership_evaluator.evaluate(obj.bbox.bottom_center, geometry)
             temporal = self._temporal.update(
-                obj.track_id, frame_id, timestamp, membership, motion.status
+                obj.track_id,
+                frame_id,
+                timestamp,
+                membership,
+                motion.status,
+                relative_motion[obj.track_id],
             )
             track_results.append(
                 TrackSceneAnalysis(
                     track_id=obj.track_id, membership=membership, temporal=temporal
                 )
             )
-            lane_event = self._record_lane_event(temporal, frame_lane_events)
+            lane_event = self._record_lane_event(
+                temporal, frame_lane_events, event_eligible=event_eligible
+            )
             previous_bbox = self._previous_boxes.get(obj.track_id)
-            if lane_event is not None:
+            if (
+                lane_event is not None
+                and lane_event.maneuver_relation is ManeuverRelation.ENTERING_EGO
+            ):
                 cutin = self._cut_in_detector.detect(
                     lane_event, obj.bbox, previous_bbox, corridor
                 )
@@ -125,13 +166,18 @@ class StreamingSceneAnalyzer:
             temporal = self._temporal.update(
                 track_id, frame_id, timestamp, unknown, motion.status
             )
-            lane_event = self._record_lane_event(temporal, frame_lane_events)
+            lane_event = self._record_lane_event(
+                temporal,
+                frame_lane_events,
+                event_eligible=track_id in self._event_eligible_tracks,
+            )
             if lane_event is not None and lane_event.status is EventStatus.REJECTED:
                 self._cascade_cutin_rejection(lane_event)
             if missing > self._retention_frames:
                 self._temporal.forget(track_id)
                 self._last_anchors.pop(track_id, None)
                 self._missing_counts.pop(track_id, None)
+                self._event_eligible_tracks.discard(track_id)
 
         self._previous_frame = frame.copy() if hasattr(frame, "copy") else frame
         self._previous_boxes = {obj.track_id: obj.bbox for obj in objects}
@@ -166,9 +212,29 @@ class StreamingSceneAnalyzer:
             self._events[event_id] = rejected
             self._cascade_cutin_rejection(rejected)
 
+        for event_id, event in tuple(self._events.items()):
+            if not isinstance(event, CutInEvent):
+                continue
+            if event.status is not EventStatus.CANDIDATE:
+                continue
+            self._events[event_id] = event.model_copy(
+                update={
+                    "status": EventStatus.REJECTED,
+                    "frame_id": frame_id,
+                    "timestamp": timestamp,
+                    "reason": "video ended before cut-in confirmation",
+                }
+            )
+
     def _record_lane_event(
-        self, temporal: TemporalLaneState, output: list[LaneChangeEvent]
+        self,
+        temporal: TemporalLaneState,
+        output: list[LaneChangeEvent],
+        *,
+        event_eligible: bool,
     ) -> LaneChangeEvent | None:
+        if not event_eligible:
+            return None
         event = self._lane_change_builder.build(temporal)
         if event is None:
             return None

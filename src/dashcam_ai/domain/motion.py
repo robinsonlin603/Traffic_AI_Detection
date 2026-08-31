@@ -6,9 +6,18 @@ from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from dashcam_ai.domain.geometry import Point2D
+
 
 class EgoMotionStatus(StrEnum):
     """單次相鄰影格運動估算的可用狀態。"""
+
+    VALID = "valid"
+    UNKNOWN = "unknown"
+
+
+class RelativeMotionStatus(StrEnum):
+    """Track 錨點扣除背景 homography 後的可用狀態。"""
 
     VALID = "valid"
     UNKNOWN = "unknown"
@@ -49,3 +58,61 @@ class EgoMotionEstimate(BaseModel):
         if self.status is EgoMotionStatus.UNKNOWN and self.transform is not None:
             raise ValueError("unknown ego-motion estimate cannot contain a transform")
         return self
+
+
+class RelativeMotionEvidence(BaseModel):
+    """相鄰影格間可解釋且解析度正規化的 Track 相對運動。"""
+
+    model_config = ConfigDict(frozen=True)
+    status: RelativeMotionStatus
+    previous_anchor: Point2D | None = None
+    current_anchor: Point2D
+    predicted_background_anchor: Point2D | None = None
+    observed_displacement: Point2D | None = None
+    predicted_background_displacement: Point2D | None = None
+    compensated_displacement: Point2D | None = None
+    normalized_lateral_displacement: float | None = None
+    normalized_longitudinal_displacement: float | None = None
+    stationary: bool | None = None
+    scene_consistent: bool | None = None
+    confidence: float = Field(ge=0, le=1)
+    reason: str | None = None
+
+    @model_validator(mode="after")
+    def validate_status_payload(self) -> RelativeMotionEvidence:
+        required = (
+            self.previous_anchor,
+            self.predicted_background_anchor,
+            self.observed_displacement,
+            self.predicted_background_displacement,
+            self.compensated_displacement,
+            self.normalized_lateral_displacement,
+            self.normalized_longitudinal_displacement,
+            self.stationary,
+            self.scene_consistent,
+        )
+        if self.status is RelativeMotionStatus.VALID and any(
+            value is None for value in required
+        ):
+            raise ValueError("valid relative motion requires complete displacement evidence")
+        if self.status is RelativeMotionStatus.UNKNOWN and any(
+            value is not None for value in required
+        ):
+            raise ValueError("unknown relative motion cannot contain displacement evidence")
+        return self
+
+
+class RelativeMotionSummary(BaseModel):
+    """一次換道候選期間的累積相對運動與安全閘門結果。"""
+
+    model_config = ConfigDict(frozen=True)
+    valid_observations: int = Field(ge=0)
+    cumulative_lateral_displacement: float
+    expected_lateral_progress: float
+    directional_consistency: float = Field(ge=0, le=1)
+    motion_quality: float = Field(ge=0, le=1)
+    scene_consistency: float = Field(ge=0, le=1)
+    stationary_ratio: float = Field(ge=0, le=1)
+    supported: bool
+    confidence: float = Field(ge=0, le=1)
+    reason: str | None = None

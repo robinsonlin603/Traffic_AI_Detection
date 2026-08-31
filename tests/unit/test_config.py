@@ -10,6 +10,7 @@ def test_default_configuration_loads() -> None:
     config = load_config(Path("configs/default.yaml"))
 
     assert config.tracking.tracker == "botsort.yaml"
+    assert config.tracking.minimum_track_length == 2
     assert config.detection.imgsz == 1280
     assert "car" in config.detection.classes
     assert len(config.lane_geometry.ego_lane_polygon) == 4
@@ -17,6 +18,8 @@ def test_default_configuration_loads() -> None:
     assert config.lane_membership.boundary_margin_pixels == 12.0
     assert config.ego_motion.minimum_inliers == 8
     assert config.ego_motion.optical_flow_window_size == 21
+    assert config.relative_motion.enabled is True
+    assert config.relative_motion.minimum_valid_observations == 2
     assert config.temporal_lane.smoothing_window_frames == 3
     assert config.temporal_lane.maximum_missing_frames == 2
     assert len(config.forward_corridor.polygon) == 4
@@ -40,9 +43,23 @@ def test_platform_configurations_include_milestone_2_sections(
     assert config.lane_geometry.enabled is True
     assert len(config.lane_geometry.ego_lane_polygon) == 4
     assert config.ego_motion.minimum_tracked_features >= 4
+    assert config.relative_motion.minimum_cumulative_lateral_ratio > 0
     assert config.temporal_lane.minimum_confirmation_frames > 0
     assert len(config.forward_corridor.polygon) >= 3
     assert config.cut_in.minimum_confirmed_confidence > 0
+
+
+def test_nvidia_lane_calibration_stays_on_test3_road_surface() -> None:
+    config = load_config(Path("configs/nvidia.yaml"))
+    ego_lane = config.lane_geometry.ego_lane_polygon
+    corridor = config.forward_corridor.polygon
+
+    assert min(point.y for point in ego_lane) >= 0.66
+    assert min(point.y for point in corridor) >= 0.70
+    assert corridor[0].x > ego_lane[0].x
+    assert corridor[1].x < ego_lane[1].x
+    assert corridor[2].x < ego_lane[2].x
+    assert corridor[3].x > ego_lane[3].x
 
 
 def test_cutin_configuration_requires_positive_weight_sum() -> None:
@@ -52,4 +69,8 @@ def test_cutin_configuration_requires_positive_weight_sum() -> None:
             corridor_weight=0,
             bbox_expansion_weight=0,
             motion_quality_weight=0,
+            relative_motion_weight=0,
+            lateral_progress_weight=0,
+            direction_compatibility_weight=0,
+            scene_consistency_weight=0,
         )

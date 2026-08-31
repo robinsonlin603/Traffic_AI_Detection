@@ -5,10 +5,12 @@ import json
 from dashcam_ai.domain.events import EventStatus
 from dashcam_ai.domain.geometry import BBox, Point2D
 from dashcam_ai.domain.lane import LaneMembership, NormalizedPoint2D
-from dashcam_ai.domain.motion import EgoMotionStatus
+from dashcam_ai.domain.motion import EgoMotionStatus, RelativeMotionSummary
 from dashcam_ai.domain.temporal import (
     LaneChangeStatus,
+    LanePosition,
     LaneRelationPhase,
+    ManeuverRelation,
     TemporalLaneObservation,
     TemporalLaneState,
 )
@@ -40,6 +42,7 @@ def temporal_state(
         EgoMotionStatus.VALID,
         EgoMotionStatus.VALID,
     ),
+    relative_motion: RelativeMotionSummary | None = None,
 ) -> TemporalLaneState:
     distances = (-20.0, 5.0, 30.0)
     history = tuple(
@@ -61,6 +64,10 @@ def temporal_state(
             motion is EgoMotionStatus.VALID for motion in motions
         ),
         boundary_id="left",
+        maneuver_relation=ManeuverRelation.ENTERING_EGO,
+        from_lane=LanePosition.LEFT_ADJACENT,
+        to_lane=LanePosition.EGO,
+        relative_motion=relative_motion,
         reason="returned outside" if status is LaneChangeStatus.REJECTED else None,
         history=history,
     )
@@ -93,6 +100,9 @@ def test_confirmed_temporal_state_builds_serializable_lane_change_event() -> Non
     assert event is not None
     assert event.status is EventStatus.CONFIRMED
     assert event.event_id == "lane-change:7:1"
+    assert event.maneuver_relation is ManeuverRelation.ENTERING_EGO
+    assert event.from_lane is LanePosition.LEFT_ADJACENT
+    assert event.to_lane is LanePosition.EGO
     assert len(event.evidence.frames) == 3
     payload = json.loads(event.model_dump_json())
     assert payload["evidence"]["boundary_id"] == "left"
@@ -141,6 +151,66 @@ def test_true_image_space_cutin_is_confirmed() -> None:
     assert event.evidence.frames[-1].bbox is not None
 
 
+def test_supported_relative_motion_contributes_to_cutin_confidence() -> None:
+    summary = RelativeMotionSummary(
+        valid_observations=3,
+        cumulative_lateral_displacement=0.01,
+        expected_lateral_progress=0.01,
+        directional_consistency=1,
+        motion_quality=0.9,
+        scene_consistency=1,
+        stationary_ratio=0,
+        supported=True,
+        confidence=0.95,
+    )
+    lane_change = LaneChangeEventBuilder().build(
+        temporal_state(relative_motion=summary)
+    )
+    assert lane_change is not None
+
+    event = CutInDetector(require_relative_motion=True).detect(
+        lane_change,
+        current_bbox=BBox(x1=460, y1=700, x2=540, y2=850),
+        previous_bbox=BBox(x1=470, y1=720, x2=530, y2=830),
+        corridor=corridor(),
+    )
+
+    assert event.status is EventStatus.CONFIRMED
+    assert event.confidence.relative_motion == 0.95
+    assert event.confidence.lateral_progress == 1
+    assert event.confidence.direction_compatibility == 1
+    assert event.confidence.scene_consistency == 1
+
+
+def test_stationary_relative_motion_rejects_cutin() -> None:
+    summary = RelativeMotionSummary(
+        valid_observations=3,
+        cumulative_lateral_displacement=0,
+        expected_lateral_progress=0,
+        directional_consistency=0,
+        motion_quality=0.9,
+        scene_consistency=1,
+        stationary_ratio=1,
+        supported=False,
+        confidence=0.38,
+        reason="vehicle is stationary relative to the background",
+    )
+    lane_change = LaneChangeEventBuilder().build(
+        temporal_state(relative_motion=summary)
+    )
+    assert lane_change is not None
+
+    event = CutInDetector(require_relative_motion=True).detect(
+        lane_change,
+        current_bbox=BBox(x1=460, y1=700, x2=540, y2=850),
+        previous_bbox=BBox(x1=470, y1=720, x2=530, y2=830),
+        corridor=corridor(),
+    )
+
+    assert event.status is EventStatus.REJECTED
+    assert event.reason == "vehicle is stationary relative to the background"
+
+
 def test_lane_change_outside_forward_corridor_is_rejected() -> None:
     lane_change = LaneChangeEventBuilder().build(temporal_state())
     assert lane_change is not None
@@ -154,6 +224,28 @@ def test_lane_change_outside_forward_corridor_is_rejected() -> None:
 
     assert event.status is EventStatus.REJECTED
     assert event.reason == "vehicle bottom-center is outside forward corridor"
+
+
+def test_leaving_lane_change_is_not_a_cutin() -> None:
+    state = temporal_state().model_copy(
+        update={
+            "maneuver_relation": ManeuverRelation.LEAVING_EGO,
+            "from_lane": LanePosition.EGO,
+            "to_lane": LanePosition.RIGHT_ADJACENT,
+        }
+    )
+    lane_change = LaneChangeEventBuilder().build(state)
+    assert lane_change is not None
+
+    event = CutInDetector().detect(
+        lane_change,
+        current_bbox=BBox(x1=460, y1=700, x2=540, y2=850),
+        previous_bbox=BBox(x1=470, y1=720, x2=530, y2=830),
+        corridor=corridor(),
+    )
+
+    assert event.status is EventStatus.REJECTED
+    assert event.reason == "lane change is not entering the ego lane"
 
 
 def test_non_expanding_bbox_is_rejected() -> None:

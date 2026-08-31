@@ -1,5 +1,10 @@
 # Motorcycle Dashcam AI — Milestone 2 Execution Plan
 
+Milestone 2's original six slices are complete. Real-world long-video hardening continues in
+`docs/EXEC_PLAN_MILESTONE2_HARDENING.md`; that living plan supersedes this document for new
+lane, motion, event-continuity, and visualization changes while preserving this file as the
+original delivery record.
+
 This living plan extends the Milestone 1 perception pipeline with deterministic,
 non-LLM lane-change and cut-in analysis:
 
@@ -130,6 +135,12 @@ mypy src
 ```
 
 Core automated tests require no GPU, model weights, or network connection.
+
+Cross-platform evidence for this milestone is governed by the repository-root `AGENTS.md` and
+stored under `validation/`. Run `dashcam-ai milestone-status --milestone 2` to compare current
+macOS MPS and Linux CUDA reports with the checked-out source commit. A result from either platform
+does not prove the other platform, and missing or stale evidence keeps the cross-platform verdict
+blocked.
 
 ## Progress
 

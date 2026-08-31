@@ -20,7 +20,12 @@ from dashcam_ai.lane.membership import LaneMembershipEvaluator
 from dashcam_ai.lane.temporal import TemporalLaneTracker
 from dashcam_ai.logging import configure_logging
 from dashcam_ai.motion.opencv import OpenCVEgoMotionEstimator
+from dashcam_ai.motion.relative import RelativeMotionEvaluator
 from dashcam_ai.runtime.device import inspect_devices
+from dashcam_ai.validation.records import SUPPORTED_PLATFORMS
+from dashcam_ai.validation.render import write_report
+from dashcam_ai.validation.runner import _run_git, build_validation_record
+from dashcam_ai.validation.status import inspect_report, milestone_status
 
 app = typer.Typer(no_args_is_help=True, help="Analyze motorcycle dashcam videos locally.")
 
@@ -45,6 +50,100 @@ def devices() -> None:
             indent=2,
         )
     )
+
+
+@app.command("validate")
+def validate_platform(
+    milestone: Annotated[str, typer.Option("--milestone")] = "2",
+    platform_id: Annotated[str, typer.Option("--platform")] = "cpu",
+) -> None:
+    """執行共通 gates 並寫入目前平台的 Git-friendly 驗證報告。"""
+    normalized_milestone = (
+        milestone if milestone.startswith("milestone-") else f"milestone-{milestone}"
+    )
+    if normalized_milestone != "milestone-2":
+        raise typer.BadParameter("currently supported milestone: 2", param_hint="--milestone")
+    if platform_id not in SUPPORTED_PLATFORMS:
+        raise typer.BadParameter(
+            f"supported platforms: {', '.join(sorted(SUPPORTED_PLATFORMS))}",
+            param_hint="--platform",
+        )
+    root = Path.cwd()
+    record = build_validation_record(root, normalized_milestone, platform_id)
+    json_path, markdown_path = write_report(root, record)
+    typer.echo(
+        json.dumps(
+            {
+                "report": str(json_path),
+                "summary": str(markdown_path),
+                "source_commit": record.source_commit,
+                "verdict": record.verdict.value,
+                "reasons": record.reasons,
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
+    if record.verdict.value != "passed":
+        raise typer.Exit(code=1)
+
+
+@app.command("validation-status")
+def validation_status(
+    report: Annotated[Path, typer.Argument(exists=True, dir_okay=False)],
+) -> None:
+    """檢查單一報告是否適用於目前 checkout。"""
+    root = Path.cwd()
+    try:
+        record, fresh = inspect_report(report, root)
+    except ValueError as error:
+        raise typer.BadParameter(str(error), param_hint="report") from error
+    typer.echo(
+        json.dumps(
+            {
+                "milestone": record.milestone,
+                "platform": record.platform,
+                "tested_commit": record.source_commit,
+                "current_commit": _run_git(root, "rev-parse", "HEAD"),
+                "freshness": "current" if fresh else "stale",
+                "worktree": "dirty" if record.worktree_dirty else "clean",
+                "gates": {gate.name: gate.status.value for gate in record.gates},
+                "accelerator_available": record.environment.accelerator_available,
+                "accelerator_name": record.environment.accelerator_name,
+                "recorded_verdict": record.verdict.value,
+                "verdict_for_current_commit": record.verdict.value if fresh else "invalid",
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
+    if not fresh or record.verdict.value != "passed":
+        raise typer.Exit(code=1)
+
+
+@app.command("milestone-status")
+def show_milestone_status(
+    milestone: Annotated[str, typer.Option("--milestone")] = "2",
+) -> None:
+    """彙整目前 commit 所需的 macOS 與 Linux 平台證據。"""
+    normalized = milestone if milestone.startswith("milestone-") else f"milestone-{milestone}"
+    try:
+        statuses, overall = milestone_status(Path.cwd(), normalized)
+    except ValueError as error:
+        raise typer.BadParameter(str(error), param_hint="--milestone") from error
+    typer.echo(
+        json.dumps(
+            {
+                "milestone": normalized,
+                "platforms": [item.__dict__ for item in statuses],
+                "verdict": overall,
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
+    if overall != "passed":
+        raise typer.Exit(code=1)
 
 
 @app.command()
@@ -81,6 +180,7 @@ def analyze(
         save_video=output.save_video if save_video is None else save_video,
         save_frames=output.save_frames if save_frames is None else save_frames,
         codec=output.codec,
+        minimum_track_length=config.tracking.minimum_track_length,
         scene_analyzer=_build_scene_analyzer(config),
     )
     summary = analyzer.analyze(input_path, resolved_output_path)
@@ -105,6 +205,7 @@ def _build_scene_analyzer(config: AppConfig) -> StreamingSceneAnalyzer | None:
     if not lane.enabled:
         return None
     motion = config.ego_motion
+    relative = config.relative_motion
     temporal = config.temporal_lane
     cutin = config.cut_in
     return StreamingSceneAnalyzer(
@@ -125,6 +226,13 @@ def _build_scene_analyzer(config: AppConfig) -> StreamingSceneAnalyzer | None:
             maximum_mean_reprojection_error=motion.maximum_mean_reprojection_error,
             mask_padding_pixels=motion.mask_padding_pixels,
         ),
+        relative_motion_evaluator=RelativeMotionEvaluator(
+            stationary_residual_ratio=relative.stationary_residual_ratio,
+            maximum_projection_margin_ratio=relative.maximum_projection_margin_ratio,
+            scene_minimum_tracks=relative.scene_minimum_tracks,
+            scene_lateral_motion_ratio=relative.scene_lateral_motion_ratio,
+            scene_consensus_ratio=relative.scene_consensus_ratio,
+        ),
         temporal_tracker=TemporalLaneTracker(
             smoothing_window_frames=temporal.smoothing_window_frames,
             approaching_distance_pixels=temporal.approaching_distance_pixels,
@@ -137,6 +245,16 @@ def _build_scene_analyzer(config: AppConfig) -> StreamingSceneAnalyzer | None:
             maximum_missing_frames=temporal.maximum_missing_frames,
             candidate_timeout_seconds=temporal.candidate_timeout_seconds,
             history_size=temporal.history_size,
+            require_relative_motion=relative.enabled,
+            minimum_relative_motion_observations=relative.minimum_valid_observations,
+            minimum_cumulative_lateral_ratio=(
+                relative.minimum_cumulative_lateral_ratio
+            ),
+            minimum_directional_consistency=(
+                relative.minimum_directional_consistency
+            ),
+            minimum_scene_consistency=relative.minimum_scene_consistency,
+            maximum_stationary_ratio=relative.maximum_stationary_ratio,
         ),
         corridor=ConfiguredForwardCorridor(config.forward_corridor.polygon),
         lane_change_builder=LaneChangeEventBuilder(cutin.evidence_history_size),
@@ -148,6 +266,11 @@ def _build_scene_analyzer(config: AppConfig) -> StreamingSceneAnalyzer | None:
             corridor_weight=cutin.corridor_weight,
             bbox_expansion_weight=cutin.bbox_expansion_weight,
             motion_quality_weight=cutin.motion_quality_weight,
+            relative_motion_weight=cutin.relative_motion_weight,
+            lateral_progress_weight=cutin.lateral_progress_weight,
+            direction_compatibility_weight=cutin.direction_compatibility_weight,
+            scene_consistency_weight=cutin.scene_consistency_weight,
+            require_relative_motion=relative.enabled,
         ),
         maximum_missing_frames=temporal.maximum_missing_frames,
     )
