@@ -66,6 +66,9 @@ class LaneChangeEventBuilder:
             ),
             end_timestamp=state.timestamp,
             confidence=confidence,
+            maneuver_relation=state.maneuver_relation,
+            from_lane=state.from_lane,
+            to_lane=state.to_lane,
             evidence=EventEvidence(boundary_id=state.boundary_id, frames=frames),
             reason=(
                 "current ego-motion evidence is invalid"

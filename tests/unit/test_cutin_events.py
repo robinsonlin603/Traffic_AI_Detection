@@ -8,7 +8,9 @@ from dashcam_ai.domain.lane import LaneMembership, NormalizedPoint2D
 from dashcam_ai.domain.motion import EgoMotionStatus
 from dashcam_ai.domain.temporal import (
     LaneChangeStatus,
+    LanePosition,
     LaneRelationPhase,
+    ManeuverRelation,
     TemporalLaneObservation,
     TemporalLaneState,
 )
@@ -61,6 +63,9 @@ def temporal_state(
             motion is EgoMotionStatus.VALID for motion in motions
         ),
         boundary_id="left",
+        maneuver_relation=ManeuverRelation.ENTERING_EGO,
+        from_lane=LanePosition.LEFT_ADJACENT,
+        to_lane=LanePosition.EGO,
         reason="returned outside" if status is LaneChangeStatus.REJECTED else None,
         history=history,
     )
@@ -93,6 +98,9 @@ def test_confirmed_temporal_state_builds_serializable_lane_change_event() -> Non
     assert event is not None
     assert event.status is EventStatus.CONFIRMED
     assert event.event_id == "lane-change:7:1"
+    assert event.maneuver_relation is ManeuverRelation.ENTERING_EGO
+    assert event.from_lane is LanePosition.LEFT_ADJACENT
+    assert event.to_lane is LanePosition.EGO
     assert len(event.evidence.frames) == 3
     payload = json.loads(event.model_dump_json())
     assert payload["evidence"]["boundary_id"] == "left"
@@ -154,6 +162,28 @@ def test_lane_change_outside_forward_corridor_is_rejected() -> None:
 
     assert event.status is EventStatus.REJECTED
     assert event.reason == "vehicle bottom-center is outside forward corridor"
+
+
+def test_leaving_lane_change_is_not_a_cutin() -> None:
+    state = temporal_state().model_copy(
+        update={
+            "maneuver_relation": ManeuverRelation.LEAVING_EGO,
+            "from_lane": LanePosition.EGO,
+            "to_lane": LanePosition.RIGHT_ADJACENT,
+        }
+    )
+    lane_change = LaneChangeEventBuilder().build(state)
+    assert lane_change is not None
+
+    event = CutInDetector().detect(
+        lane_change,
+        current_bbox=BBox(x1=460, y1=700, x2=540, y2=850),
+        previous_bbox=BBox(x1=470, y1=720, x2=530, y2=830),
+        corridor=corridor(),
+    )
+
+    assert event.status is EventStatus.REJECTED
+    assert event.reason == "lane change is not entering the ego lane"
 
 
 def test_non_expanding_bbox_is_rejected() -> None:

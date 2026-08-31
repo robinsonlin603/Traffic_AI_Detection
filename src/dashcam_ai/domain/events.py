@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from dashcam_ai.domain.geometry import BBox, Point2D
 from dashcam_ai.domain.lane import LaneMembership
 from dashcam_ai.domain.motion import EgoMotionStatus
+from dashcam_ai.domain.temporal import LanePosition, ManeuverRelation
 
 
 class EventStatus(StrEnum):
@@ -63,6 +64,9 @@ class LaneChangeEvent(BaseModel):
     start_timestamp: float = Field(ge=0)
     end_timestamp: float = Field(ge=0)
     confidence: float = Field(ge=0, le=1)
+    maneuver_relation: ManeuverRelation
+    from_lane: LanePosition
+    to_lane: LanePosition
     evidence: EventEvidence
     reason: str | None = None
 

@@ -7,13 +7,19 @@ import pytest
 from dashcam_ai.domain.geometry import Point2D
 from dashcam_ai.domain.lane import LaneMembership, LaneMembershipFeature
 from dashcam_ai.domain.motion import EgoMotionStatus
-from dashcam_ai.domain.temporal import LaneChangeStatus, LaneRelationPhase
+from dashcam_ai.domain.temporal import (
+    LaneChangeStatus,
+    LanePosition,
+    LaneRelationPhase,
+    ManeuverRelation,
+)
 from dashcam_ai.lane.temporal import TemporalLaneTracker
 
 
 def feature(
     distance: float | None,
     membership: LaneMembership | None = None,
+    boundary_id: str = "left",
 ) -> LaneMembershipFeature:
     if membership is None:
         if distance is None:
@@ -26,7 +32,7 @@ def feature(
         membership=membership,
         anchor=Point2D(x=100, y=200),
         signed_boundary_distance=distance,
-        nearest_boundary_id="left" if distance is not None else None,
+        nearest_boundary_id=boundary_id if distance is not None else None,
         geometry_confidence=1.0,
     )
 
@@ -83,6 +89,9 @@ def test_crossing_sequence_becomes_confirmed() -> None:
     assert states[-1].status is LaneChangeStatus.CONFIRMED
     assert states[-1].candidate_started_frame == 1
     assert states[-1].entered_started_frame == 4
+    assert states[-1].maneuver_relation is ManeuverRelation.ENTERING_EGO
+    assert states[-1].from_lane is LanePosition.LEFT_ADJACENT
+    assert states[-1].to_lane is LanePosition.EGO
 
 
 def test_candidate_returning_to_adjacent_is_rejected() -> None:
@@ -91,7 +100,43 @@ def test_candidate_returning_to_adjacent_is_rejected() -> None:
     states = update_sequence(tracker, [-80, -20, -3, -90])
 
     assert states[-1].status is LaneChangeStatus.REJECTED
-    assert states[-1].reason == "vehicle returned to adjacent lane"
+    assert states[-1].reason == "vehicle returned to origin lane"
+
+
+def test_vehicle_can_leave_ego_lane_without_becoming_a_cutin() -> None:
+    tracker = TemporalLaneTracker(
+        smoothing_window_frames=1,
+        debounce_frames=1,
+        minimum_confirmation_frames=2,
+        minimum_confirmation_duration_seconds=0.1,
+    )
+
+    states = update_sequence(tracker, [40, 35, 5, -10, -70, -80])
+
+    assert states[-1].status is LaneChangeStatus.CONFIRMED
+    assert states[-1].maneuver_relation is ManeuverRelation.LEAVING_EGO
+    assert states[-1].from_lane is LanePosition.EGO
+    assert states[-1].to_lane is LanePosition.LEFT_ADJACENT
+
+
+def test_same_track_can_enter_then_leave_as_two_maneuvers() -> None:
+    tracker = TemporalLaneTracker(
+        smoothing_window_frames=1,
+        debounce_frames=1,
+        minimum_confirmation_frames=2,
+        minimum_confirmation_duration_seconds=0.1,
+    )
+
+    states = update_sequence(
+        tracker,
+        [-80, -20, -5, 25, 30, 5, -10, -70, -80],
+    )
+
+    confirmed = [state for state in states if state.status is LaneChangeStatus.CONFIRMED]
+    assert [state.maneuver_relation for state in confirmed] == [
+        ManeuverRelation.ENTERING_EGO,
+        ManeuverRelation.LEAVING_EGO,
+    ]
 
 
 def test_short_occlusion_preserves_candidate_and_can_recover() -> None:
