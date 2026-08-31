@@ -1,5 +1,10 @@
 # Harden Milestone 2 against real-world lane, motion, and tracking failures
 
+> Historical scope notice (2026-08-31): this ego-lane and cut-in hardening plan is no longer the
+> active Milestone 2 plan. Slice 1 and Slice 2 were preserved in Git, after which the scope changed
+> to general configured-lane changes. Continue from
+> `docs/EXEC_PLAN_MILESTONE2_GENERAL_LANE_CHANGE.md`; do not execute Slice 3–5 here.
+
 This ExecPlan is a living document. The sections `Progress`, `Surprises & Discoveries`,
 `Decision Log`, and `Outcomes & Retrospective` must be kept up to date as work proceeds.
 
@@ -445,3 +450,7 @@ long-video CUDA artifact audit, the user's human labels, and the five-slice deli
 
 Revision note (2026-08-31): Recorded Slice 1 event-semantics implementation, its exact domain
 placement, same-track re-arming discovery, and final automated verification results.
+
+Revision note (2026-08-31): Marked this plan historical after approval of the replacement general
+lane-change plan. Its remaining dynamic-geometry, continuity-hardening, and cut-in work is not an
+active Milestone 2 requirement.

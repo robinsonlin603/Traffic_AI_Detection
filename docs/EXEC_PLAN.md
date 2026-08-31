@@ -1,9 +1,12 @@
 # Motorcycle Dashcam AI — Milestone 2 Execution Plan
 
-Milestone 2's original six slices are complete. Real-world long-video hardening continues in
-`docs/EXEC_PLAN_MILESTONE2_HARDENING.md`; that living plan supersedes this document for new
-lane, motion, event-continuity, and visualization changes while preserving this file as the
-original delivery record.
+> Scope history notice (2026-08-31): this records the original completed ego-lane and cut-in
+> delivery. The active replacement scope is general configured-lane change detection in
+> `docs/EXEC_PLAN_MILESTONE2_GENERAL_LANE_CHANGE.md`.
+
+Milestone 2's original six slices are complete and preserved as history. The former long-video
+hardening plan is also historical; the general configured-lane-change plan supersedes both for
+new lane, motion, event, and visualization changes.
 
 This living plan extends the Milestone 1 perception pipeline with deterministic,
 non-LLM lane-change and cut-in analysis:
