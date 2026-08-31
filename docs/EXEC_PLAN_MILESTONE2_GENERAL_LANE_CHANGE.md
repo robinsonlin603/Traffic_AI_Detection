@@ -28,7 +28,11 @@ are also outside this plan; the accepted first version uses normalized configure
   domain models, pipeline, tests, and stale platform reports.
 - [x] (2026-08-31 14:30Z) Preserved and merged the old Hardening Slice 2 relative-motion work.
 - [x] (2026-08-31 14:30Z) Approved and recorded this five-slice replacement plan.
-- [ ] Slice 1: general multi-lane models, configuration, configured geometry, and focused tests.
+- [x] (2026-08-31 15:05Z) Slice 1: added general multi-lane models, topology validation,
+  normalized configured geometry for all platform YAML files, CLI construction, a bounded
+  `reference_lane` compatibility adapter, legacy temporal aliases for the new boundary IDs, and
+  focused geometry/configuration tests. Focused tests passed 26 tests; the full suite passed 111
+  tests, Ruff, strict Mypy across 55 source files, and `git diff --check`.
 - [ ] Slice 2: general membership, temporal smoothing, hysteresis, debounce, and missing tolerance.
 - [ ] Slice 3: general lane-change timeline and source-to-target relative-motion safety gates.
 - [ ] Slice 4: general event and pipeline integration; remove cut-in and forward corridor.
@@ -48,6 +52,13 @@ are also outside this plan; the accepted first version uses normalized configure
 - Observation: Existing platform reports cannot validate this migration.
   Evidence: checked-in macOS MPS and Linux CUDA reports reference older source commits; project
   rules require clean reports that observe the requested accelerator at the exact final commit.
+
+- Observation: Migrating geometry before membership requires a temporary reference region for
+  the still-ego-relative Slice 2 boundary.
+  Evidence: existing membership and visualization consume one polygon. Slice 1 now selects the
+  configured `lane_center`, or the median ordered lane when that ID is absent, through the
+  non-serialized `LaneGeometry.reference_lane` property. Slice 2 must remove this adapter when it
+  evaluates every lane.
 
 ## Decision Log
 
@@ -88,10 +99,19 @@ are also outside this plan; the accepted first version uses normalized configure
   scope as a clean starting point.
   Date/Author: 2026-08-31 / Codex and user
 
+- Decision: Permit `LaneGeometry.reference_lane` only as an intermediate Slice 1 compatibility
+  adapter and never serialize it as `ego_lane`.
+  Rationale: geometry and configuration can migrate atomically while the full pre-existing suite
+  remains usable; keeping the property out of artifacts prevents the new schema from claiming an
+  ego lane. Slice 2 owns its removal.
+  Date/Author: 2026-08-31 / Codex
+
 ## Outcomes & Retrospective
 
-The replacement scope is approved and the old ego-lane/cut-in work is preserved in Git. No
-production migration has begun. Completion requires all five slices, automated gates, a readable
+The replacement scope is approved and the old ego-lane/cut-in work is preserved in Git. Slice 1
+now provides validated general configured lanes and shared boundaries without an `ego_lane`
+artifact field. Membership and visualization still use a documented, non-serialized reference
+adapter until Slice 2. Completion requires the remaining four slices, automated gates, a readable
 general lane-change artifact, and authoritative macOS MPS and Linux CUDA reports for the final
 commit. Update this section at each slice and replace it with the final outcome at acceptance.
 
@@ -301,3 +321,6 @@ Revision note (2026-08-31): Created the approved general configured-lane-change 
 preserving the former ego-lane/cut-in Hardening work. This defines five replacement slices and
 makes cut-in, forward corridor, dynamic lane detection, and cross-ID re-identification out of
 scope.
+
+Revision note (2026-08-31): Recorded Slice 1 general lane topology, temporary reference-lane
+compatibility decision, and focused/full validation evidence.
