@@ -26,6 +26,7 @@ from dashcam_ai.events.lane_change import LaneChangeEventBuilder
 from dashcam_ai.lane.configured import ConfiguredLaneDetector
 from dashcam_ai.lane.membership import LaneMembershipEvaluator
 from dashcam_ai.lane.temporal import TemporalLaneTracker
+from dashcam_ai.motion.relative import RelativeMotionEvaluator
 from dashcam_ai.video.reader import VideoFrame
 from dashcam_ai.visualization.annotator import OpenCVAnnotator
 
@@ -125,6 +126,7 @@ def scene_analyzer(maximum_missing_frames: int = 1) -> StreamingSceneAnalyzer:
         lane_detector=ConfiguredLaneDetector(lane_polygon),
         membership_evaluator=LaneMembershipEvaluator(boundary_margin=5),
         motion_estimator=ValidMotionEstimator(),
+        relative_motion_evaluator=RelativeMotionEvaluator(),
         temporal_tracker=TemporalLaneTracker(
             smoothing_window_frames=1,
             approaching_distance_pixels=50,

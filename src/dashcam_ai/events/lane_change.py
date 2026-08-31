@@ -35,6 +35,7 @@ class LaneChangeEventBuilder:
                 signed_boundary_distance=item.signed_boundary_distance,
                 smoothed_signed_boundary_distance=item.smoothed_signed_boundary_distance,
                 ego_motion_status=item.ego_motion_status,
+                relative_motion=item.relative_motion,
             )
             for item in candidate_history[-self._history_size :]
         )
@@ -42,6 +43,9 @@ class LaneChangeEventBuilder:
             item.ego_motion_status is EgoMotionStatus.VALID for item in frames
         )
         motion_ratio = valid_motion / len(frames) if frames else 0.0
+        relative_score = (
+            state.relative_motion.confidence if state.relative_motion is not None else motion_ratio
+        )
         latest_motion_valid = bool(frames) and (
             frames[-1].ego_motion_status is EgoMotionStatus.VALID
         )
@@ -52,7 +56,9 @@ class LaneChangeEventBuilder:
             EventStatus.CONFIRMED: 1.0,
             EventStatus.REJECTED: 0.0,
         }[status]
-        confidence = min(1.0, 0.6 * status_score + 0.4 * motion_ratio)
+        confidence = min(
+            1.0, 0.5 * status_score + 0.25 * motion_ratio + 0.25 * relative_score
+        )
         return LaneChangeEvent(
             event_id=f"lane-change:{state.track_id}:{state.candidate_started_frame}",
             status=status,
@@ -69,6 +75,7 @@ class LaneChangeEventBuilder:
             maneuver_relation=state.maneuver_relation,
             from_lane=state.from_lane,
             to_lane=state.to_lane,
+            relative_motion=state.relative_motion,
             evidence=EventEvidence(boundary_id=state.boundary_id, frames=frames),
             reason=(
                 "current ego-motion evidence is invalid"

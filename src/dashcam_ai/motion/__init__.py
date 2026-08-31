@@ -2,5 +2,6 @@
 
 from dashcam_ai.motion.base import EgoMotionEstimator
 from dashcam_ai.motion.opencv import OpenCVEgoMotionEstimator
+from dashcam_ai.motion.relative import RelativeMotionEvaluator
 
-__all__ = ["EgoMotionEstimator", "OpenCVEgoMotionEstimator"]
+__all__ = ["EgoMotionEstimator", "OpenCVEgoMotionEstimator", "RelativeMotionEvaluator"]

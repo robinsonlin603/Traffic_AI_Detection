@@ -74,6 +74,22 @@ class EgoMotionConfig(BaseModel):
         return value
 
 
+class RelativeMotionConfig(BaseModel):
+    """相機補償後 Track 位移、方向一致性與群體異常門檻。"""
+
+    enabled: bool = True
+    stationary_residual_ratio: float = Field(default=0.001, ge=0)
+    maximum_projection_margin_ratio: float = Field(default=0.25, ge=0)
+    minimum_valid_observations: int = Field(default=2, gt=0)
+    minimum_cumulative_lateral_ratio: float = Field(default=0.003, gt=0)
+    minimum_directional_consistency: float = Field(default=0.6, ge=0, le=1)
+    minimum_scene_consistency: float = Field(default=0.8, ge=0, le=1)
+    maximum_stationary_ratio: float = Field(default=0.5, ge=0, le=1)
+    scene_minimum_tracks: int = Field(default=3, ge=2)
+    scene_lateral_motion_ratio: float = Field(default=0.003, gt=0)
+    scene_consensus_ratio: float = Field(default=0.75, ge=0.5, le=1)
+
+
 class TemporalLaneConfig(BaseModel):
     """車道歸屬時間平滑、遲滯、缺失容忍與確認門檻。"""
 
@@ -113,6 +129,10 @@ class CutInConfig(BaseModel):
     corridor_weight: float = Field(default=0.3, ge=0)
     bbox_expansion_weight: float = Field(default=0.15, ge=0)
     motion_quality_weight: float = Field(default=0.15, ge=0)
+    relative_motion_weight: float = Field(default=0.15, ge=0)
+    lateral_progress_weight: float = Field(default=0.1, ge=0)
+    direction_compatibility_weight: float = Field(default=0.1, ge=0)
+    scene_consistency_weight: float = Field(default=0.1, ge=0)
 
     @model_validator(mode="after")
     def validate_positive_weight_sum(self) -> CutInConfig:
@@ -121,6 +141,10 @@ class CutInConfig(BaseModel):
             + self.corridor_weight
             + self.bbox_expansion_weight
             + self.motion_quality_weight
+            + self.relative_motion_weight
+            + self.lateral_progress_weight
+            + self.direction_compatibility_weight
+            + self.scene_consistency_weight
         )
         if total <= 0:
             raise ValueError("cut-in confidence weights must have a positive sum")
@@ -146,6 +170,7 @@ class AppConfig(BaseModel):
     lane_geometry: LaneGeometryConfig = Field(default_factory=LaneGeometryConfig)
     lane_membership: LaneMembershipConfig = Field(default_factory=LaneMembershipConfig)
     ego_motion: EgoMotionConfig = Field(default_factory=EgoMotionConfig)
+    relative_motion: RelativeMotionConfig = Field(default_factory=RelativeMotionConfig)
     temporal_lane: TemporalLaneConfig = Field(default_factory=TemporalLaneConfig)
     forward_corridor: ForwardCorridorConfig = Field(default_factory=ForwardCorridorConfig)
     cut_in: CutInConfig = Field(default_factory=CutInConfig)

@@ -9,7 +9,11 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from dashcam_ai.domain.geometry import BBox, Point2D
 from dashcam_ai.domain.lane import LaneMembership
-from dashcam_ai.domain.motion import EgoMotionStatus
+from dashcam_ai.domain.motion import (
+    EgoMotionStatus,
+    RelativeMotionEvidence,
+    RelativeMotionSummary,
+)
 from dashcam_ai.domain.temporal import LanePosition, ManeuverRelation
 
 
@@ -30,6 +34,7 @@ class EventEvidenceFrame(BaseModel):
     smoothed_signed_boundary_distance: float | None = None
     ego_motion_status: EgoMotionStatus
     bbox: BBox | None = None
+    relative_motion: RelativeMotionEvidence | None = None
 
 
 class EventEvidence(BaseModel):
@@ -48,6 +53,10 @@ class ConfidenceBreakdown(BaseModel):
     corridor_interaction: float = Field(ge=0, le=1)
     bbox_expansion: float = Field(ge=0, le=1)
     motion_quality: float = Field(ge=0, le=1)
+    relative_motion: float = Field(default=0, ge=0, le=1)
+    lateral_progress: float = Field(default=0, ge=0, le=1)
+    direction_compatibility: float = Field(default=0, ge=0, le=1)
+    scene_consistency: float = Field(default=0, ge=0, le=1)
     overall: float = Field(ge=0, le=1)
 
 
@@ -67,6 +76,7 @@ class LaneChangeEvent(BaseModel):
     maneuver_relation: ManeuverRelation
     from_lane: LanePosition
     to_lane: LanePosition
+    relative_motion: RelativeMotionSummary | None = None
     evidence: EventEvidence
     reason: str | None = None
 

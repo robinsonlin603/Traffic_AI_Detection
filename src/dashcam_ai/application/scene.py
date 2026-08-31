@@ -18,6 +18,7 @@ from dashcam_ai.lane.base import LaneDetector
 from dashcam_ai.lane.membership import LaneMembershipEvaluator
 from dashcam_ai.lane.temporal import TemporalLaneTracker
 from dashcam_ai.motion.base import EgoMotionEstimator
+from dashcam_ai.motion.relative import RelativeMotionEvaluator
 
 StructuredEvent = LaneChangeEvent | CutInEvent
 
@@ -49,6 +50,7 @@ class StreamingSceneAnalyzer:
         lane_detector: LaneDetector,
         membership_evaluator: LaneMembershipEvaluator,
         motion_estimator: EgoMotionEstimator,
+        relative_motion_evaluator: RelativeMotionEvaluator,
         temporal_tracker: TemporalLaneTracker,
         corridor: ConfiguredForwardCorridor,
         lane_change_builder: LaneChangeEventBuilder,
@@ -60,6 +62,7 @@ class StreamingSceneAnalyzer:
         self._lane_detector = lane_detector
         self._membership_evaluator = membership_evaluator
         self._motion_estimator = motion_estimator
+        self._relative_motion_evaluator = relative_motion_evaluator
         self._temporal = temporal_tracker
         self._corridor_factory = corridor
         self._lane_change_builder = lane_change_builder
@@ -90,6 +93,26 @@ class StreamingSceneAnalyzer:
                 self._previous_frame, frame, list(self._previous_boxes.values())
             )
         )
+        relative_motion = {
+            obj.track_id: self._relative_motion_evaluator.evaluate(
+                self._last_anchors.get(obj.track_id),
+                obj.bbox.bottom_center,
+                motion,
+                width,
+                height,
+            )
+            for obj in objects
+        }
+        eligible_relative_motion = {
+            obj.track_id: relative_motion[obj.track_id]
+            for obj in objects
+            if obj.class_name.casefold() in EVENT_ELIGIBLE_CLASSES
+        }
+        relative_motion.update(
+            self._relative_motion_evaluator.apply_scene_consistency(
+                eligible_relative_motion
+            )
+        )
         track_results: list[TrackSceneAnalysis] = []
         frame_lane_events: list[LaneChangeEvent] = []
         frame_cutin_events: list[CutInEvent] = []
@@ -102,7 +125,12 @@ class StreamingSceneAnalyzer:
                 self._event_eligible_tracks.discard(obj.track_id)
             membership = self._membership_evaluator.evaluate(obj.bbox.bottom_center, geometry)
             temporal = self._temporal.update(
-                obj.track_id, frame_id, timestamp, membership, motion.status
+                obj.track_id,
+                frame_id,
+                timestamp,
+                membership,
+                motion.status,
+                relative_motion[obj.track_id],
             )
             track_results.append(
                 TrackSceneAnalysis(

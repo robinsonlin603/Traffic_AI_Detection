@@ -7,7 +7,11 @@ from enum import StrEnum
 from pydantic import BaseModel, ConfigDict, Field
 
 from dashcam_ai.domain.lane import LaneMembership
-from dashcam_ai.domain.motion import EgoMotionStatus
+from dashcam_ai.domain.motion import (
+    EgoMotionStatus,
+    RelativeMotionEvidence,
+    RelativeMotionSummary,
+)
 
 
 class LaneRelationPhase(StrEnum):
@@ -57,6 +61,7 @@ class TemporalLaneObservation(BaseModel):
     smoothed_signed_boundary_distance: float | None = None
     nearest_boundary_id: str | None = None
     ego_motion_status: EgoMotionStatus
+    relative_motion: RelativeMotionEvidence | None = None
 
 
 class TemporalLaneState(BaseModel):
@@ -78,5 +83,6 @@ class TemporalLaneState(BaseModel):
     maneuver_relation: ManeuverRelation = ManeuverRelation.UNKNOWN
     from_lane: LanePosition = LanePosition.UNKNOWN
     to_lane: LanePosition = LanePosition.UNKNOWN
+    relative_motion: RelativeMotionSummary | None = None
     reason: str | None = None
     history: tuple[TemporalLaneObservation, ...] = ()

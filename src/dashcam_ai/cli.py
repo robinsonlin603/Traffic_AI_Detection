@@ -20,6 +20,7 @@ from dashcam_ai.lane.membership import LaneMembershipEvaluator
 from dashcam_ai.lane.temporal import TemporalLaneTracker
 from dashcam_ai.logging import configure_logging
 from dashcam_ai.motion.opencv import OpenCVEgoMotionEstimator
+from dashcam_ai.motion.relative import RelativeMotionEvaluator
 from dashcam_ai.runtime.device import inspect_devices
 from dashcam_ai.validation.records import SUPPORTED_PLATFORMS
 from dashcam_ai.validation.render import write_report
@@ -204,6 +205,7 @@ def _build_scene_analyzer(config: AppConfig) -> StreamingSceneAnalyzer | None:
     if not lane.enabled:
         return None
     motion = config.ego_motion
+    relative = config.relative_motion
     temporal = config.temporal_lane
     cutin = config.cut_in
     return StreamingSceneAnalyzer(
@@ -224,6 +226,13 @@ def _build_scene_analyzer(config: AppConfig) -> StreamingSceneAnalyzer | None:
             maximum_mean_reprojection_error=motion.maximum_mean_reprojection_error,
             mask_padding_pixels=motion.mask_padding_pixels,
         ),
+        relative_motion_evaluator=RelativeMotionEvaluator(
+            stationary_residual_ratio=relative.stationary_residual_ratio,
+            maximum_projection_margin_ratio=relative.maximum_projection_margin_ratio,
+            scene_minimum_tracks=relative.scene_minimum_tracks,
+            scene_lateral_motion_ratio=relative.scene_lateral_motion_ratio,
+            scene_consensus_ratio=relative.scene_consensus_ratio,
+        ),
         temporal_tracker=TemporalLaneTracker(
             smoothing_window_frames=temporal.smoothing_window_frames,
             approaching_distance_pixels=temporal.approaching_distance_pixels,
@@ -236,6 +245,16 @@ def _build_scene_analyzer(config: AppConfig) -> StreamingSceneAnalyzer | None:
             maximum_missing_frames=temporal.maximum_missing_frames,
             candidate_timeout_seconds=temporal.candidate_timeout_seconds,
             history_size=temporal.history_size,
+            require_relative_motion=relative.enabled,
+            minimum_relative_motion_observations=relative.minimum_valid_observations,
+            minimum_cumulative_lateral_ratio=(
+                relative.minimum_cumulative_lateral_ratio
+            ),
+            minimum_directional_consistency=(
+                relative.minimum_directional_consistency
+            ),
+            minimum_scene_consistency=relative.minimum_scene_consistency,
+            maximum_stationary_ratio=relative.maximum_stationary_ratio,
         ),
         corridor=ConfiguredForwardCorridor(config.forward_corridor.polygon),
         lane_change_builder=LaneChangeEventBuilder(cutin.evidence_history_size),
@@ -247,6 +266,11 @@ def _build_scene_analyzer(config: AppConfig) -> StreamingSceneAnalyzer | None:
             corridor_weight=cutin.corridor_weight,
             bbox_expansion_weight=cutin.bbox_expansion_weight,
             motion_quality_weight=cutin.motion_quality_weight,
+            relative_motion_weight=cutin.relative_motion_weight,
+            lateral_progress_weight=cutin.lateral_progress_weight,
+            direction_compatibility_weight=cutin.direction_compatibility_weight,
+            scene_consistency_weight=cutin.scene_consistency_weight,
+            require_relative_motion=relative.enabled,
         ),
         maximum_missing_frames=temporal.maximum_missing_frames,
     )
