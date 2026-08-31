@@ -5,26 +5,59 @@ from pydantic import ValidationError
 
 from dashcam_ai.domain.geometry import Point2D
 from dashcam_ai.domain.lane import (
+    LaneBoundary,
     LaneGeometry,
     LaneGeometryProvenance,
     LaneGeometryStatus,
-    LaneMembership,
+    LaneRegion,
+    NormalizedLaneBoundary,
+    NormalizedLaneRegion,
     NormalizedPoint2D,
 )
 from dashcam_ai.lane.configured import ConfiguredLaneDetector
-from dashcam_ai.lane.membership import LaneMembershipEvaluator
+
+
+def configured_lanes() -> list[NormalizedLaneRegion]:
+    return [
+        NormalizedLaneRegion(
+            lane_id="lane_left",
+            lateral_order=0,
+            polygon=(
+                NormalizedPoint2D(x=0.2, y=1.0),
+                NormalizedPoint2D(x=0.4, y=0.4),
+                NormalizedPoint2D(x=0.5, y=0.4),
+                NormalizedPoint2D(x=0.5, y=1.0),
+            ),
+        ),
+        NormalizedLaneRegion(
+            lane_id="lane_center",
+            lateral_order=1,
+            polygon=(
+                NormalizedPoint2D(x=0.5, y=0.4),
+                NormalizedPoint2D(x=0.6, y=0.4),
+                NormalizedPoint2D(x=0.8, y=1.0),
+                NormalizedPoint2D(x=0.5, y=1.0),
+            ),
+        ),
+    ]
+
+
+def configured_boundaries() -> list[NormalizedLaneBoundary]:
+    return [
+        NormalizedLaneBoundary(
+            boundary_id="boundary_left",
+            left_lane_id="lane_left",
+            right_lane_id="lane_center",
+            points=(
+                NormalizedPoint2D(x=0.5, y=0.4),
+                NormalizedPoint2D(x=0.5, y=1.0),
+            ),
+        )
+    ]
 
 
 def detector() -> ConfiguredLaneDetector:
-    return ConfiguredLaneDetector(
-        polygon=[
-            NormalizedPoint2D(x=0.4, y=0.4),
-            NormalizedPoint2D(x=0.6, y=0.4),
-            NormalizedPoint2D(x=0.8, y=1.0),
-            NormalizedPoint2D(x=0.2, y=1.0),
-        ],
-        confidence=0.9,
-    )
+    return ConfiguredLaneDetector(configured_lanes(), configured_boundaries(), 0.9)
 
 
 def test_normalized_point_maps_to_original_resolution() -> None:
@@ -38,62 +71,90 @@ def test_normalized_point_rejects_out_of_range_values() -> None:
         NormalizedPoint2D(x=1.1, y=0.5)
 
 
-def test_configured_detector_maps_polygon_and_boundaries() -> None:
+def test_configured_detector_maps_all_lanes_and_boundaries() -> None:
     geometry = detector().detect(frame=None, width=1000, height=500)
     assert geometry.status is LaneGeometryStatus.VALID
     assert geometry.provenance is LaneGeometryProvenance.CONFIGURED
     assert geometry.confidence == 0.9
-    assert geometry.ego_lane is not None
-    assert geometry.ego_lane.polygon[0] == Point2D(x=400, y=200)
-    assert geometry.ego_lane.polygon[2] == Point2D(x=800, y=500)
-    assert [boundary.boundary_id for boundary in geometry.boundaries] == ["left", "right"]
+    assert [lane.lane_id for lane in geometry.lanes] == ["lane_left", "lane_center"]
+    assert geometry.lanes[1].polygon[0] == Point2D(x=500, y=200)
+    assert geometry.lanes[1].polygon[2] == Point2D(x=800, y=500)
+    assert geometry.boundaries[0].left_lane_id == "lane_left"
+    assert geometry.boundaries[0].right_lane_id == "lane_center"
+    assert geometry.boundaries[0].points[1] == Point2D(x=500, y=500)
 
 
-@pytest.mark.parametrize(
-    ("anchor", "expected"),
-    [
-        (Point2D(x=500, y=400), LaneMembership.INSIDE),
-        (Point2D(x=250, y=400), LaneMembership.OUTSIDE),
-        (Point2D(x=263, y=400), LaneMembership.BOUNDARY),
-        (Point2D(x=271, y=400), LaneMembership.BOUNDARY),
-    ],
-)
-def test_membership_uses_boundary_margin(anchor: Point2D, expected: LaneMembership) -> None:
-    geometry = detector().detect(frame=None, width=1000, height=500)
-    feature = LaneMembershipEvaluator(boundary_margin=8).evaluate(anchor, geometry)
-    assert feature.membership is expected
-
-
-def test_signed_distance_is_positive_inside_and_negative_outside() -> None:
-    geometry = detector().detect(frame=None, width=1000, height=500)
-    evaluator = LaneMembershipEvaluator(boundary_margin=0)
-    inside = evaluator.evaluate(Point2D(x=500, y=400), geometry)
-    outside = evaluator.evaluate(Point2D(x=250, y=400), geometry)
-    assert inside.signed_boundary_distance is not None
-    assert outside.signed_boundary_distance is not None
-    assert inside.signed_boundary_distance > 0
-    assert outside.signed_boundary_distance < 0
-
-
-def test_unknown_geometry_produces_unknown_membership() -> None:
-    geometry = LaneGeometry(
-        status=LaneGeometryStatus.UNKNOWN,
-        provenance=LaneGeometryProvenance.UNKNOWN,
-        confidence=0,
-        frame_width=1920,
-        frame_height=1080,
-        reason="calibration unavailable",
-    )
-    feature = LaneMembershipEvaluator(boundary_margin=10).evaluate(
-        Point2D(x=960, y=900), geometry
-    )
-    assert feature.membership is LaneMembership.UNKNOWN
-    assert feature.signed_boundary_distance is None
-
-
-def test_lane_geometry_serialization_is_json_compatible() -> None:
+def test_configured_detector_maps_at_a_second_resolution() -> None:
     geometry = detector().detect(frame=None, width=1920, height=1080)
-    payload = json.loads(geometry.model_dump_json())
-    assert payload["status"] == "valid"
-    assert payload["provenance"] == "configured"
-    assert payload["ego_lane"]["polygon"][0] == {"x": 768.0, "y": 432.0}
+    assert geometry.lanes[1].polygon[0] == Point2D(x=960, y=432)
+    assert geometry.boundaries[0].points[1] == Point2D(x=960, y=1080)
+
+
+def test_configured_detector_rejects_unknown_boundary_lane() -> None:
+    boundary = configured_boundaries()[0].model_copy(
+        update={"right_lane_id": "missing_lane"}
+    )
+    with pytest.raises(ValueError, match="unknown lane"):
+        ConfiguredLaneDetector(configured_lanes(), [boundary])
+
+
+def test_lane_geometry_rejects_duplicate_lane_ids_and_orders() -> None:
+    lane = LaneRegion(
+        lane_id="lane_a",
+        lateral_order=0,
+        polygon=(Point2D(x=0, y=0), Point2D(x=1, y=0), Point2D(x=1, y=1)),
+    )
+    with pytest.raises(ValidationError, match="lane IDs"):
+        LaneGeometry(
+            status=LaneGeometryStatus.VALID,
+            provenance=LaneGeometryProvenance.CONFIGURED,
+            confidence=1,
+            frame_width=10,
+            frame_height=10,
+            lanes=(lane, lane),
+        )
+    other = lane.model_copy(update={"lane_id": "lane_b"})
+    with pytest.raises(ValidationError, match="lateral orders"):
+        LaneGeometry(
+            status=LaneGeometryStatus.VALID,
+            provenance=LaneGeometryProvenance.CONFIGURED,
+            confidence=1,
+            frame_width=10,
+            frame_height=10,
+            lanes=(lane, other),
+        )
+
+
+def test_lane_boundary_must_separate_distinct_lanes() -> None:
+    with pytest.raises(ValidationError, match="distinct lanes"):
+        LaneBoundary(
+            boundary_id="bad",
+            left_lane_id="lane_a",
+            right_lane_id="lane_a",
+            points=(Point2D(x=0, y=0), Point2D(x=1, y=1)),
+        )
+
+
+def test_unknown_geometry_cannot_contain_lanes() -> None:
+    lane = LaneRegion(
+        lane_id="lane_a",
+        lateral_order=0,
+        polygon=(Point2D(x=0, y=0), Point2D(x=1, y=0), Point2D(x=1, y=1)),
+    )
+    with pytest.raises(ValidationError, match="cannot contain"):
+        LaneGeometry(
+            status=LaneGeometryStatus.UNKNOWN,
+            provenance=LaneGeometryProvenance.UNKNOWN,
+            confidence=0,
+            frame_width=10,
+            frame_height=10,
+            lanes=(lane,),
+        )
+
+
+def test_lane_geometry_serialization_is_json_compatible_without_ego_lane() -> None:
+    payload = json.loads(detector().detect(None, 1920, 1080).model_dump_json())
+    assert "ego_lane" not in payload
+    assert payload["lanes"][1]["lane_id"] == "lane_center"
+    assert payload["lanes"][1]["polygon"][0] == {"x": 960.0, "y": 432.0}
+    assert payload["boundaries"][0]["boundary_id"] == "boundary_left"

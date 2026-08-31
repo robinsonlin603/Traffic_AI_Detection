@@ -11,7 +11,11 @@ import pytest
 from dashcam_ai.application.analyzer import Analyzer
 from dashcam_ai.application.scene import StreamingSceneAnalyzer
 from dashcam_ai.domain.geometry import BBox
-from dashcam_ai.domain.lane import NormalizedPoint2D
+from dashcam_ai.domain.lane import (
+    NormalizedLaneBoundary,
+    NormalizedLaneRegion,
+    NormalizedPoint2D,
+)
 from dashcam_ai.domain.motion import (
     EgoMotionEstimate,
     EgoMotionQuality,
@@ -123,7 +127,33 @@ def scene_analyzer(maximum_missing_frames: int = 1) -> StreamingSceneAnalyzer:
         NormalizedPoint2D(x=0.3, y=1),
     ]
     return StreamingSceneAnalyzer(
-        lane_detector=ConfiguredLaneDetector(lane_polygon),
+        lane_detector=ConfiguredLaneDetector(
+            lanes=[
+                NormalizedLaneRegion(
+                    lane_id="lane_left", lateral_order=-1, polygon=tuple(lane_polygon)
+                ),
+                NormalizedLaneRegion(
+                    lane_id="lane_center", lateral_order=0, polygon=tuple(lane_polygon)
+                ),
+                NormalizedLaneRegion(
+                    lane_id="lane_right", lateral_order=1, polygon=tuple(lane_polygon)
+                ),
+            ],
+            boundaries=[
+                NormalizedLaneBoundary(
+                    boundary_id="boundary_left",
+                    left_lane_id="lane_left",
+                    right_lane_id="lane_center",
+                    points=(lane_polygon[0], lane_polygon[3]),
+                ),
+                NormalizedLaneBoundary(
+                    boundary_id="boundary_right",
+                    left_lane_id="lane_center",
+                    right_lane_id="lane_right",
+                    points=(lane_polygon[1], lane_polygon[2]),
+                ),
+            ],
+        ),
         membership_evaluator=LaneMembershipEvaluator(boundary_margin=5),
         motion_estimator=ValidMotionEstimator(),
         relative_motion_evaluator=RelativeMotionEvaluator(),
