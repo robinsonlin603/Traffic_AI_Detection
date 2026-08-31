@@ -12,7 +12,7 @@ from dashcam_ai.domain.events import (
 )
 from dashcam_ai.domain.geometry import BBox
 from dashcam_ai.domain.lane import LaneMembership
-from dashcam_ai.domain.motion import EgoMotionStatus
+from dashcam_ai.domain.motion import EgoMotionStatus, RelativeMotionSummary
 from dashcam_ai.domain.scene import ForwardCorridor
 from dashcam_ai.domain.temporal import ManeuverRelation
 
@@ -30,6 +30,11 @@ class CutInDetector:
         corridor_weight: float = 0.3,
         bbox_expansion_weight: float = 0.15,
         motion_quality_weight: float = 0.15,
+        relative_motion_weight: float = 0.15,
+        lateral_progress_weight: float = 0.1,
+        direction_compatibility_weight: float = 0.1,
+        scene_consistency_weight: float = 0.1,
+        require_relative_motion: bool = False,
     ) -> None:
         if minimum_bbox_expansion_ratio <= 0:
             raise ValueError("minimum_bbox_expansion_ratio must be positive")
@@ -42,6 +47,10 @@ class CutInDetector:
             corridor_weight,
             bbox_expansion_weight,
             motion_quality_weight,
+            relative_motion_weight,
+            lateral_progress_weight,
+            direction_compatibility_weight,
+            scene_consistency_weight,
         )
         if any(weight < 0 for weight in weights) or sum(weights) <= 0:
             raise ValueError("confidence weights must be non-negative with a positive sum")
@@ -49,6 +58,7 @@ class CutInDetector:
         self._minimum_expansion = minimum_bbox_expansion_ratio
         self._minimum_confidence = minimum_confirmed_confidence
         self._minimum_motion_quality = minimum_motion_quality_ratio
+        self._require_relative_motion = require_relative_motion
         self._weights = tuple(weight / total for weight in weights)
 
     def detect(
@@ -75,10 +85,24 @@ class CutInDetector:
             EventStatus.CANDIDATE: 0.5,
             EventStatus.REJECTED: 0.0,
         }[lane_change.status]
+        relative = lane_change.relative_motion
+        relative_score = relative.confidence if relative is not None else 0.0
+        lateral_score = 1.0 if relative is not None and relative.supported else 0.0
+        direction_score = relative.directional_consistency if relative is not None else 0.0
+        scene_score = relative.scene_consistency if relative is not None else 0.0
         overall = sum(
             score * weight
             for score, weight in zip(
-                (lane_score, corridor_score, expansion_score, motion_score),
+                (
+                    lane_score,
+                    corridor_score,
+                    expansion_score,
+                    motion_score,
+                    relative_score,
+                    lateral_score,
+                    direction_score,
+                    scene_score,
+                ),
                 self._weights,
                 strict=True,
             )
@@ -86,6 +110,7 @@ class CutInDetector:
         status, reason = self._status(
             lane_change.status,
             lane_change.maneuver_relation,
+            relative,
             corridor_score,
             expansion_score,
             motion_score,
@@ -106,6 +131,7 @@ class CutInDetector:
                 latest.ego_motion_status if latest is not None else EgoMotionStatus.UNKNOWN
             ),
             bbox=current_bbox,
+            relative_motion=latest.relative_motion if latest is not None else None,
         )
         return CutInEvent(
             event_id=f"cut-in:{lane_change.track_id}:{lane_change.start_frame}",
@@ -122,6 +148,10 @@ class CutInDetector:
                 corridor_interaction=corridor_score,
                 bbox_expansion=expansion_score,
                 motion_quality=motion_score,
+                relative_motion=relative_score,
+                lateral_progress=lateral_score,
+                direction_compatibility=direction_score,
+                scene_consistency=scene_score,
                 overall=overall,
             ),
             evidence=EventEvidence(
@@ -141,6 +171,7 @@ class CutInDetector:
         self,
         lane_status: EventStatus,
         maneuver_relation: ManeuverRelation,
+        relative_motion: RelativeMotionSummary | None,
         corridor_score: float,
         expansion_score: float,
         motion_score: float,
@@ -150,6 +181,22 @@ class CutInDetector:
             return EventStatus.REJECTED, "lane change was rejected"
         if maneuver_relation is not ManeuverRelation.ENTERING_EGO:
             return EventStatus.REJECTED, "lane change is not entering the ego lane"
+        if self._require_relative_motion:
+            if relative_motion is None:
+                return EventStatus.CANDIDATE, "relative motion evidence is unavailable"
+            if not relative_motion.supported:
+                reason = relative_motion.reason or "relative motion evidence is insufficient"
+                terminal_reasons = {
+                    "scene-wide motion is inconsistent with independent lane changes",
+                    "vehicle is stationary relative to the background",
+                    "relative lateral direction is incompatible with the maneuver",
+                }
+                status = (
+                    EventStatus.REJECTED
+                    if reason in terminal_reasons
+                    else EventStatus.CANDIDATE
+                )
+                return status, reason
         if corridor_score < 1.0:
             return EventStatus.REJECTED, "vehicle bottom-center is outside forward corridor"
         if expansion_score <= 0:
