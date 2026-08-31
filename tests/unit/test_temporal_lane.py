@@ -20,6 +20,7 @@ def feature(
     distance: float | None,
     membership: LaneMembership | None = None,
     boundary_id: str = "left",
+    lane_id: str | None = None,
 ) -> LaneMembershipFeature:
     if membership is None:
         if distance is None:
@@ -31,6 +32,7 @@ def feature(
     return LaneMembershipFeature(
         membership=membership,
         anchor=Point2D(x=100, y=200),
+        lane_id=lane_id,
         signed_boundary_distance=distance,
         nearest_boundary_id=boundary_id if distance is not None else None,
         geometry_confidence=1.0,
@@ -213,3 +215,74 @@ def test_tracks_are_isolated_and_history_is_bounded_and_serializable() -> None:
     payload = json.loads(latest.model_dump_json())
     assert payload["history"][-1]["ego_motion_status"] == "valid"
     assert payload["boundary_id"] == "left"
+
+
+def test_general_lane_id_requires_debounce_before_becoming_stable() -> None:
+    tracker = TemporalLaneTracker(smoothing_window_frames=1, debounce_frames=2)
+
+    first = tracker.update(
+        9,
+        0,
+        0.0,
+        feature(30, LaneMembership.INSIDE_LANE, lane_id="lane_left"),
+        EgoMotionStatus.VALID,
+    )
+    second = tracker.update(
+        9,
+        1,
+        0.1,
+        feature(32, LaneMembership.INSIDE_LANE, lane_id="lane_left"),
+        EgoMotionStatus.VALID,
+    )
+
+    assert first.observed_lane_id == "lane_left"
+    assert first.stable_lane_id is None
+    assert second.stable_lane_id == "lane_left"
+    assert second.history[-1].stable_lane_id == "lane_left"
+
+
+def test_boundary_jitter_does_not_replace_stable_general_lane() -> None:
+    tracker = TemporalLaneTracker(smoothing_window_frames=1, debounce_frames=2)
+    tracker.update(
+        10,
+        0,
+        0.0,
+        feature(30, LaneMembership.INSIDE_LANE, lane_id="lane_center"),
+        EgoMotionStatus.VALID,
+    )
+    stable = tracker.update(
+        10,
+        1,
+        0.1,
+        feature(30, LaneMembership.INSIDE_LANE, lane_id="lane_center"),
+        EgoMotionStatus.VALID,
+    )
+    jitter = tracker.update(
+        10,
+        2,
+        0.2,
+        feature(2, LaneMembership.NEAR_BOUNDARY, lane_id="lane_left"),
+        EgoMotionStatus.VALID,
+    )
+
+    assert stable.stable_lane_id == "lane_center"
+    assert jitter.stable_lane_id == "lane_center"
+
+
+def test_short_missing_observation_preserves_stable_lane_then_clears_it() -> None:
+    tracker = TemporalLaneTracker(
+        smoothing_window_frames=1, debounce_frames=1, maximum_missing_frames=1
+    )
+    stable = tracker.update(
+        11,
+        0,
+        0.0,
+        feature(30, LaneMembership.INSIDE_LANE, lane_id="lane_right"),
+        EgoMotionStatus.VALID,
+    )
+    short = tracker.update(11, 1, 0.1, feature(None), EgoMotionStatus.UNKNOWN)
+    expired = tracker.update(11, 2, 0.2, feature(None), EgoMotionStatus.UNKNOWN)
+
+    assert stable.stable_lane_id == "lane_right"
+    assert short.stable_lane_id == "lane_right"
+    assert expired.stable_lane_id is None

@@ -120,6 +120,18 @@ def scene_analyzer(maximum_missing_frames: int = 1) -> StreamingSceneAnalyzer:
         NormalizedPoint2D(x=0.6, y=1),
         NormalizedPoint2D(x=0.4, y=1),
     ]
+    left_lane_polygon = [
+        NormalizedPoint2D(x=0, y=0),
+        NormalizedPoint2D(x=0.4, y=0),
+        NormalizedPoint2D(x=0.4, y=1),
+        NormalizedPoint2D(x=0, y=1),
+    ]
+    right_lane_polygon = [
+        NormalizedPoint2D(x=0.6, y=0),
+        NormalizedPoint2D(x=1, y=0),
+        NormalizedPoint2D(x=1, y=1),
+        NormalizedPoint2D(x=0.6, y=1),
+    ]
     corridor_polygon = [
         NormalizedPoint2D(x=0.35, y=0.5),
         NormalizedPoint2D(x=0.65, y=0.5),
@@ -130,13 +142,17 @@ def scene_analyzer(maximum_missing_frames: int = 1) -> StreamingSceneAnalyzer:
         lane_detector=ConfiguredLaneDetector(
             lanes=[
                 NormalizedLaneRegion(
-                    lane_id="lane_left", lateral_order=-1, polygon=tuple(lane_polygon)
+                    lane_id="lane_left",
+                    lateral_order=-1,
+                    polygon=tuple(left_lane_polygon),
                 ),
                 NormalizedLaneRegion(
                     lane_id="lane_center", lateral_order=0, polygon=tuple(lane_polygon)
                 ),
                 NormalizedLaneRegion(
-                    lane_id="lane_right", lateral_order=1, polygon=tuple(lane_polygon)
+                    lane_id="lane_right",
+                    lateral_order=1,
+                    polygon=tuple(right_lane_polygon),
                 ),
             ],
             boundaries=[

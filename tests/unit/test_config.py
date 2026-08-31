@@ -27,6 +27,7 @@ def test_default_configuration_loads() -> None:
     assert config.lane_geometry.lanes[1].polygon[0].x == 0.44
     assert len(config.lane_geometry.boundaries) == 2
     assert config.lane_membership.boundary_margin_pixels == 12.0
+    assert config.lane_membership.minimum_geometry_confidence == 0.5
     assert config.ego_motion.minimum_inliers == 8
     assert config.ego_motion.optical_flow_window_size == 21
     assert config.relative_motion.enabled is True
