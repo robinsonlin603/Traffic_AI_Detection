@@ -33,7 +33,11 @@ are also outside this plan; the accepted first version uses normalized configure
   `reference_lane` compatibility adapter, legacy temporal aliases for the new boundary IDs, and
   focused geometry/configuration tests. Focused tests passed 26 tests; the full suite passed 111
   tests, Ruff, strict Mypy across 55 source files, and `git diff --check`.
-- [ ] Slice 2: general membership, temporal smoothing, hysteresis, debounce, and missing tolerance.
+- [x] (2026-09-01 00:15Z) Slice 2: added general lane IDs, boundary-side candidates, overlap and
+  low-confidence unknown behavior, general stable-lane debounce, boundary-jitter resistance, and
+  missing-observation tolerance. Removed the Slice 1 `reference_lane` adapter and made annotation
+  draw every configured lane. Focused tests passed 38 tests; the full suite passed 121 tests,
+  Ruff, strict Mypy across 55 source files, and `git diff --check`.
 - [ ] Slice 3: general lane-change timeline and source-to-target relative-motion safety gates.
 - [ ] Slice 4: general event and pipeline integration; remove cut-in and forward corridor.
 - [ ] Slice 5: visualization, documentation, regression, real-video review, and platform evidence.
@@ -59,6 +63,11 @@ are also outside this plan; the accepted first version uses normalized configure
   configured `lane_center`, or the median ordered lane when that ID is absent, through the
   non-serialized `LaneGeometry.reference_lane` property. Slice 2 must remove this adapter when it
   evaluates every lane.
+
+- Observation: Polygon edge points may be contained by both neighboring lane polygons.
+  Evidence: membership treats a point near the shared boundary as `near_boundary` with both lane
+  IDs, while an overlap away from the configured boundary is `unknown`; it never chooses a lane
+  arbitrarily.
 
 ## Decision Log
 
@@ -104,16 +113,23 @@ are also outside this plan; the accepted first version uses normalized configure
   Rationale: geometry and configuration can migrate atomically while the full pre-existing suite
   remains usable; keeping the property out of artifacts prevents the new schema from claiming an
   ego lane. Slice 2 owns its removal.
-  Date/Author: 2026-08-31 / Codex
+  Date/Author: 2026-08-31 / Codex. Completed: removed in Slice 2 on 2026-09-01.
+
+- Decision: Keep the old ego-relative event lifecycle behind `_legacy_relation` only until Slice
+  3, while serializing general observed and stable lane IDs now.
+  Rationale: Slice 2 can prove membership stabilization independently without prematurely mixing
+  in the final source-to-target event state machine. The adapter maps `lane_center` to the former
+  inside relation and other configured lanes to the former adjacent relation.
+  Date/Author: 2026-09-01 / Codex
 
 ## Outcomes & Retrospective
 
 The replacement scope is approved and the old ego-lane/cut-in work is preserved in Git. Slice 1
-now provides validated general configured lanes and shared boundaries without an `ego_lane`
-artifact field. Membership and visualization still use a documented, non-serialized reference
-adapter until Slice 2. Completion requires the remaining four slices, automated gates, a readable
-general lane-change artifact, and authoritative macOS MPS and Linux CUDA reports for the final
-commit. Update this section at each slice and replace it with the final outcome at acceptance.
+provides validated configured lanes and boundaries; Slice 2 now evaluates all lanes, exposes
+general observed and stable lane IDs, handles ambiguity conservatively, and has removed the
+reference-lane adapter. The old event lifecycle remains behind a named compatibility function
+until Slice 3. Completion requires the remaining three slices, automated gates, a readable general
+lane-change artifact, and authoritative macOS MPS and Linux CUDA reports for the final commit.
 
 ## Context and Orientation
 
@@ -324,3 +340,6 @@ scope.
 
 Revision note (2026-08-31): Recorded Slice 1 general lane topology, temporary reference-lane
 compatibility decision, and focused/full validation evidence.
+
+Revision note (2026-09-01): Recorded Slice 2 general membership and stabilization, removal of the
+reference-lane adapter, the temporary event compatibility mapping, and validation evidence.
