@@ -43,6 +43,18 @@ class OpenCVAnnotator:
                     dtype=np.int32,
                 )
                 cv2.polylines(output, [lane_points], True, (80, 220, 220), 2)
+                label_x = round(sum(point.x for point in lane.polygon) / len(lane.polygon))
+                label_y = round(sum(point.y for point in lane.polygon) / len(lane.polygon))
+                cv2.putText(
+                    output,
+                    lane.lane_id,
+                    (label_x, label_y),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.55,
+                    (80, 220, 220),
+                    2,
+                    cv2.LINE_AA,
+                )
             for boundary in geometry.boundaries:
                 boundary_points = np.asarray(
                     [(round(point.x), round(point.y)) for point in boundary.points],
@@ -51,8 +63,9 @@ class OpenCVAnnotator:
                 cv2.polylines(output, [boundary_points], False, (40, 255, 120), 2)
         for obj in objects:
             x1, y1, x2, y2 = (round(value) for value in obj.bbox.as_xyxy())
-            cv2.rectangle(output, (x1, y1), (x2, y2), (40, 220, 80), 2)
             state = track_analysis.get(obj.track_id)
+            box_color = self._track_box_color(state)
+            cv2.rectangle(output, (x1, y1), (x2, y2), box_color, 2)
             lines = self._track_label_lines(obj, state)
             text_sizes = [
                 cv2.getTextSize(line, cv2.FONT_HERSHEY_SIMPLEX, 0.55, 2)[0]
@@ -87,6 +100,13 @@ class OpenCVAnnotator:
                 )
             # 底部中心點較接近物件與地面的接觸位置，適合呈現行進軌跡。
             bottom = obj.bbox.bottom_center
+            cv2.circle(
+                output,
+                (round(bottom.x), round(bottom.y)),
+                4,
+                self._membership_color(state),
+                -1,
+            )
             trail = self._trails[obj.track_id]
             trail.append((round(bottom.x), round(bottom.y)))
             points = list(trail)
@@ -103,7 +123,7 @@ class OpenCVAnnotator:
                 }[event.status]
                 cv2.putText(
                     output,
-                    f"{event.event_type} #{event.track_id} {event.status.value}",
+                    self._event_banner(event),
                     (20, 30 + index * 26),
                     cv2.FONT_HERSHEY_SIMPLEX,
                     0.65,
@@ -115,26 +135,52 @@ class OpenCVAnnotator:
 
     @staticmethod
     def _track_label_lines(obj: TrackedObject, state: Any | None) -> tuple[str, ...]:
-        primary = f"#{obj.track_id} {obj.class_name}"
-        if state is None:
-            return (primary,)
-        membership = state.membership.membership.value
-        status = state.temporal.lane_change_status.value
-        if status != "idle":
-            return primary, status
-        if membership in {"near_boundary", "unknown"}:
-            return primary, membership
-        return (primary,)
+        return (f"#{obj.track_id} {OpenCVAnnotator._class_code(obj.class_name)}",)
 
     @staticmethod
-    def _track_label_color(state: Any | None) -> tuple[int, int, int]:
+    def _class_code(class_name: str) -> str:
+        normalized = class_name.casefold()
+        return {
+            "car": "C",
+            "truck": "T",
+            "bus": "B",
+            "motorcycle": "M",
+            "person": "P",
+            "bicycle": "BC",
+        }.get(normalized, normalized[:1].upper() or "?")
+
+    @staticmethod
+    def _track_box_color(state: Any | None) -> tuple[int, int, int]:
         if state is None:
             return (40, 220, 80)
         return {
             "candidate": (0, 200, 255),
             "confirmed": (0, 60, 255),
             "rejected": (160, 160, 160),
+            "unknown": (120, 120, 120),
         }.get(state.temporal.lane_change_status.value, (40, 220, 80))
+
+    @staticmethod
+    def _track_label_color(state: Any | None) -> tuple[int, int, int]:
+        return OpenCVAnnotator._track_box_color(state)
+
+    @staticmethod
+    def _membership_color(state: Any | None) -> tuple[int, int, int]:
+        if state is None:
+            return (120, 120, 120)
+        return {
+            "inside_lane": (40, 220, 80),
+            "near_boundary": (0, 200, 255),
+            "outside_configured_lanes": (180, 100, 40),
+            "unknown": (120, 120, 120),
+        }[state.membership.membership.value]
+
+    @staticmethod
+    def _event_banner(event: LaneChangeEvent) -> str:
+        return (
+            f"LANE CHANGE {event.direction.value.upper()} "
+            f"#{event.track_id} {event.status.value.upper()}"
+        )
 
     @classmethod
     def _place_label(
