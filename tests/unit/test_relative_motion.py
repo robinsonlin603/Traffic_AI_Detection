@@ -15,7 +15,6 @@ from dashcam_ai.lane.temporal import TemporalLaneTracker
 from dashcam_ai.motion.relative import (
     RelativeMotionEvaluator,
     summarize_lane_relative_motion,
-    summarize_relative_motion,
 )
 
 
@@ -55,16 +54,6 @@ def evidence(lateral: float, *, stationary: bool = False) -> RelativeMotionEvide
         stationary=stationary,
         scene_consistent=True,
         confidence=0.9,
-    )
-
-
-def lane_feature(distance: float) -> LaneMembershipFeature:
-    return LaneMembershipFeature(
-        membership=LaneMembership.INSIDE if distance > 0 else LaneMembership.OUTSIDE,
-        anchor=Point2D(x=100, y=200),
-        signed_boundary_distance=distance,
-        nearest_boundary_id="left",
-        geometry_confidence=1,
     )
 
 
@@ -151,37 +140,6 @@ def test_scene_consistency_rejects_consensus_mass_motion() -> None:
     assert all(item.scene_consistent is False for item in result.values())
 
 
-def test_relative_motion_summary_requires_progress_and_non_stationary_evidence() -> None:
-    from dashcam_ai.domain.temporal import LanePosition, ManeuverRelation
-
-    supported = summarize_relative_motion(
-        [evidence(0.002), evidence(0.002)],
-        ManeuverRelation.ENTERING_EGO,
-        LanePosition.LEFT_ADJACENT,
-        LanePosition.EGO,
-        minimum_valid_observations=2,
-        minimum_cumulative_lateral_ratio=0.003,
-        minimum_directional_consistency=0.6,
-        minimum_scene_consistency=0.8,
-        maximum_stationary_ratio=0.5,
-    )
-    stationary = summarize_relative_motion(
-        [evidence(0, stationary=True), evidence(0, stationary=True)],
-        ManeuverRelation.ENTERING_EGO,
-        LanePosition.LEFT_ADJACENT,
-        LanePosition.EGO,
-        minimum_valid_observations=2,
-        minimum_cumulative_lateral_ratio=0.003,
-        minimum_directional_consistency=0.6,
-        minimum_scene_consistency=0.8,
-        maximum_stationary_ratio=0.5,
-    )
-
-    assert supported.supported is True
-    assert stationary.supported is False
-    assert stationary.reason == "vehicle is stationary relative to the background"
-
-
 def test_general_lane_relative_motion_uses_source_and_target_order() -> None:
     moving_right = summarize_lane_relative_motion(
         [evidence(0.002), evidence(0.002)],
@@ -208,64 +166,6 @@ def test_general_lane_relative_motion_uses_source_and_target_order() -> None:
     assert wrong_direction.supported is False
     assert wrong_direction.reason == (
         "relative lateral direction is incompatible with the maneuver"
-    )
-
-
-def test_temporal_confirmation_requires_supported_relative_motion() -> None:
-    tracker = TemporalLaneTracker(
-        smoothing_window_frames=1,
-        debounce_frames=1,
-        minimum_confirmation_frames=2,
-        minimum_confirmation_duration_seconds=0.1,
-        require_relative_motion=True,
-        minimum_relative_motion_observations=2,
-        minimum_cumulative_lateral_ratio=0.003,
-    )
-    distances = [-80, -20, -5, 25, 30]
-    states = [
-        tracker.update(
-            1,
-            frame_id,
-            frame_id * 0.1,
-            lane_feature(distance),
-            EgoMotionStatus.VALID,
-            evidence(0.002),
-        )
-        for frame_id, distance in enumerate(distances)
-    ]
-
-    assert states[-1].status is LaneChangeStatus.CONFIRMED
-    assert states[-1].relative_motion is not None
-    assert states[-1].relative_motion.supported is True
-
-
-def test_stationary_relative_motion_cannot_confirm_lane_change() -> None:
-    tracker = TemporalLaneTracker(
-        smoothing_window_frames=1,
-        debounce_frames=1,
-        minimum_confirmation_frames=2,
-        minimum_confirmation_duration_seconds=0.1,
-        require_relative_motion=True,
-        minimum_relative_motion_observations=2,
-        minimum_cumulative_lateral_ratio=0.003,
-    )
-    distances = [-80, -20, -5, 25, 30]
-    states = [
-        tracker.update(
-            1,
-            frame_id,
-            frame_id * 0.1,
-            lane_feature(distance),
-            EgoMotionStatus.VALID,
-            evidence(0, stationary=True),
-        )
-        for frame_id, distance in enumerate(distances)
-    ]
-
-    assert states[-1].status is LaneChangeStatus.CANDIDATE
-    assert states[-1].relative_motion is not None
-    assert states[-1].relative_motion.reason == (
-        "vehicle is stationary relative to the background"
     )
 
 

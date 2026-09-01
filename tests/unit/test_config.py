@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from dashcam_ai.config.models import CutInConfig, LaneGeometryConfig, load_config
+from dashcam_ai.config.models import LaneGeometryConfig, load_config
 from dashcam_ai.domain.lane import (
     NormalizedLaneBoundary,
     NormalizedLaneRegion,
@@ -34,8 +34,8 @@ def test_default_configuration_loads() -> None:
     assert config.relative_motion.minimum_valid_observations == 2
     assert config.temporal_lane.smoothing_window_frames == 3
     assert config.temporal_lane.maximum_missing_frames == 2
-    assert len(config.forward_corridor.polygon) == 4
-    assert config.cut_in.minimum_confirmed_confidence == 0.65
+    assert not hasattr(config, "forward_corridor")
+    assert not hasattr(config, "cut_in")
 
 
 @pytest.mark.parametrize(
@@ -58,8 +58,6 @@ def test_platform_configurations_include_milestone_2_sections(
     assert config.ego_motion.minimum_tracked_features >= 4
     assert config.relative_motion.minimum_cumulative_lateral_ratio > 0
     assert config.temporal_lane.minimum_confirmation_frames > 0
-    assert len(config.forward_corridor.polygon) >= 3
-    assert config.cut_in.minimum_confirmed_confidence > 0
 
 
 def test_nvidia_lane_calibration_stays_on_test3_road_surface() -> None:
@@ -67,14 +65,8 @@ def test_nvidia_lane_calibration_stays_on_test3_road_surface() -> None:
     center_lane = next(
         lane for lane in config.lane_geometry.lanes if lane.lane_id == "lane_center"
     ).polygon
-    corridor = config.forward_corridor.polygon
 
     assert min(point.y for point in center_lane) >= 0.66
-    assert min(point.y for point in corridor) >= 0.70
-    assert corridor[0].x > center_lane[0].x
-    assert corridor[1].x < center_lane[1].x
-    assert corridor[2].x < center_lane[2].x
-    assert corridor[3].x > center_lane[3].x
 
 
 def test_lane_geometry_configuration_rejects_duplicate_ids_and_unknown_refs() -> None:
@@ -98,17 +90,3 @@ def test_lane_geometry_configuration_rejects_duplicate_ids_and_unknown_refs() ->
     )
     with pytest.raises(ValidationError, match="unknown lane"):
         LaneGeometryConfig(lanes=[lane], boundaries=[boundary])
-
-
-def test_cutin_configuration_requires_positive_weight_sum() -> None:
-    with pytest.raises(ValidationError, match="positive sum"):
-        CutInConfig(
-            lane_change_weight=0,
-            corridor_weight=0,
-            bbox_expansion_weight=0,
-            motion_quality_weight=0,
-            relative_motion_weight=0,
-            lateral_progress_weight=0,
-            direction_compatibility_weight=0,
-            scene_consistency_weight=0,
-        )
