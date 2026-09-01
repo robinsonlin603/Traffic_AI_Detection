@@ -44,7 +44,11 @@ are also outside this plan; the accepted first version uses normalized configure
   Focused temporal, relative-motion, and scene-pipeline tests passed 38 tests; the full regression
   and static gates passed 128 tests, Ruff, strict Mypy across 55 source files, and
   `git diff --check`.
-- [ ] Slice 4: general event and pipeline integration; remove cut-in and forward corridor.
+- [x] (2026-09-01 01:29Z) Slice 4: replaced the event schema and pipeline with general
+  source/target lane changes, added ordered timeline and bounded trajectory evidence, removed the
+  ego-relative compatibility lifecycle, and deleted cut-in, forward-corridor, configuration,
+  artifact, and test contracts. Focused integration passed; the full suite passed 96 tests, Ruff,
+  strict Mypy across 53 source files, and `git diff --check`.
 - [ ] Slice 5: visualization, documentation, regression, real-video review, and platform evidence.
 
 ## Surprises & Discoveries
@@ -79,6 +83,12 @@ are also outside this plan; the accepted first version uses normalized configure
   Evidence: Slice 3 records the crossing time when the boundary-side lane ID first becomes the
   target, while recording entry only after target-lane debounce succeeds. This preserves ordered
   approach, crossing, and entry evidence without treating one frame as confirmation.
+
+- Observation: Removing cut-in reduced both source and test counts substantially without reducing
+  coverage of the revised milestone contract.
+  Evidence: Slice 4 deleted the corridor and cut-in modules plus their ego-relative regression
+  fixture, then replaced them with schema validation and a fake-pipeline test asserting that only
+  general lane changes appear. The suite now has 96 passing tests across 53 source files.
 
 ## Decision Log
 
@@ -137,13 +147,13 @@ are also outside this plan; the accepted first version uses normalized configure
 
 ## Outcomes & Retrospective
 
-The replacement scope is approved and the old ego-lane/cut-in work is preserved in Git. Slice 1
-provides validated configured lanes and boundaries; Slice 2 evaluates all lanes and stabilizes
-general lane IDs; Slice 3 now produces a conservative source-to-target timeline with ordered
-approach, crossing, entry, and completion evidence. The old event lifecycle remains only as a
-compatibility path for the still-old builder and pipeline and is removed in Slice 4. Completion
-requires the remaining two slices, a readable general lane-change artifact, real-video review,
-and authoritative macOS MPS and Linux CUDA reports for the final commit.
+The replacement scope is approved and the old ego-lane/cut-in work remains available in Git
+history. Slice 1 provides configured lanes and boundaries; Slice 2 evaluates all lanes and
+stabilizes lane IDs; Slice 3 produces a conservative source-to-target timeline; Slice 4 now emits
+that timeline through the production pipeline and has removed every production cut-in,
+forward-corridor, and ego-relative event API. Completion requires Slice 5 visualization and
+documentation polish, real-video review, and authoritative macOS MPS and Linux CUDA reports for
+the final commit.
 
 ## Context and Orientation
 
