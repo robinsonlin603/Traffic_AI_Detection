@@ -12,7 +12,11 @@ from dashcam_ai.domain.motion import (
 )
 from dashcam_ai.domain.temporal import LaneChangeStatus
 from dashcam_ai.lane.temporal import TemporalLaneTracker
-from dashcam_ai.motion.relative import RelativeMotionEvaluator, summarize_relative_motion
+from dashcam_ai.motion.relative import (
+    RelativeMotionEvaluator,
+    summarize_lane_relative_motion,
+    summarize_relative_motion,
+)
 
 
 def ego_motion(values: tuple[float, ...]) -> EgoMotionEstimate:
@@ -60,6 +64,22 @@ def lane_feature(distance: float) -> LaneMembershipFeature:
         anchor=Point2D(x=100, y=200),
         signed_boundary_distance=distance,
         nearest_boundary_id="left",
+        geometry_confidence=1,
+    )
+
+
+def general_lane_feature(
+    membership: LaneMembership, lane_id: str, distance: float = 30
+) -> LaneMembershipFeature:
+    return LaneMembershipFeature(
+        membership=membership,
+        anchor=Point2D(x=100, y=200),
+        lane_id=lane_id,
+        lane_lateral_order={"lane_center": 1, "lane_right": 2}[lane_id],
+        boundary_lane_ids=("lane_center", "lane_right"),
+        boundary_lane_orders=(1, 2),
+        signed_boundary_distance=distance,
+        nearest_boundary_id="boundary_center_right",
         geometry_confidence=1,
     )
 
@@ -162,6 +182,35 @@ def test_relative_motion_summary_requires_progress_and_non_stationary_evidence()
     assert stationary.reason == "vehicle is stationary relative to the background"
 
 
+def test_general_lane_relative_motion_uses_source_and_target_order() -> None:
+    moving_right = summarize_lane_relative_motion(
+        [evidence(0.002), evidence(0.002)],
+        1,
+        2,
+        minimum_valid_observations=2,
+        minimum_cumulative_lateral_ratio=0.003,
+        minimum_directional_consistency=0.6,
+        minimum_scene_consistency=0.8,
+        maximum_stationary_ratio=0.5,
+    )
+    wrong_direction = summarize_lane_relative_motion(
+        [evidence(0.002), evidence(0.002)],
+        1,
+        0,
+        minimum_valid_observations=2,
+        minimum_cumulative_lateral_ratio=0.003,
+        minimum_directional_consistency=0.6,
+        minimum_scene_consistency=0.8,
+        maximum_stationary_ratio=0.5,
+    )
+
+    assert moving_right.supported is True
+    assert wrong_direction.supported is False
+    assert wrong_direction.reason == (
+        "relative lateral direction is incompatible with the maneuver"
+    )
+
+
 def test_temporal_confirmation_requires_supported_relative_motion() -> None:
     tracker = TemporalLaneTracker(
         smoothing_window_frames=1,
@@ -218,3 +267,38 @@ def test_stationary_relative_motion_cannot_confirm_lane_change() -> None:
     assert states[-1].relative_motion.reason == (
         "vehicle is stationary relative to the background"
     )
+
+
+def test_general_lane_change_requires_compensated_motion_support() -> None:
+    tracker = TemporalLaneTracker(
+        smoothing_window_frames=1,
+        debounce_frames=1,
+        minimum_confirmation_frames=2,
+        minimum_confirmation_duration_seconds=0.1,
+        require_relative_motion=True,
+        minimum_relative_motion_observations=2,
+        minimum_cumulative_lateral_ratio=0.003,
+    )
+    observations = [
+        general_lane_feature(LaneMembership.INSIDE_LANE, "lane_center"),
+        general_lane_feature(LaneMembership.NEAR_BOUNDARY, "lane_center", 2),
+        general_lane_feature(LaneMembership.NEAR_BOUNDARY, "lane_right", 1),
+        general_lane_feature(LaneMembership.INSIDE_LANE, "lane_right"),
+        general_lane_feature(LaneMembership.INSIDE_LANE, "lane_right"),
+    ]
+    states = [
+        tracker.update(
+            8,
+            frame_id,
+            frame_id * 0.1,
+            item,
+            EgoMotionStatus.VALID,
+            evidence(0, stationary=True),
+        )
+        for frame_id, item in enumerate(observations)
+    ]
+
+    assert states[-1].lane_change_status is LaneChangeStatus.CANDIDATE
+    assert states[-1].relative_motion is not None
+    assert states[-1].relative_motion.supported is False
+    assert states[-1].completed_frame is None

@@ -8,6 +8,8 @@ from dashcam_ai.domain.geometry import Point2D
 from dashcam_ai.domain.lane import LaneMembership, LaneMembershipFeature
 from dashcam_ai.domain.motion import EgoMotionStatus
 from dashcam_ai.domain.temporal import (
+    LaneChangeDirection,
+    LaneChangePhase,
     LaneChangeStatus,
     LanePosition,
     LaneRelationPhase,
@@ -36,6 +38,44 @@ def feature(
         signed_boundary_distance=distance,
         nearest_boundary_id=boundary_id if distance is not None else None,
         geometry_confidence=1.0,
+    )
+
+
+def general_feature(
+    membership: LaneMembership,
+    lane_id: str | None,
+    *,
+    distance: float = 30,
+    boundary_id: str = "boundary_left_center",
+    boundary_lanes: tuple[str, str] = ("lane_left", "lane_center"),
+    boundary_orders: tuple[int, int] = (0, 1),
+) -> LaneMembershipFeature:
+    lane_orders = {"lane_left": 0, "lane_center": 1, "lane_right": 2}
+    return LaneMembershipFeature(
+        membership=membership,
+        anchor=Point2D(x=100, y=200),
+        lane_id=lane_id,
+        lane_lateral_order=lane_orders.get(lane_id),
+        boundary_lane_ids=boundary_lanes,
+        boundary_lane_orders=boundary_orders,
+        signed_boundary_distance=distance,
+        nearest_boundary_id=boundary_id,
+        geometry_confidence=1.0,
+    )
+
+
+def general_update(
+    tracker: TemporalLaneTracker,
+    track_id: int,
+    frame_id: int,
+    feature_value: LaneMembershipFeature,
+):
+    return tracker.update(
+        track_id,
+        frame_id,
+        frame_id * 0.1,
+        feature_value,
+        EgoMotionStatus.VALID,
     )
 
 
@@ -286,3 +326,173 @@ def test_short_missing_observation_preserves_stable_lane_then_clears_it() -> Non
     assert stable.stable_lane_id == "lane_right"
     assert short.stable_lane_id == "lane_right"
     assert expired.stable_lane_id is None
+
+
+@pytest.mark.parametrize(
+    ("source", "target", "boundary_lanes", "boundary_orders", "direction"),
+    [
+        (
+            "lane_center",
+            "lane_left",
+            ("lane_left", "lane_center"),
+            (0, 1),
+            LaneChangeDirection.LEFT,
+        ),
+        (
+            "lane_center",
+            "lane_right",
+            ("lane_center", "lane_right"),
+            (1, 2),
+            LaneChangeDirection.RIGHT,
+        ),
+    ],
+)
+def test_general_adjacent_lane_change_records_ordered_timeline(
+    source: str,
+    target: str,
+    boundary_lanes: tuple[str, str],
+    boundary_orders: tuple[int, int],
+    direction: LaneChangeDirection,
+) -> None:
+    tracker = TemporalLaneTracker(
+        smoothing_window_frames=1,
+        debounce_frames=1,
+        minimum_confirmation_frames=2,
+        minimum_confirmation_duration_seconds=0.1,
+    )
+    states = [
+        general_update(
+            tracker,
+            20,
+            0,
+            general_feature(LaneMembership.INSIDE_LANE, source),
+        ),
+        general_update(
+            tracker,
+            20,
+            1,
+            general_feature(
+                LaneMembership.NEAR_BOUNDARY,
+                source,
+                distance=2,
+                boundary_lanes=boundary_lanes,
+                boundary_orders=boundary_orders,
+            ),
+        ),
+        general_update(
+            tracker,
+            20,
+            2,
+            general_feature(
+                LaneMembership.NEAR_BOUNDARY,
+                target,
+                distance=1,
+                boundary_lanes=boundary_lanes,
+                boundary_orders=boundary_orders,
+            ),
+        ),
+        general_update(
+            tracker,
+            20,
+            3,
+            general_feature(LaneMembership.INSIDE_LANE, target),
+        ),
+        general_update(
+            tracker,
+            20,
+            4,
+            general_feature(LaneMembership.INSIDE_LANE, target),
+        ),
+    ]
+
+    assert states[1].lane_change_phase is LaneChangePhase.APPROACHING_BOUNDARY
+    assert states[2].lane_change_phase is LaneChangePhase.CROSSING_BOUNDARY
+    completed = states[-1]
+    assert completed.lane_change_status is LaneChangeStatus.CONFIRMED
+    assert completed.source_lane == source
+    assert completed.target_lane == target
+    assert completed.direction is direction
+    assert completed.candidate_started_frame == 1
+    assert completed.boundary_crossed_frame == 2
+    assert completed.entered_started_frame == 3
+    assert completed.completed_frame == 4
+    assert (
+        completed.candidate_started_timestamp
+        <= completed.boundary_crossed_timestamp
+        <= completed.completed_timestamp
+    )
+
+
+def test_general_candidate_returning_to_source_is_rejected() -> None:
+    tracker = TemporalLaneTracker(smoothing_window_frames=1, debounce_frames=1)
+    general_update(
+        tracker,
+        21,
+        0,
+        general_feature(LaneMembership.INSIDE_LANE, "lane_left"),
+    )
+    candidate = general_update(
+        tracker,
+        21,
+        1,
+        general_feature(LaneMembership.NEAR_BOUNDARY, "lane_left", distance=2),
+    )
+    returned = general_update(
+        tracker,
+        21,
+        2,
+        general_feature(LaneMembership.INSIDE_LANE, "lane_left"),
+    )
+
+    assert candidate.lane_change_status is LaneChangeStatus.CANDIDATE
+    assert returned.lane_change_status is LaneChangeStatus.REJECTED
+    assert returned.reason == "vehicle returned to source lane"
+
+
+def test_lane_jump_without_boundary_evidence_is_unknown_not_confirmed() -> None:
+    tracker = TemporalLaneTracker(smoothing_window_frames=1, debounce_frames=1)
+    general_update(
+        tracker,
+        22,
+        0,
+        general_feature(LaneMembership.INSIDE_LANE, "lane_left"),
+    )
+    jumped = general_update(
+        tracker,
+        22,
+        1,
+        general_feature(LaneMembership.INSIDE_LANE, "lane_right"),
+    )
+
+    assert jumped.lane_change_phase is LaneChangePhase.UNKNOWN
+    assert jumped.lane_change_status is LaneChangeStatus.UNKNOWN
+    assert jumped.reason == "lane changed without shared-boundary evidence"
+
+
+def test_general_candidate_becomes_unknown_after_motion_gap() -> None:
+    tracker = TemporalLaneTracker(
+        smoothing_window_frames=1, debounce_frames=1, maximum_missing_frames=0
+    )
+    general_update(
+        tracker,
+        23,
+        0,
+        general_feature(LaneMembership.INSIDE_LANE, "lane_left"),
+    )
+    general_update(
+        tracker,
+        23,
+        1,
+        general_feature(LaneMembership.NEAR_BOUNDARY, "lane_left", distance=2),
+    )
+    unknown = tracker.update(
+        23,
+        2,
+        0.2,
+        general_feature(LaneMembership.UNKNOWN, None, distance=0),
+        EgoMotionStatus.UNKNOWN,
+    )
+
+    assert unknown.lane_change_phase is LaneChangePhase.UNKNOWN
+    assert unknown.lane_change_status is LaneChangeStatus.UNKNOWN
+    assert unknown.completed_frame is None
