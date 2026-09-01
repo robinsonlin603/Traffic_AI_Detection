@@ -13,6 +13,8 @@ from dashcam_ai.domain.motion import (
     RelativeMotionSummary,
 )
 from dashcam_ai.domain.temporal import (
+    LaneChangeDirection,
+    LaneChangePhase,
     LaneChangeStatus,
     LanePosition,
     LaneRelationPhase,
@@ -20,7 +22,10 @@ from dashcam_ai.domain.temporal import (
     TemporalLaneObservation,
     TemporalLaneState,
 )
-from dashcam_ai.motion.relative import summarize_relative_motion
+from dashcam_ai.motion.relative import (
+    summarize_lane_relative_motion,
+    summarize_relative_motion,
+)
 
 
 @dataclass(slots=True)
@@ -32,6 +37,24 @@ class _TrackState:
     stable_lane_id: str | None = None
     pending_lane_id: str | None = None
     pending_lane_count: int = 0
+    lane_change_phase: LaneChangePhase = LaneChangePhase.UNKNOWN
+    lane_change_status: LaneChangeStatus = LaneChangeStatus.IDLE
+    source_lane: str | None = None
+    target_lane: str | None = None
+    source_lane_order: int | None = None
+    target_lane_order: int | None = None
+    direction: LaneChangeDirection = LaneChangeDirection.UNKNOWN
+    general_candidate_frame: int | None = None
+    general_candidate_timestamp: float | None = None
+    crossed_frame: int | None = None
+    crossed_timestamp: float | None = None
+    general_entered_frame: int | None = None
+    general_entered_timestamp: float | None = None
+    completed_frame: int | None = None
+    completed_timestamp: float | None = None
+    general_entered_count: int = 0
+    general_valid_motion_count: int = 0
+    general_relative_motion: RelativeMotionSummary | None = None
     missing_count: int = 0
     valid_motion_count: int = 0
     saw_adjacent: bool = False
@@ -169,6 +192,7 @@ class TemporalLaneTracker:
         while len(state.distances) > self._smoothing_window:
             state.distances.popleft()
         smoothed = float(median(state.distances))
+        previous_stable_lane = state.stable_lane_id
         self._stabilize_lane(state, feature)
         legacy_membership, legacy_distance = self._legacy_relation(feature, smoothed)
         raw_phase = self._classify(legacy_membership, legacy_distance)
@@ -190,6 +214,9 @@ class TemporalLaneTracker:
             relative_motion=relative_motion,
         )
         self._append_history(state, observation)
+        self._advance_general(
+            state, frame_id, timestamp, feature, previous_stable_lane
+        )
         self._advance(state, frame_id, timestamp, stable_phase)
         return self._snapshot(track_id, frame_id, timestamp, state)
 
@@ -255,6 +282,162 @@ class TemporalLaneTracker:
             state.pending_phase = raw_phase
             state.pending_count = 1
         return raw_phase if state.pending_count >= self._debounce_frames else None
+
+    def _advance_general(
+        self,
+        state: _TrackState,
+        frame_id: int,
+        timestamp: float,
+        feature: LaneMembershipFeature,
+        previous_stable_lane: str | None,
+    ) -> None:
+        if state.lane_change_status is LaneChangeStatus.CONFIRMED:
+            self._rearm_general(state)
+        if state.lane_change_status is LaneChangeStatus.IDLE:
+            if (
+                previous_stable_lane is not None
+                and state.stable_lane_id is not None
+                and state.stable_lane_id != previous_stable_lane
+            ):
+                state.lane_change_phase = LaneChangePhase.UNKNOWN
+                state.lane_change_status = LaneChangeStatus.UNKNOWN
+                state.reason = "lane changed without shared-boundary evidence"
+                return
+            if state.stable_lane_id is not None:
+                state.lane_change_phase = LaneChangePhase.STABLE_IN_LANE
+            if (
+                feature.membership is LaneMembership.NEAR_BOUNDARY
+                and previous_stable_lane is not None
+                and feature.boundary_lane_ids is not None
+                and feature.boundary_lane_orders is not None
+                and previous_stable_lane in feature.boundary_lane_ids
+            ):
+                index = feature.boundary_lane_ids.index(previous_stable_lane)
+                target_index = 1 - index
+                state.source_lane = previous_stable_lane
+                state.target_lane = feature.boundary_lane_ids[target_index]
+                state.source_lane_order = feature.boundary_lane_orders[index]
+                state.target_lane_order = feature.boundary_lane_orders[target_index]
+                state.direction = (
+                    LaneChangeDirection.RIGHT
+                    if state.target_lane_order > state.source_lane_order
+                    else LaneChangeDirection.LEFT
+                )
+                state.boundary_id = feature.nearest_boundary_id
+                state.general_candidate_frame = frame_id
+                state.general_candidate_timestamp = timestamp
+                state.general_valid_motion_count = 1
+                state.lane_change_phase = LaneChangePhase.APPROACHING_BOUNDARY
+                state.lane_change_status = LaneChangeStatus.CANDIDATE
+            return
+        if state.lane_change_status is LaneChangeStatus.UNKNOWN:
+            if feature.membership is LaneMembership.INSIDE_LANE:
+                self._rearm_general(state)
+            return
+        if state.lane_change_status is not LaneChangeStatus.CANDIDATE:
+            return
+        state.general_valid_motion_count += 1
+        self._refresh_general_relative_motion(state)
+        assert state.general_candidate_timestamp is not None
+        if timestamp - state.general_candidate_timestamp > self._candidate_timeout:
+            state.lane_change_status = LaneChangeStatus.REJECTED
+            state.reason = "candidate timed out"
+            return
+        if (
+            feature.membership is LaneMembership.NEAR_BOUNDARY
+            and feature.lane_id == state.target_lane
+        ):
+            state.lane_change_phase = LaneChangePhase.CROSSING_BOUNDARY
+            if state.crossed_frame is None:
+                state.crossed_frame = frame_id
+                state.crossed_timestamp = timestamp
+            return
+        if state.stable_lane_id == state.source_lane:
+            if feature.membership is LaneMembership.INSIDE_LANE:
+                state.lane_change_status = LaneChangeStatus.REJECTED
+                state.reason = "vehicle returned to source lane"
+            return
+        if feature.membership is LaneMembership.NEAR_BOUNDARY:
+            state.lane_change_phase = LaneChangePhase.CROSSING_BOUNDARY
+            return
+        if state.stable_lane_id != state.target_lane:
+            return
+        if state.general_entered_frame is None:
+            if state.crossed_frame is None:
+                state.crossed_frame = frame_id
+                state.crossed_timestamp = timestamp
+            state.general_entered_frame = frame_id
+            state.general_entered_timestamp = timestamp
+            state.general_entered_count = 1
+        else:
+            state.general_entered_count += 1
+        state.lane_change_phase = LaneChangePhase.ENTERED_NEW_LANE
+        assert state.general_entered_timestamp is not None
+        enough_dwell = (
+            state.general_entered_count >= self._minimum_confirmation_frames
+            and timestamp - state.general_entered_timestamp + 1e-9
+            >= self._minimum_confirmation_duration
+        )
+        motion_supported = (
+            not self._require_relative_motion
+            or (
+                state.general_relative_motion is not None
+                and state.general_relative_motion.supported
+            )
+        )
+        if enough_dwell and motion_supported:
+            state.lane_change_status = LaneChangeStatus.CONFIRMED
+            state.completed_frame = frame_id
+            state.completed_timestamp = timestamp
+            state.reason = None
+
+    def _refresh_general_relative_motion(self, state: _TrackState) -> None:
+        if not self._require_relative_motion:
+            state.general_relative_motion = None
+            return
+        if state.source_lane_order is None or state.target_lane_order is None:
+            return
+        evidences = [
+            item.relative_motion
+            for item in state.history
+            if item.relative_motion is not None
+            and (
+                state.general_candidate_frame is None
+                or item.frame_id >= state.general_candidate_frame
+            )
+        ]
+        state.general_relative_motion = summarize_lane_relative_motion(
+            evidences,
+            state.source_lane_order,
+            state.target_lane_order,
+            minimum_valid_observations=self._minimum_relative_observations,
+            minimum_cumulative_lateral_ratio=self._minimum_lateral_ratio,
+            minimum_directional_consistency=self._minimum_directional_consistency,
+            minimum_scene_consistency=self._minimum_scene_consistency,
+            maximum_stationary_ratio=self._maximum_stationary_ratio,
+        )
+
+    @staticmethod
+    def _rearm_general(state: _TrackState) -> None:
+        state.lane_change_status = LaneChangeStatus.IDLE
+        state.lane_change_phase = LaneChangePhase.STABLE_IN_LANE
+        state.source_lane = None
+        state.target_lane = None
+        state.source_lane_order = None
+        state.target_lane_order = None
+        state.direction = LaneChangeDirection.UNKNOWN
+        state.general_candidate_frame = None
+        state.general_candidate_timestamp = None
+        state.crossed_frame = None
+        state.crossed_timestamp = None
+        state.general_entered_frame = None
+        state.general_entered_timestamp = None
+        state.completed_frame = None
+        state.completed_timestamp = None
+        state.general_entered_count = 0
+        state.general_valid_motion_count = 0
+        state.general_relative_motion = None
+        state.reason = None
 
     def _advance(
         self,
@@ -427,6 +610,10 @@ class TemporalLaneTracker:
             return
         state.phase = LaneRelationPhase.UNKNOWN
         state.stable_lane_id = None
+        state.lane_change_phase = LaneChangePhase.UNKNOWN
+        if state.lane_change_status is LaneChangeStatus.CANDIDATE:
+            state.lane_change_status = LaneChangeStatus.UNKNOWN
+            state.reason = "temporal evidence missing beyond tolerance"
         if state.status is LaneChangeStatus.CANDIDATE:
             self._reject(state, "temporal evidence missing beyond tolerance")
 
@@ -462,23 +649,52 @@ class TemporalLaneTracker:
     ) -> TemporalLaneState:
         return TemporalLaneState(
             track_id=track_id,
-            phase=state.phase,
-            status=state.status,
             frame_id=frame_id,
             timestamp=timestamp,
             observed_lane_id=(state.history[-1].lane_id if state.history else None),
             stable_lane_id=state.stable_lane_id,
-            candidate_started_frame=state.candidate_frame,
-            candidate_started_timestamp=state.candidate_timestamp,
-            entered_started_frame=state.entered_frame,
-            entered_started_timestamp=state.entered_timestamp,
+            lane_change_phase=state.lane_change_phase,
+            lane_change_status=state.lane_change_status,
+            source_lane=state.source_lane,
+            target_lane=state.target_lane,
+            direction=state.direction,
+            candidate_started_frame=(
+                state.general_candidate_frame
+                if state.general_candidate_frame is not None
+                else state.candidate_frame
+            ),
+            candidate_started_timestamp=(
+                state.general_candidate_timestamp
+                if state.general_candidate_timestamp is not None
+                else state.candidate_timestamp
+            ),
+            boundary_crossed_frame=state.crossed_frame,
+            boundary_crossed_timestamp=state.crossed_timestamp,
+            entered_started_frame=(
+                state.general_entered_frame
+                if state.general_entered_frame is not None
+                else state.entered_frame
+            ),
+            entered_started_timestamp=(
+                state.general_entered_timestamp
+                if state.general_entered_timestamp is not None
+                else state.entered_timestamp
+            ),
+            completed_frame=state.completed_frame,
+            completed_timestamp=state.completed_timestamp,
             missing_observations=state.missing_count,
-            valid_motion_observations=state.valid_motion_count,
+            valid_motion_observations=(
+                state.general_valid_motion_count
+                if state.general_candidate_frame is not None
+                else state.valid_motion_count
+            ),
             boundary_id=state.boundary_id,
+            relative_motion=state.general_relative_motion or state.relative_motion,
+            reason=state.reason,
+            history=tuple(state.history),
+            phase=state.phase,
+            status=state.status,
             maneuver_relation=state.maneuver_relation,
             from_lane=state.from_lane,
             to_lane=state.to_lane,
-            relative_motion=state.relative_motion,
-            reason=state.reason,
-            history=tuple(state.history),
         )

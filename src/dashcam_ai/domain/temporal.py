@@ -1,4 +1,4 @@
-"""可序列化的時間車道歸屬與換道狀態模型。"""
+"""可序列化的一般車道歸屬與換道時間狀態。"""
 
 from __future__ import annotations
 
@@ -14,9 +14,30 @@ from dashcam_ai.domain.motion import (
 )
 
 
-class LaneRelationPhase(StrEnum):
-    """追蹤物件相對自車車道的時間階段。"""
+class LaneChangePhase(StrEnum):
+    UNKNOWN = "unknown"
+    STABLE_IN_LANE = "stable_in_lane"
+    APPROACHING_BOUNDARY = "approaching_boundary"
+    CROSSING_BOUNDARY = "crossing_boundary"
+    ENTERED_NEW_LANE = "entered_new_lane"
 
+
+class LaneChangeDirection(StrEnum):
+    LEFT = "left"
+    RIGHT = "right"
+    UNKNOWN = "unknown"
+
+
+class LaneChangeStatus(StrEnum):
+    IDLE = "idle"
+    CANDIDATE = "candidate"
+    CONFIRMED = "confirmed"
+    REJECTED = "rejected"
+    UNKNOWN = "unknown"
+
+
+# Slice 4 前保留的舊事件相容型別。
+class LaneRelationPhase(StrEnum):
     UNKNOWN = "unknown"
     ADJACENT = "adjacent"
     APPROACHING = "approaching"
@@ -24,18 +45,7 @@ class LaneRelationPhase(StrEnum):
     ENTERED = "entered"
 
 
-class LaneChangeStatus(StrEnum):
-    """換道候選的生命週期。"""
-
-    IDLE = "idle"
-    CANDIDATE = "candidate"
-    CONFIRMED = "confirmed"
-    REJECTED = "rejected"
-
-
 class LanePosition(StrEnum):
-    """以自車車道為中心描述換道前後的位置。"""
-
     EGO = "ego"
     LEFT_ADJACENT = "left_adjacent"
     RIGHT_ADJACENT = "right_adjacent"
@@ -43,16 +53,12 @@ class LanePosition(StrEnum):
 
 
 class ManeuverRelation(StrEnum):
-    """描述一次換道是進入或離開自車車道。"""
-
     ENTERING_EGO = "entering_ego"
     LEAVING_EGO = "leaving_ego"
     UNKNOWN = "unknown"
 
 
 class TemporalLaneObservation(BaseModel):
-    """單一追蹤物件在某幀的 temporal lane 證據。"""
-
     model_config = ConfigDict(frozen=True)
     frame_id: int = Field(ge=0)
     timestamp: float = Field(ge=0)
@@ -67,26 +73,35 @@ class TemporalLaneObservation(BaseModel):
 
 
 class TemporalLaneState(BaseModel):
-    """特定 track 的有界換道狀態快照。"""
-
     model_config = ConfigDict(frozen=True)
     track_id: int = Field(ge=0)
-    phase: LaneRelationPhase
-    status: LaneChangeStatus
     frame_id: int = Field(ge=0)
     timestamp: float = Field(ge=0)
     observed_lane_id: str | None = None
     stable_lane_id: str | None = None
+    lane_change_phase: LaneChangePhase = LaneChangePhase.UNKNOWN
+    lane_change_status: LaneChangeStatus = LaneChangeStatus.IDLE
+    source_lane: str | None = None
+    target_lane: str | None = None
+    direction: LaneChangeDirection = LaneChangeDirection.UNKNOWN
     candidate_started_frame: int | None = Field(default=None, ge=0)
     candidate_started_timestamp: float | None = Field(default=None, ge=0)
+    boundary_crossed_frame: int | None = Field(default=None, ge=0)
+    boundary_crossed_timestamp: float | None = Field(default=None, ge=0)
     entered_started_frame: int | None = Field(default=None, ge=0)
     entered_started_timestamp: float | None = Field(default=None, ge=0)
+    completed_frame: int | None = Field(default=None, ge=0)
+    completed_timestamp: float | None = Field(default=None, ge=0)
     missing_observations: int = Field(ge=0)
     valid_motion_observations: int = Field(ge=0)
     boundary_id: str | None = None
-    maneuver_relation: ManeuverRelation = ManeuverRelation.UNKNOWN
-    from_lane: LanePosition = LanePosition.UNKNOWN
-    to_lane: LanePosition = LanePosition.UNKNOWN
     relative_motion: RelativeMotionSummary | None = None
     reason: str | None = None
     history: tuple[TemporalLaneObservation, ...] = ()
+
+    # 舊 LaneChangeEventBuilder 於 Slice 4 移除的 compatibility payload。
+    phase: LaneRelationPhase = LaneRelationPhase.UNKNOWN
+    status: LaneChangeStatus = LaneChangeStatus.IDLE
+    maneuver_relation: ManeuverRelation = ManeuverRelation.UNKNOWN
+    from_lane: LanePosition = LanePosition.UNKNOWN
+    to_lane: LanePosition = LanePosition.UNKNOWN

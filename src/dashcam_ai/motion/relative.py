@@ -171,13 +171,57 @@ def summarize_relative_motion(
     maximum_stationary_ratio: float,
 ) -> RelativeMotionSummary:
     """將候選期間位移彙整成 deterministic confirmation gate。"""
+    return _summarize_with_sign(
+        evidences,
+        _expected_lateral_sign(relation, from_lane, to_lane),
+        minimum_valid_observations=minimum_valid_observations,
+        minimum_cumulative_lateral_ratio=minimum_cumulative_lateral_ratio,
+        minimum_directional_consistency=minimum_directional_consistency,
+        minimum_scene_consistency=minimum_scene_consistency,
+        maximum_stationary_ratio=maximum_stationary_ratio,
+    )
+
+
+def summarize_lane_relative_motion(
+    evidences: list[RelativeMotionEvidence],
+    source_lane_order: int,
+    target_lane_order: int,
+    *,
+    minimum_valid_observations: int,
+    minimum_cumulative_lateral_ratio: float,
+    minimum_directional_consistency: float,
+    minimum_scene_consistency: float,
+    maximum_stationary_ratio: float,
+) -> RelativeMotionSummary:
+    """依 source/target lateral order 彙整一般換道相對運動。"""
+    expected_sign = 1.0 if target_lane_order > source_lane_order else -1.0
+    return _summarize_with_sign(
+        evidences,
+        expected_sign if target_lane_order != source_lane_order else None,
+        minimum_valid_observations=minimum_valid_observations,
+        minimum_cumulative_lateral_ratio=minimum_cumulative_lateral_ratio,
+        minimum_directional_consistency=minimum_directional_consistency,
+        minimum_scene_consistency=minimum_scene_consistency,
+        maximum_stationary_ratio=maximum_stationary_ratio,
+    )
+
+
+def _summarize_with_sign(
+    evidences: list[RelativeMotionEvidence],
+    expected_sign: float | None,
+    *,
+    minimum_valid_observations: int,
+    minimum_cumulative_lateral_ratio: float,
+    minimum_directional_consistency: float,
+    minimum_scene_consistency: float,
+    maximum_stationary_ratio: float,
+) -> RelativeMotionSummary:
     valid = [item for item in evidences if item.status is RelativeMotionStatus.VALID]
     lateral = [
         item.normalized_lateral_displacement
         for item in valid
         if item.normalized_lateral_displacement is not None
     ]
-    expected_sign = _expected_lateral_sign(relation, from_lane, to_lane)
     cumulative = float(sum(lateral))
     expected_progress = cumulative * expected_sign if expected_sign is not None else 0.0
     directional = (
@@ -221,10 +265,10 @@ def summarize_relative_motion(
         reason = "scene-wide motion is inconsistent with independent lane changes"
     elif stationary_ratio > maximum_stationary_ratio:
         reason = "vehicle is stationary relative to the background"
-    elif expected_progress < minimum_cumulative_lateral_ratio:
-        reason = "relative lateral progress is below confirmation threshold"
     elif directional < minimum_directional_consistency:
         reason = "relative lateral direction is incompatible with the maneuver"
+    elif expected_progress < minimum_cumulative_lateral_ratio:
+        reason = "relative lateral progress is below confirmation threshold"
     return RelativeMotionSummary(
         valid_observations=len(valid),
         cumulative_lateral_displacement=cumulative,

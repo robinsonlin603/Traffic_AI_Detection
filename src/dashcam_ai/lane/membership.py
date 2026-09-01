@@ -92,6 +92,7 @@ class LaneMembershipEvaluator:
         boundary = next(
             item for item in geometry.boundaries if item.boundary_id == boundary_id
         )
+        lanes_by_id = {lane.lane_id: lane for lane in geometry.lanes}
         signed_distance = distance if containing else -distance
         if distance <= self.boundary_margin:
             membership = LaneMembership.NEAR_BOUNDARY
@@ -109,7 +110,14 @@ class LaneMembershipEvaluator:
             membership=membership,
             anchor=anchor,
             lane_id=lane_id,
+            lane_lateral_order=(
+                lanes_by_id[lane_id].lateral_order if lane_id is not None else None
+            ),
             boundary_lane_ids=(boundary.left_lane_id, boundary.right_lane_id),
+            boundary_lane_orders=(
+                lanes_by_id[boundary.left_lane_id].lateral_order,
+                lanes_by_id[boundary.right_lane_id].lateral_order,
+            ),
             signed_boundary_distance=signed_distance,
             nearest_boundary_id=boundary_id,
             geometry_confidence=geometry.confidence,

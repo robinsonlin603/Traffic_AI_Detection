@@ -134,7 +134,9 @@ class LaneMembershipFeature(BaseModel):
     membership: LaneMembership
     anchor: Point2D
     lane_id: str | None = None
+    lane_lateral_order: int | None = None
     boundary_lane_ids: tuple[str, str] | None = None
+    boundary_lane_orders: tuple[int, int] | None = None
     signed_boundary_distance: float | None = None
     nearest_boundary_id: str | None = None
     geometry_confidence: float = Field(ge=0, le=1)
