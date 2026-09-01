@@ -50,6 +50,14 @@ are also outside this plan; the accepted first version uses normalized configure
   artifact, and test contracts. Focused integration passed; the full suite passed 96 tests, Ruff,
   strict Mypy across 53 source files, and `git diff --check`.
 - [ ] Slice 5: visualization, documentation, regression, real-video review, and platform evidence.
+  Implementation and automated regression are complete: annotation now shows Lane IDs, compact
+  class codes, membership anchors, status-colored boxes, and semantic left/right banners; README
+  and the human acceptance worksheet describe the general-lane contract. Focused visualization
+  and pipeline tests passed 10 tests; the full suite passed 104 tests, Ruff, strict Mypy across 53
+  source files, and `git diff --check`. A CPU smoke run completed all 625 frames of `test1.mp4`,
+  produced a readable 625-frame MP4 and eight conservative rejected/unknown lane-change events
+  with valid timelines and no removed fields. Final status remains open until positive left/right
+  real-video review and exact-clean-commit macOS MPS and Linux CUDA evidence are complete.
 
 ## Surprises & Discoveries
 
@@ -89,6 +97,23 @@ are also outside this plan; the accepted first version uses normalized configure
   Evidence: Slice 4 deleted the corridor and cut-in modules plus their ego-relative regression
   fixture, then replaced them with schema validation and a fake-pipeline test asserting that only
   general lane changes appear. The suite now has 96 passing tests across 53 source files.
+
+- Observation: The current host can run the complete short-video pipeline on CPU but cannot expose
+  MPS to PyTorch in this execution environment.
+  Evidence: the CPU run processed 625/625 frames and emitted readable artifacts; the same command
+  with `configs/mac.yaml` failed before inference with `MPS unavailable`. CPU evidence is
+  supplementary and cannot replace the required macOS MPS report.
+
+- Observation: The calibrated short `test1.mp4` is useful as a conservative no-confirmation case,
+  but it cannot satisfy positive left and right real-video acceptance by itself.
+  Evidence: the Slice 5 CPU artifact contains six rejected and two unknown events, zero confirmed
+  events, both candidate directions, valid event timeline ordering, and no cut-in/corridor fields.
+
+- Observation: The compact visualization remains readable in the reviewed dense frame without
+  placing lifecycle text beside every distant object.
+  Evidence: manual inspection of CPU artifact frame 570 shows single-line `#ID code` labels,
+  `BC` for bicycle, status-colored boxes, all three Lane IDs, bottom-center trajectories, and a
+  visible `LANE CHANGE RIGHT #273 CANDIDATE` banner.
 
 ## Decision Log
 
@@ -340,7 +365,8 @@ A confirmed event should resemble:
       "started_at": 42.7,
       "lane_crossed_at": 43.2,
       "completed_at": 43.8,
-      "confidence": {"overall": 0.86},
+      "confidence": 0.86,
+      "confidence_breakdown": {"overall": 0.86},
       "evidence": {"frame_ids": [1281, 1295, 1314], "boundary_id": "boundary_right"}
     }
 

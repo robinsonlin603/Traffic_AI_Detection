@@ -1,14 +1,14 @@
 # 機車行車記錄器 AI 分析
 
-這是一個以離線處理為優先、朝正式應用環境設計的機車行車記錄器影片分析專案。目前提供車輛偵測、具持續 ID 的 BoT-SORT 物件追蹤、configured lane geometry、ego-motion、時間性換道／cut-in 分析、結構化事件與標註影片。
+這是一個以離線處理為優先、朝正式應用環境設計的機車行車記錄器影片分析專案。目前提供車輛偵測、具持續 ID 的 BoT-SORT 物件追蹤、configured multi-lane geometry、ego-motion、一般換道時間線、結構化事件與標註影片。
 
 ```text
 MP4 -> YOLO + BoT-SORT -> lane geometry -> ego-motion
-    -> temporal lane membership -> lane-change / cut-in events
+    -> temporal lane membership -> general lane-change events
     -> JSON / JSONL + annotated MP4
 ```
 
-Milestone 2 不使用 LLM／VLM，也不判斷方向燈、真實距離、精準 TTC、法律責任或執法結論。
+Milestone 2 不使用 LLM／VLM，也不判斷 cut-in、方向燈、真實距離、精準 TTC、碰撞風險、法律責任或執法結論。
 
 ## 系統需求
 
@@ -93,53 +93,79 @@ events.json
 annotated.mp4
 ```
 
-啟用 `lane_geometry` 時，`frames.jsonl` 會包含逐幀 scene analysis，`events.json` 會保存去重後的 lane-change 與 cut-in event。停用時仍可執行 Milestone 1 perception-only pipeline，此時逐幀 `analysis` 為 `null`，`events.json` 為空陣列。
+啟用 `lane_geometry` 時，`frames.jsonl` 會包含逐幀 scene analysis，`events.json` 只保存去重後的一般 lane-change event。停用時仍可執行 Milestone 1 perception-only pipeline，此時逐幀 `analysis` 為 `null`，`events.json` 為空陣列。
 
 ## Milestone 2 事件狀態
 
-- `candidate`：目標有接近或跨越車道邊界的時間性證據，仍待後續影格確認。
-- `confirmed`：目標持續進入自車道，且 ego-motion 等品質條件有效。
-- `rejected`：目標返回相鄰車道、證據逾時／中斷，或影片結束前未完成換道。
+- `candidate`：目標由穩定來源車道接近共享邊界，仍待跨線與目的車道停留證據。
+- `confirmed`：目標跨越共享邊界、穩定停留於相鄰目的車道，且 ego-motion／相對運動證據有效。
+- `rejected`：目標返回來源車道、候選逾時，或影片結束前未完成換道。
+- `unknown`：車道幾何、追蹤觀察或 ego-motion 證據不足，不能安全確認。
 
 事件不是由單一影格決定。Ego-motion 無效時不會產生 confirmed event。影片結束時仍未完成的 candidate 會以明確原因 finalize 為 rejected。
 
-## 車道與前方走廊校正
+Confirmed event 的主要欄位如下；candidate、rejected 或 unknown 可缺少後段時間：
 
-第一版使用 normalized configured polygon，四點順序均為左上、右上、右下、左下。數值 `x`、`y` 的範圍為 `0.0` 到 `1.0`，分析時會映射到來源影片的原始解析度。
+```json
+{
+  "event_type": "lane_change",
+  "status": "confirmed",
+  "track_id": 17,
+  "source_lane": "lane_right",
+  "target_lane": "lane_center",
+  "direction": "left",
+  "started_at": 42.7,
+  "lane_crossed_at": 43.2,
+  "completed_at": 43.8,
+  "confidence": 0.86,
+  "confidence_breakdown": {
+    "timeline": 1.0,
+    "membership_stability": 0.8,
+    "ego_motion": 0.9,
+    "relative_motion": 0.8,
+    "overall": 0.86
+  },
+  "evidence": {
+    "boundary_id": "boundary_right",
+    "frame_ids": [1281, 1295, 1314]
+  }
+}
+```
 
-自車道範圍：
+## 車道幾何校正
+
+第一版使用 normalized configured lane polygons 與共享 boundaries。數值 `x`、`y` 的範圍為 `0.0` 到 `1.0`，分析時會映射到來源影片的原始解析度。`lateral_order` 必須依畫面由左至右遞增；換道方向由來源與目的 order 決定，不由 bbox 位移直接決定。
+
+三車道範例：
 
 ```yaml
 lane_geometry:
   enabled: true
-  ego_lane_polygon:
-    - {x: 0.44, y: 0.45}
-    - {x: 0.56, y: 0.45}
-    - {x: 0.90, y: 1.00}
-    - {x: 0.10, y: 1.00}
+  lanes:
+    - id: lane_left
+      lateral_order: 0
+      polygon: [{x: 0.32, y: 0.45}, {x: 0.44, y: 0.45}, {x: 0.10, y: 1.00}, {x: 0.00, y: 1.00}]
+    - id: lane_center
+      lateral_order: 1
+      polygon: [{x: 0.44, y: 0.45}, {x: 0.56, y: 0.45}, {x: 0.90, y: 1.00}, {x: 0.10, y: 1.00}]
+  boundaries:
+    - id: boundary_left
+      left_lane_id: lane_left
+      right_lane_id: lane_center
+      points: [{x: 0.44, y: 0.45}, {x: 0.10, y: 1.00}]
 ```
 
-前方關注走廊：
-
-```yaml
-forward_corridor:
-  polygon:
-    - {x: 0.43, y: 0.55}
-    - {x: 0.57, y: 0.55}
-    - {x: 0.78, y: 1.00}
-    - {x: 0.22, y: 1.00}
-```
-
-校正時應先讓綠色 ego-lane 邊界沿著實際自車道，再調整藍色 forward corridor。每次只微調一個控制點，並抽查影片開頭、中段與結尾。`configs/mac.yaml` 的 ego-lane 已依 `samples/test1.mp4` 校正；其他攝影機位置、安裝角度或道路環境應重新校正，不能直接視為通用值。
+校正時應讓每個 polygon 與 boundary 沿著實際道路車道，並抽查影片開頭、中段、彎道與結尾。configured geometry 不會動態跟隨彎道或鏡頭姿態；其他攝影機位置、安裝角度或道路環境必須重新校正，不能直接沿用既有座標。
 
 ## 標註影片圖例
 
-- 綠色梯形／邊界：configured ego-lane。
-- 藍色梯形：forward corridor，只是 cut-in 的 image-space 輔助證據。
-- 綠色矩形：偵測與追蹤 bbox。
+- 黃青色 polygon 與文字：configured lane 與 Lane ID。
+- 綠色線：相鄰車道的共享 boundary。
+- 綠／黃／紅／灰色矩形：idle／candidate／confirmed／rejected 或 unknown。
 - 橘色線：Track bottom-center 歷史軌跡。
-- 黃色、紅色、灰色文字：candidate、confirmed、rejected。
-- `#ID class`：精簡 Track 標籤；重要狀態會顯示於第二行。
+- bottom-center 圓點：目前 membership；靠近 boundary 時為黃色，unknown 時為灰色。
+- `LANE CHANGE LEFT/RIGHT`：一般換道方向與事件狀態。
+- `#ID code`：單行精簡標籤；`C/T/B/M/P/BC` 分別代表 car、truck、bus、motorcycle、person、bicycle。
 
 ## 架構
 
@@ -147,7 +173,7 @@ forward_corridor:
 
 `metadata.json` 會記錄實際使用的裝置、Python／PyTorch／Ultralytics／OpenCV 版本、模型名稱與本機模型檔案的 SHA-256，以利比較 Mac 與 NVIDIA 電腦的分析結果。
 
-Milestone 1 已完成功能與驗證狀態請參閱 [`docs/MILESTONE_1.md`](docs/MILESTONE_1.md)，已核准的里程碑計畫請參閱 [`docs/EXEC_PLAN.md`](docs/EXEC_PLAN.md)。
+Milestone 1 已完成功能與驗證狀態請參閱 [`docs/MILESTONE_1.md`](docs/MILESTONE_1.md)，目前 Milestone 2 計畫請參閱 [`docs/EXEC_PLAN_MILESTONE2_GENERAL_LANE_CHANGE.md`](docs/EXEC_PLAN_MILESTONE2_GENERAL_LANE_CHANGE.md)，人工驗收格式請參閱 [`docs/MILESTONE2_ACCEPTANCE.md`](docs/MILESTONE2_ACCEPTANCE.md)。
 
 ## 測試
 
@@ -184,7 +210,6 @@ dashcam-ai milestone-status --milestone 2
 - Configured polygon 不會隨彎道、坡度、鏡頭姿態或道路幾何自動改變。
 - Homography 可能在低紋理、夜間、雨天或大量動態物體時失敗；品質不足會輸出 unknown，而非 confirmed event。
 - Track ID switch 可能切斷 temporal evidence；目前不包含跨 ID re-identification。
-- Cut-in confidence 是可解釋的 image-space heuristic，不代表物理距離、安全距離或精準 TTC。
-- `samples/test1.mp4` 已在 Apple Silicon MPS 完成 625 frames 實片驗證；校正後 Track #6 沒有誤確認，片尾未完成候選會 finalize 為 rejected。
-- Synthetic integration test 已覆蓋 confirmed lane-change／cut-in 路徑，但尚缺真正 positive lane-change／cut-in 實片驗證。
-- CUDA 設定與裝置解析有自動化測試，但尚未在 NVIDIA RTX 4070 SUPER 完成 Milestone 2 實機驗證。
+- 本版本只判斷 configured lanes 之間的一般換道，不判斷是否進入機車車道或 cut-in。
+- Synthetic integration test 已覆蓋一般 confirmed lane-change 與事件 artifact；真實影片仍需依 `docs/MILESTONE2_ACCEPTANCE.md` 人工抽查。
+- 既有 macOS MPS 與 Linux CUDA 報告若 source commit 不同即為 stale，必須在最終乾淨 commit 分別重跑。
