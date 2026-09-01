@@ -38,7 +38,12 @@ are also outside this plan; the accepted first version uses normalized configure
   missing-observation tolerance. Removed the Slice 1 `reference_lane` adapter and made annotation
   draw every configured lane. Focused tests passed 38 tests; the full suite passed 121 tests,
   Ruff, strict Mypy across 55 source files, and `git diff --check`.
-- [ ] Slice 3: general lane-change timeline and source-to-target relative-motion safety gates.
+- [x] (2026-09-01 00:44Z) Slice 3: added the general source-to-target timeline, lane-order
+  direction derivation, approach/crossing/entry/completion timestamps, conservative unknown
+  handling for lane jumps and missing motion, and source-to-target relative-motion gates.
+  Focused temporal, relative-motion, and scene-pipeline tests passed 38 tests; the full regression
+  and static gates passed 128 tests, Ruff, strict Mypy across 55 source files, and
+  `git diff --check`.
 - [ ] Slice 4: general event and pipeline integration; remove cut-in and forward corridor.
 - [ ] Slice 5: visualization, documentation, regression, real-video review, and platform evidence.
 
@@ -68,6 +73,12 @@ are also outside this plan; the accepted first version uses normalized configure
   Evidence: membership treats a point near the shared boundary as `near_boundary` with both lane
   IDs, while an overlap away from the configured boundary is `unknown`; it never chooses a lane
   arbitrarily.
+
+- Observation: A `near_boundary` observation can identify which side of a shared boundary holds
+  the anchor before stable-lane debounce changes the track's lane.
+  Evidence: Slice 3 records the crossing time when the boundary-side lane ID first becomes the
+  target, while recording entry only after target-lane debounce succeeds. This preserves ordered
+  approach, crossing, and entry evidence without treating one frame as confirmation.
 
 ## Decision Log
 
@@ -115,21 +126,24 @@ are also outside this plan; the accepted first version uses normalized configure
   ego lane. Slice 2 owns its removal.
   Date/Author: 2026-08-31 / Codex. Completed: removed in Slice 2 on 2026-09-01.
 
-- Decision: Keep the old ego-relative event lifecycle behind `_legacy_relation` only until Slice
-  3, while serializing general observed and stable lane IDs now.
+- Decision: Keep the old ego-relative event lifecycle behind `_legacy_relation` through Slice 3,
+  while the general timeline becomes authoritative for the replacement event builder in Slice 4.
   Rationale: Slice 2 can prove membership stabilization independently without prematurely mixing
   in the final source-to-target event state machine. The adapter maps `lane_center` to the former
-  inside relation and other configured lanes to the former adjacent relation.
-  Date/Author: 2026-09-01 / Codex
+  inside relation and other configured lanes to the former adjacent relation. Keeping it through
+  Slice 3 preserves the old builder and pipeline until Slice 4 can replace their contract in one
+  reviewable change.
+  Date/Author: 2026-09-01 / Codex. Updated after Slice 3 implementation.
 
 ## Outcomes & Retrospective
 
 The replacement scope is approved and the old ego-lane/cut-in work is preserved in Git. Slice 1
-provides validated configured lanes and boundaries; Slice 2 now evaluates all lanes, exposes
-general observed and stable lane IDs, handles ambiguity conservatively, and has removed the
-reference-lane adapter. The old event lifecycle remains behind a named compatibility function
-until Slice 3. Completion requires the remaining three slices, automated gates, a readable general
-lane-change artifact, and authoritative macOS MPS and Linux CUDA reports for the final commit.
+provides validated configured lanes and boundaries; Slice 2 evaluates all lanes and stabilizes
+general lane IDs; Slice 3 now produces a conservative source-to-target timeline with ordered
+approach, crossing, entry, and completion evidence. The old event lifecycle remains only as a
+compatibility path for the still-old builder and pipeline and is removed in Slice 4. Completion
+requires the remaining two slices, a readable general lane-change artifact, real-video review,
+and authoritative macOS MPS and Linux CUDA reports for the final commit.
 
 ## Context and Orientation
 
