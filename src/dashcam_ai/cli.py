@@ -12,8 +12,6 @@ from dashcam_ai.application.analyzer import Analyzer
 from dashcam_ai.application.scene import StreamingSceneAnalyzer
 from dashcam_ai.config.models import AppConfig, load_config
 from dashcam_ai.detection.ultralytics import UltralyticsDetectorTracker
-from dashcam_ai.events.corridor import ConfiguredForwardCorridor
-from dashcam_ai.events.cutin import CutInDetector
 from dashcam_ai.events.lane_change import LaneChangeEventBuilder
 from dashcam_ai.lane.configured import ConfiguredLaneDetector
 from dashcam_ai.lane.membership import LaneMembershipEvaluator
@@ -207,7 +205,6 @@ def _build_scene_analyzer(config: AppConfig) -> StreamingSceneAnalyzer | None:
     motion = config.ego_motion
     relative = config.relative_motion
     temporal = config.temporal_lane
-    cutin = config.cut_in
     return StreamingSceneAnalyzer(
         lane_detector=ConfiguredLaneDetector(
             lane.lanes, lane.boundaries, lane.confidence
@@ -259,22 +256,7 @@ def _build_scene_analyzer(config: AppConfig) -> StreamingSceneAnalyzer | None:
             minimum_scene_consistency=relative.minimum_scene_consistency,
             maximum_stationary_ratio=relative.maximum_stationary_ratio,
         ),
-        corridor=ConfiguredForwardCorridor(config.forward_corridor.polygon),
-        lane_change_builder=LaneChangeEventBuilder(cutin.evidence_history_size),
-        cut_in_detector=CutInDetector(
-            minimum_bbox_expansion_ratio=cutin.minimum_bbox_expansion_ratio,
-            minimum_confirmed_confidence=cutin.minimum_confirmed_confidence,
-            minimum_motion_quality_ratio=cutin.minimum_motion_quality_ratio,
-            lane_change_weight=cutin.lane_change_weight,
-            corridor_weight=cutin.corridor_weight,
-            bbox_expansion_weight=cutin.bbox_expansion_weight,
-            motion_quality_weight=cutin.motion_quality_weight,
-            relative_motion_weight=cutin.relative_motion_weight,
-            lateral_progress_weight=cutin.lateral_progress_weight,
-            direction_compatibility_weight=cutin.direction_compatibility_weight,
-            scene_consistency_weight=cutin.scene_consistency_weight,
-            require_relative_motion=relative.enabled,
-        ),
+        lane_change_builder=LaneChangeEventBuilder(temporal.history_size),
         maximum_missing_frames=temporal.maximum_missing_frames,
     )
 

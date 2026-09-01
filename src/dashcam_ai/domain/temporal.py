@@ -6,6 +6,7 @@ from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from dashcam_ai.domain.geometry import Point2D
 from dashcam_ai.domain.lane import LaneMembership
 from dashcam_ai.domain.motion import (
     EgoMotionStatus,
@@ -36,33 +37,12 @@ class LaneChangeStatus(StrEnum):
     UNKNOWN = "unknown"
 
 
-# Slice 4 前保留的舊事件相容型別。
-class LaneRelationPhase(StrEnum):
-    UNKNOWN = "unknown"
-    ADJACENT = "adjacent"
-    APPROACHING = "approaching"
-    CROSSING = "crossing"
-    ENTERED = "entered"
-
-
-class LanePosition(StrEnum):
-    EGO = "ego"
-    LEFT_ADJACENT = "left_adjacent"
-    RIGHT_ADJACENT = "right_adjacent"
-    UNKNOWN = "unknown"
-
-
-class ManeuverRelation(StrEnum):
-    ENTERING_EGO = "entering_ego"
-    LEAVING_EGO = "leaving_ego"
-    UNKNOWN = "unknown"
-
-
 class TemporalLaneObservation(BaseModel):
     model_config = ConfigDict(frozen=True)
     frame_id: int = Field(ge=0)
     timestamp: float = Field(ge=0)
     membership: LaneMembership
+    anchor: Point2D
     lane_id: str | None = None
     stable_lane_id: str | None = None
     signed_boundary_distance: float | None = None
@@ -98,10 +78,3 @@ class TemporalLaneState(BaseModel):
     relative_motion: RelativeMotionSummary | None = None
     reason: str | None = None
     history: tuple[TemporalLaneObservation, ...] = ()
-
-    # 舊 LaneChangeEventBuilder 於 Slice 4 移除的 compatibility payload。
-    phase: LaneRelationPhase = LaneRelationPhase.UNKNOWN
-    status: LaneChangeStatus = LaneChangeStatus.IDLE
-    maneuver_relation: ManeuverRelation = ManeuverRelation.UNKNOWN
-    from_lane: LanePosition = LanePosition.UNKNOWN
-    to_lane: LanePosition = LanePosition.UNKNOWN

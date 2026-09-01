@@ -12,7 +12,6 @@ from dashcam_ai.domain.motion import (
     RelativeMotionStatus,
     RelativeMotionSummary,
 )
-from dashcam_ai.domain.temporal import LanePosition, ManeuverRelation
 
 
 class RelativeMotionEvaluator:
@@ -158,30 +157,6 @@ class RelativeMotionEvaluator:
         )
 
 
-def summarize_relative_motion(
-    evidences: list[RelativeMotionEvidence],
-    relation: ManeuverRelation,
-    from_lane: LanePosition,
-    to_lane: LanePosition,
-    *,
-    minimum_valid_observations: int,
-    minimum_cumulative_lateral_ratio: float,
-    minimum_directional_consistency: float,
-    minimum_scene_consistency: float,
-    maximum_stationary_ratio: float,
-) -> RelativeMotionSummary:
-    """將候選期間位移彙整成 deterministic confirmation gate。"""
-    return _summarize_with_sign(
-        evidences,
-        _expected_lateral_sign(relation, from_lane, to_lane),
-        minimum_valid_observations=minimum_valid_observations,
-        minimum_cumulative_lateral_ratio=minimum_cumulative_lateral_ratio,
-        minimum_directional_consistency=minimum_directional_consistency,
-        minimum_scene_consistency=minimum_scene_consistency,
-        maximum_stationary_ratio=maximum_stationary_ratio,
-    )
-
-
 def summarize_lane_relative_motion(
     evidences: list[RelativeMotionEvidence],
     source_lane_order: int,
@@ -204,7 +179,6 @@ def summarize_lane_relative_motion(
         minimum_scene_consistency=minimum_scene_consistency,
         maximum_stationary_ratio=maximum_stationary_ratio,
     )
-
 
 def _summarize_with_sign(
     evidences: list[RelativeMotionEvidence],
@@ -281,21 +255,3 @@ def _summarize_with_sign(
         confidence=confidence,
         reason=reason,
     )
-
-
-def _expected_lateral_sign(
-    relation: ManeuverRelation,
-    from_lane: LanePosition,
-    to_lane: LanePosition,
-) -> float | None:
-    if relation is ManeuverRelation.ENTERING_EGO:
-        if from_lane is LanePosition.LEFT_ADJACENT:
-            return 1.0
-        if from_lane is LanePosition.RIGHT_ADJACENT:
-            return -1.0
-    if relation is ManeuverRelation.LEAVING_EGO:
-        if to_lane is LanePosition.LEFT_ADJACENT:
-            return -1.0
-        if to_lane is LanePosition.RIGHT_ADJACENT:
-            return 1.0
-    return None

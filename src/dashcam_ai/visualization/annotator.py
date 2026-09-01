@@ -7,7 +7,7 @@ from typing import Any
 
 import numpy as np
 
-from dashcam_ai.domain.events import CutInEvent, EventStatus, LaneChangeEvent
+from dashcam_ai.domain.events import EventStatus, LaneChangeEvent
 from dashcam_ai.domain.perception import TrackedObject
 from dashcam_ai.domain.scene import FrameSceneAnalysis
 from dashcam_ai.video.reader import _cv2
@@ -49,14 +49,6 @@ class OpenCVAnnotator:
                     dtype=np.int32,
                 )
                 cv2.polylines(output, [boundary_points], False, (40, 255, 120), 2)
-            corridor_points = np.asarray(
-                [
-                    (round(point.x), round(point.y))
-                    for point in analysis.forward_corridor.polygon
-                ],
-                dtype=np.int32,
-            )
-            cv2.polylines(output, [corridor_points], True, (220, 180, 40), 2)
         for obj in objects:
             x1, y1, x2, y2 = (round(value) for value in obj.bbox.as_xyxy())
             cv2.rectangle(output, (x1, y1), (x2, y2), (40, 220, 80), 2)
@@ -101,15 +93,13 @@ class OpenCVAnnotator:
             for start, end in zip(points, points[1:], strict=False):
                 cv2.line(output, start, end, (0, 180, 255), 2)
         if analysis is not None:
-            banners: list[LaneChangeEvent | CutInEvent] = [
-                *analysis.lane_change_events,
-                *analysis.cut_in_events,
-            ]
+            banners: list[LaneChangeEvent] = list(analysis.lane_change_events)
             for index, event in enumerate(banners[-3:]):
                 color = {
                     EventStatus.CANDIDATE: (0, 200, 255),
                     EventStatus.CONFIRMED: (0, 60, 255),
                     EventStatus.REJECTED: (160, 160, 160),
+                    EventStatus.UNKNOWN: (120, 120, 120),
                 }[event.status]
                 cv2.putText(
                     output,
@@ -129,7 +119,7 @@ class OpenCVAnnotator:
         if state is None:
             return (primary,)
         membership = state.membership.membership.value
-        status = state.temporal.status.value
+        status = state.temporal.lane_change_status.value
         if status != "idle":
             return primary, status
         if membership in {"near_boundary", "unknown"}:
@@ -144,7 +134,7 @@ class OpenCVAnnotator:
             "candidate": (0, 200, 255),
             "confirmed": (0, 60, 255),
             "rejected": (160, 160, 160),
-        }.get(state.temporal.status.value, (40, 220, 80))
+        }.get(state.temporal.lane_change_status.value, (40, 220, 80))
 
     @classmethod
     def _place_label(
