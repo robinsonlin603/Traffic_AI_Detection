@@ -93,6 +93,21 @@ def test_low_confidence_geometry_returns_unknown() -> None:
     assert result.signed_boundary_distance is None
 
 
+def test_degraded_geometry_never_produces_membership() -> None:
+    degraded = geometry().model_copy(
+        update={
+            "status": LaneGeometryStatus.DEGRADED,
+            "provenance": LaneGeometryProvenance.DYNAMIC,
+            "reason": "temporally inferred",
+        }
+    )
+
+    result = LaneMembershipEvaluator(5).evaluate(Point2D(x=20, y=50), degraded)
+
+    assert result.membership is LaneMembership.UNKNOWN
+    assert result.signed_boundary_distance is None
+
+
 def test_membership_threshold_validation() -> None:
     with pytest.raises(ValueError, match="between zero and one"):
         LaneMembershipEvaluator(5, minimum_geometry_confidence=1.1)

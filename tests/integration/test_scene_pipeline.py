@@ -10,7 +10,13 @@ import numpy as np
 from dashcam_ai.application.analyzer import Analyzer
 from dashcam_ai.application.scene import StreamingSceneAnalyzer
 from dashcam_ai.domain.geometry import BBox
-from dashcam_ai.domain.lane import NormalizedLaneBoundary, NormalizedLaneRegion, NormalizedPoint2D
+from dashcam_ai.domain.lane import (
+    LaneGeometryProvenance,
+    LaneGeometryStatus,
+    NormalizedLaneBoundary,
+    NormalizedLaneRegion,
+    NormalizedPoint2D,
+)
 from dashcam_ai.domain.motion import (
     EgoMotionEstimate,
     EgoMotionQuality,
@@ -20,6 +26,7 @@ from dashcam_ai.domain.motion import (
 from dashcam_ai.domain.perception import TrackedObject
 from dashcam_ai.domain.video import VideoMetadata
 from dashcam_ai.events.lane_change import LaneChangeEventBuilder
+from dashcam_ai.lane.base import LaneDetector
 from dashcam_ai.lane.configured import ConfiguredLaneDetector
 from dashcam_ai.lane.membership import LaneMembershipEvaluator
 from dashcam_ai.lane.temporal import TemporalLaneTracker
@@ -94,7 +101,7 @@ def tracked(center_x: float) -> TrackedObject:
     )
 
 
-def scene_analyzer() -> StreamingSceneAnalyzer:
+def scene_analyzer(lane_detector: LaneDetector | None = None) -> StreamingSceneAnalyzer:
     points = {
         "left": (
             NormalizedPoint2D(x=0, y=0),
@@ -115,32 +122,29 @@ def scene_analyzer() -> StreamingSceneAnalyzer:
             NormalizedPoint2D(x=0.6, y=1),
         ),
     }
+    configured = ConfiguredLaneDetector(
+        lanes=[
+            NormalizedLaneRegion(lane_id="lane_left", lateral_order=0, polygon=points["left"]),
+            NormalizedLaneRegion(lane_id="lane_center", lateral_order=1, polygon=points["center"]),
+            NormalizedLaneRegion(lane_id="lane_right", lateral_order=2, polygon=points["right"]),
+        ],
+        boundaries=[
+            NormalizedLaneBoundary(
+                boundary_id="boundary_left_center",
+                left_lane_id="lane_left",
+                right_lane_id="lane_center",
+                points=(points["center"][0], points["center"][3]),
+            ),
+            NormalizedLaneBoundary(
+                boundary_id="boundary_center_right",
+                left_lane_id="lane_center",
+                right_lane_id="lane_right",
+                points=(points["center"][1], points["center"][2]),
+            ),
+        ],
+    )
     return StreamingSceneAnalyzer(
-        lane_detector=ConfiguredLaneDetector(
-            lanes=[
-                NormalizedLaneRegion(lane_id="lane_left", lateral_order=0, polygon=points["left"]),
-                NormalizedLaneRegion(
-                    lane_id="lane_center", lateral_order=1, polygon=points["center"]
-                ),
-                NormalizedLaneRegion(
-                    lane_id="lane_right", lateral_order=2, polygon=points["right"]
-                ),
-            ],
-            boundaries=[
-                NormalizedLaneBoundary(
-                    boundary_id="boundary_left_center",
-                    left_lane_id="lane_left",
-                    right_lane_id="lane_center",
-                    points=(points["center"][0], points["center"][3]),
-                ),
-                NormalizedLaneBoundary(
-                    boundary_id="boundary_center_right",
-                    left_lane_id="lane_center",
-                    right_lane_id="lane_right",
-                    points=(points["center"][1], points["center"][2]),
-                ),
-            ],
-        ),
+        lane_detector=lane_detector or configured,
         membership_evaluator=LaneMembershipEvaluator(boundary_margin=5),
         motion_estimator=ValidMotionEstimator(),
         relative_motion_evaluator=RelativeMotionEvaluator(),
@@ -181,3 +185,34 @@ def test_pipeline_writes_only_general_lane_change_events(tmp_path: Path) -> None
     assert events[0]["started_at"] <= events[0]["lane_crossed_at"] <= events[0]["completed_at"]
     assert "cut_in_events" not in frames[-1]["analysis"]
     assert "forward_corridor" not in frames[-1]["analysis"]
+
+
+def test_degraded_geometry_cannot_create_pipeline_events(tmp_path: Path) -> None:
+    class DegradedDetector:
+        def __init__(self, delegate: LaneDetector) -> None:
+            self.delegate = delegate
+
+        def detect(self, frame: Any, width: int, height: int):
+            return self.delegate.detect(frame, width, height).model_copy(
+                update={
+                    "status": LaneGeometryStatus.DEGRADED,
+                    "provenance": LaneGeometryProvenance.DYNAMIC,
+                    "reason": "untrusted road edge",
+                }
+            )
+
+    baseline = scene_analyzer()
+    detector = DegradedDetector(baseline._lane_detector)
+    observations = [[tracked(x)] for x in (500, 500, 595, 602, 650, 660)]
+    analyzer = Analyzer(
+        SequenceBackend(observations),
+        save_video=False,
+        save_frames=True,
+        reader_factory=lambda source: ArrayReader(source, len(observations)),
+        scene_analyzer=scene_analyzer(detector),
+    )
+
+    summary = analyzer.analyze(Path("synthetic.mp4"), tmp_path / "degraded")
+
+    assert summary.events_created == 0
+    assert json.loads((tmp_path / "degraded" / "events.json").read_text()) == []

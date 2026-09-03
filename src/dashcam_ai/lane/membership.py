@@ -59,7 +59,7 @@ class LaneMembershipEvaluator:
     def evaluate(self, anchor: Point2D, geometry: LaneGeometry) -> LaneMembershipFeature:
         """正 signed distance 表示 polygon 內，負值表示外部。"""
         if (
-            geometry.status is LaneGeometryStatus.UNKNOWN
+            geometry.status is not LaneGeometryStatus.VALID
             or not geometry.lanes
             or geometry.confidence < self.minimum_geometry_confidence
         ):

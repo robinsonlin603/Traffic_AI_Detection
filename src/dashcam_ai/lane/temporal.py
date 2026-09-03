@@ -196,6 +196,10 @@ class TemporalLaneTracker:
         """追蹤 ID 永久消失後釋放其 bounded temporal state。"""
         self._tracks.pop(track_id, None)
 
+    def reset(self) -> None:
+        """拓撲身分改變時清除所有不可跨拓撲沿用的 track state。"""
+        self._tracks.clear()
+
     def _new_track(self) -> _TrackState:
         return _TrackState(
             distances=deque(maxlen=self._smoothing_window),

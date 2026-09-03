@@ -6,6 +6,7 @@ from pydantic import ValidationError
 from dashcam_ai.domain.geometry import Point2D
 from dashcam_ai.domain.lane import (
     LaneBoundary,
+    LaneBoundaryEvidenceSource,
     LaneGeometry,
     LaneGeometryProvenance,
     LaneGeometryStatus,
@@ -149,6 +150,7 @@ def test_unknown_geometry_cannot_contain_lanes() -> None:
             frame_width=10,
             frame_height=10,
             lanes=(lane,),
+            reason="lane evidence unavailable",
         )
 
 
@@ -158,3 +160,21 @@ def test_lane_geometry_serialization_is_json_compatible_without_ego_lane() -> No
     assert payload["lanes"][1]["lane_id"] == "lane_center"
     assert payload["lanes"][1]["polygon"][0] == {"x": 960.0, "y": 432.0}
     assert payload["boundaries"][0]["boundary_id"] == "boundary_left"
+    assert payload["boundaries"][0]["confidence"] == 1.0
+    assert payload["boundaries"][0]["evidence_source"] == "configured"
+
+
+def test_dynamic_boundary_serializes_quality_evidence() -> None:
+    boundary = LaneBoundary(
+        boundary_id="boundary_dynamic",
+        left_lane_id="lane_0",
+        right_lane_id="lane_1",
+        points=(Point2D(x=4, y=2), Point2D(x=2, y=9)),
+        confidence=0.82,
+        evidence_source=LaneBoundaryEvidenceSource.OBSERVED,
+    )
+
+    payload = boundary.model_dump(mode="json")
+
+    assert payload["confidence"] == 0.82
+    assert payload["evidence_source"] == "observed"

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
@@ -17,6 +18,7 @@ from dashcam_ai.domain.lane import (
 
 class DetectionConfig(BaseModel):
     """物件偵測模型、推論門檻與目標類別設定。"""
+
     model: str = "yolo26m.pt"
     confidence: float = Field(default=0.35, ge=0, le=1)
     imgsz: int = Field(default=1280, gt=0)
@@ -28,14 +30,70 @@ class DetectionConfig(BaseModel):
 
 class TrackingConfig(BaseModel):
     """物件追蹤器及有效軌跡長度設定。"""
+
     tracker: str = "botsort.yaml"
     minimum_track_length: int = Field(default=2, gt=0)
 
 
+class LaneGeometryMode(StrEnum):
+    CONFIGURED = "configured"
+    DYNAMIC = "dynamic"
+    HYBRID = "hybrid"
+
+
+class LaneEvidenceBackendName(StrEnum):
+    OPENCV = "opencv"
+    YOLOP_ONNX = "yolop_onnx"
+
+
+class DynamicLaneGeometryConfig(BaseModel):
+    """動態車道 evidence、時間平滑與拓撲品質門檻。"""
+
+    road_roi: tuple[NormalizedPoint2D, ...] = Field(
+        default_factory=lambda: (
+            NormalizedPoint2D(x=0.05, y=1.0),
+            NormalizedPoint2D(x=0.35, y=0.35),
+            NormalizedPoint2D(x=0.65, y=0.35),
+            NormalizedPoint2D(x=0.95, y=1.0),
+        ),
+        min_length=3,
+    )
+    backend: LaneEvidenceBackendName = LaneEvidenceBackendName.OPENCV
+    weights: Path | None = None
+    minimum_confidence: float = Field(default=0.7, ge=0, le=1)
+    minimum_curve_fit_confidence: float = Field(default=0.6, ge=0, le=1)
+    missing_frame_tolerance: int = Field(default=10, ge=0)
+    smoothing_alpha: float = Field(default=0.25, gt=0, le=1)
+    maximum_boundary_jump_ratio: float = Field(default=0.08, gt=0, le=1)
+    topology_confirmation_frames: int = Field(default=6, gt=0)
+    maximum_lane_count: int = Field(default=3, ge=2)
+    minimum_boundary_separation_ratio: float = Field(default=0.08, gt=0, lt=1)
+    canny_low_threshold: int = Field(default=50, ge=0, le=255)
+    canny_high_threshold: int = Field(default=150, ge=0, le=255)
+    hough_threshold: int = Field(default=30, gt=0)
+    minimum_line_length_pixels: int = Field(default=40, gt=0)
+    maximum_line_gap_pixels: int = Field(default=40, ge=0)
+    minimum_absolute_slope: float = Field(default=0.3, gt=0)
+    boundary_cluster_distance_ratio: float = Field(default=0.08, gt=0, le=1)
+    curve_sample_count: int = Field(default=8, ge=2)
+    yolop_input_size: int = Field(default=640, gt=0)
+    yolop_segmentation_threshold: float = Field(default=0.5, gt=0, lt=1)
+    yolop_minimum_component_area_ratio: float = Field(default=0.0001, gt=0, lt=1)
+
+    @model_validator(mode="after")
+    def validate_edge_thresholds(self) -> DynamicLaneGeometryConfig:
+        if self.canny_low_threshold >= self.canny_high_threshold:
+            raise ValueError("canny low threshold must be below high threshold")
+        if self.backend is LaneEvidenceBackendName.YOLOP_ONNX and self.weights is None:
+            raise ValueError("yolop_onnx lane evidence requires a weights path")
+        return self
+
+
 class LaneGeometryConfig(BaseModel):
-    """人工校正的一般 normalized lanes、共享邊界與可信度。"""
+    """Configured baseline 與可替換的 dynamic/hybrid 車道設定。"""
 
     enabled: bool = True
+    mode: LaneGeometryMode = LaneGeometryMode.CONFIGURED
     lanes: list[NormalizedLaneRegion] = Field(
         default_factory=lambda: [
             NormalizedLaneRegion(
@@ -49,13 +107,15 @@ class LaneGeometryConfig(BaseModel):
                 ),
             )
         ],
-        min_length=1,
     )
     boundaries: list[NormalizedLaneBoundary] = Field(default_factory=list)
     confidence: float = Field(default=1.0, ge=0, le=1)
+    dynamic: DynamicLaneGeometryConfig = Field(default_factory=DynamicLaneGeometryConfig)
 
     @model_validator(mode="after")
     def validate_topology(self) -> LaneGeometryConfig:
+        if self.mode in {LaneGeometryMode.CONFIGURED, LaneGeometryMode.HYBRID} and not self.lanes:
+            raise ValueError(f"{self.mode.value} lane geometry requires configured lanes")
         lane_ids = [lane.lane_id for lane in self.lanes]
         orders = [lane.lateral_order for lane in self.lanes]
         boundary_ids = [boundary.boundary_id for boundary in self.boundaries]
@@ -134,6 +194,7 @@ class TemporalLaneConfig(BaseModel):
 
 class OutputConfig(BaseModel):
     """分析結果與標註影片的輸出設定。"""
+
     save_video: bool = True
     save_frames: bool = True
     codec: str = Field(default="mp4v", min_length=4, max_length=4)
@@ -141,11 +202,13 @@ class OutputConfig(BaseModel):
 
 class LoggingConfig(BaseModel):
     """應用程式日誌等級設定。"""
+
     level: str = "INFO"
 
 
 class AppConfig(BaseModel):
     """彙整所有設定區段的頂層模型。"""
+
     detection: DetectionConfig = Field(default_factory=DetectionConfig)
     tracking: TrackingConfig = Field(default_factory=TrackingConfig)
     lane_geometry: LaneGeometryConfig = Field(default_factory=LaneGeometryConfig)

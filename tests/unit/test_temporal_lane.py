@@ -53,6 +53,18 @@ def test_lane_id_requires_debounce_before_becoming_stable() -> None:
     assert second.stable_lane_id == "lane_left"
 
 
+def test_reset_discards_state_across_topology_versions() -> None:
+    tracker = TemporalLaneTracker(smoothing_window_frames=1, debounce_frames=1)
+    before = update(tracker, 10, feature(LaneMembership.INSIDE_LANE, "lane_left"))
+
+    tracker.reset()
+    after = update(tracker, 0, feature(LaneMembership.INSIDE_LANE, "lane_center"))
+
+    assert before.stable_lane_id == "lane_left"
+    assert after.stable_lane_id == "lane_center"
+    assert after.source_lane is None
+
+
 def test_boundary_jitter_preserves_stable_lane() -> None:
     tracker = TemporalLaneTracker(smoothing_window_frames=1, debounce_frames=2)
     update(tracker, 0, feature(LaneMembership.INSIDE_LANE, "lane_center"))

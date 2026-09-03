@@ -8,6 +8,11 @@ from typing import Any
 import numpy as np
 
 from dashcam_ai.domain.events import EventStatus, LaneChangeEvent
+from dashcam_ai.domain.lane import (
+    LaneBoundaryEvidenceSource,
+    LaneGeometry,
+    LaneGeometryStatus,
+)
 from dashcam_ai.domain.perception import TrackedObject
 from dashcam_ai.domain.scene import FrameSceneAnalysis
 from dashcam_ai.video.reader import _cv2
@@ -17,6 +22,7 @@ LabelBox = tuple[int, int, int, int]
 
 class OpenCVAnnotator:
     """以 OpenCV 將追蹤資訊疊加到影格副本上。"""
+
     def __init__(self, trail_length: int = 30) -> None:
         self._trails: dict[int, deque[tuple[int, int]]] = defaultdict(
             lambda: deque(maxlen=trail_length)
@@ -37,12 +43,13 @@ class OpenCVAnnotator:
         occupied_labels: list[LabelBox] = []
         if analysis is not None:
             geometry = analysis.lane_geometry
+            geometry_color = self._geometry_color(geometry.status)
             for lane in geometry.lanes:
                 lane_points = np.asarray(
                     [(round(point.x), round(point.y)) for point in lane.polygon],
                     dtype=np.int32,
                 )
-                cv2.polylines(output, [lane_points], True, (80, 220, 220), 2)
+                cv2.polylines(output, [lane_points], True, geometry_color, 2)
                 label_x = round(sum(point.x for point in lane.polygon) / len(lane.polygon))
                 label_y = round(sum(point.y for point in lane.polygon) / len(lane.polygon))
                 cv2.putText(
@@ -51,7 +58,7 @@ class OpenCVAnnotator:
                     (label_x, label_y),
                     cv2.FONT_HERSHEY_SIMPLEX,
                     0.55,
-                    (80, 220, 220),
+                    geometry_color,
                     2,
                     cv2.LINE_AA,
                 )
@@ -60,7 +67,27 @@ class OpenCVAnnotator:
                     [(round(point.x), round(point.y)) for point in boundary.points],
                     dtype=np.int32,
                 )
-                cv2.polylines(output, [boundary_points], False, (40, 255, 120), 2)
+                cv2.polylines(
+                    output,
+                    [boundary_points],
+                    False,
+                    self._boundary_color(boundary.evidence_source),
+                    3,
+                )
+            geometry_banner = self._geometry_banner(geometry)
+            banner_size = cv2.getTextSize(
+                geometry_banner, cv2.FONT_HERSHEY_SIMPLEX, 0.55, 2
+            )[0]
+            cv2.putText(
+                output,
+                geometry_banner,
+                (max(output.shape[1] - banner_size[0] - 20, 20), 30),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.55,
+                geometry_color,
+                2,
+                cv2.LINE_AA,
+            )
         for obj in objects:
             x1, y1, x2, y2 = (round(value) for value in obj.bbox.as_xyxy())
             state = track_analysis.get(obj.track_id)
@@ -180,6 +207,34 @@ class OpenCVAnnotator:
         return (
             f"LANE CHANGE {event.direction.value.upper()} "
             f"#{event.track_id} {event.status.value.upper()}"
+        )
+
+    @staticmethod
+    def _geometry_color(status: LaneGeometryStatus) -> tuple[int, int, int]:
+        return {
+            LaneGeometryStatus.VALID: (40, 220, 80),
+            LaneGeometryStatus.DEGRADED: (0, 200, 255),
+            LaneGeometryStatus.UNKNOWN: (120, 120, 120),
+        }[status]
+
+    @staticmethod
+    def _boundary_color(
+        source: LaneBoundaryEvidenceSource,
+    ) -> tuple[int, int, int]:
+        return {
+            LaneBoundaryEvidenceSource.OBSERVED: (40, 220, 80),
+            LaneBoundaryEvidenceSource.INFERRED: (0, 200, 255),
+            LaneBoundaryEvidenceSource.CONFIGURED: (80, 220, 220),
+            LaneBoundaryEvidenceSource.CONFIGURED_FALLBACK: (150, 150, 150),
+        }[source]
+
+    @staticmethod
+    def _geometry_banner(geometry: LaneGeometry) -> str:
+        topology = geometry.topology_id or "none"
+        return (
+            f"LANES {geometry.status.value.upper()} "
+            f"{geometry.provenance.value.upper()} {topology} "
+            f"conf={geometry.confidence:.2f}"
         )
 
     @classmethod

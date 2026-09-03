@@ -5,7 +5,7 @@ from types import SimpleNamespace
 from typer.testing import CliRunner
 
 from dashcam_ai.cli import _build_scene_analyzer, _resolve_output_path, app
-from dashcam_ai.config.models import AppConfig
+from dashcam_ai.config.models import AppConfig, LaneGeometryMode
 
 
 def test_devices_command_returns_json() -> None:
@@ -40,9 +40,20 @@ def test_scene_analyzer_builds_from_default_configuration() -> None:
     assert _build_scene_analyzer(AppConfig()) is not None
 
 
-def test_analyze_passes_minimum_track_length_from_config(
-    tmp_path: Path, monkeypatch
-) -> None:
+def test_scene_analyzer_builds_dynamic_opencv_mode_without_weights() -> None:
+    config = AppConfig()
+    dynamic = config.model_copy(
+        update={
+            "lane_geometry": config.lane_geometry.model_copy(
+                update={"mode": LaneGeometryMode.DYNAMIC, "lanes": [], "boundaries": []}
+            )
+        }
+    )
+
+    assert _build_scene_analyzer(dynamic) is not None
+
+
+def test_analyze_passes_minimum_track_length_from_config(tmp_path: Path, monkeypatch) -> None:
     input_path = tmp_path / "input.mp4"
     input_path.touch()
     config_path = tmp_path / "config.yaml"

@@ -11,12 +11,24 @@ from dashcam_ai.domain.geometry import Point2D
 
 class LaneGeometryStatus(StrEnum):
     VALID = "valid"
+    DEGRADED = "degraded"
     UNKNOWN = "unknown"
 
 
 class LaneGeometryProvenance(StrEnum):
     CONFIGURED = "configured"
+    DYNAMIC = "dynamic"
+    HYBRID = "hybrid"
     UNKNOWN = "unknown"
+
+
+class LaneBoundaryEvidenceSource(StrEnum):
+    """描述單幀邊界來自直接觀察、時間推定或設定。"""
+
+    CONFIGURED = "configured"
+    OBSERVED = "observed"
+    INFERRED = "inferred"
+    CONFIGURED_FALLBACK = "configured_fallback"
 
 
 class LaneMembership(StrEnum):
@@ -75,6 +87,8 @@ class LaneBoundary(BaseModel):
     left_lane_id: str = Field(min_length=1)
     right_lane_id: str = Field(min_length=1)
     points: tuple[Point2D, ...] = Field(min_length=2)
+    confidence: float = Field(default=1.0, ge=0, le=1)
+    evidence_source: LaneBoundaryEvidenceSource = LaneBoundaryEvidenceSource.CONFIGURED
 
     @model_validator(mode="after")
     def validate_distinct_lanes(self) -> LaneBoundary:
@@ -101,14 +115,34 @@ class LaneGeometry(BaseModel):
     frame_height: int = Field(gt=0)
     lanes: tuple[LaneRegion, ...] = ()
     boundaries: tuple[LaneBoundary, ...] = ()
+    topology_id: str | None = None
+    topology_version: int | None = Field(default=None, ge=1)
     reason: str | None = None
 
     @model_validator(mode="after")
     def validate_status_payload(self) -> LaneGeometry:
+        if (self.topology_id is None) != (self.topology_version is None):
+            raise ValueError("topology ID and version must be provided together")
         if self.status is LaneGeometryStatus.VALID and not self.lanes:
             raise ValueError("valid lane geometry requires at least one lane region")
+        if self.status is LaneGeometryStatus.DEGRADED and not self.reason:
+            raise ValueError("degraded lane geometry requires a reason")
         if self.status is LaneGeometryStatus.UNKNOWN and (self.lanes or self.boundaries):
             raise ValueError("unknown lane geometry cannot contain lanes or boundaries")
+        if self.status is LaneGeometryStatus.UNKNOWN and self.confidence != 0:
+            raise ValueError("unknown lane geometry must have zero confidence")
+        if self.status is LaneGeometryStatus.UNKNOWN and not self.reason:
+            raise ValueError("unknown lane geometry requires a reason")
+        if (
+            self.provenance is LaneGeometryProvenance.UNKNOWN
+            and self.status is not LaneGeometryStatus.UNKNOWN
+        ):
+            raise ValueError("unknown provenance requires unknown geometry status")
+        if (
+            self.status is LaneGeometryStatus.UNKNOWN
+            and self.provenance is not LaneGeometryProvenance.UNKNOWN
+        ):
+            raise ValueError("unknown geometry requires unknown provenance")
         lane_ids = [lane.lane_id for lane in self.lanes]
         orders = [lane.lateral_order for lane in self.lanes]
         boundary_ids = [boundary.boundary_id for boundary in self.boundaries]
@@ -126,6 +160,7 @@ class LaneGeometry(BaseModel):
             } - known_lanes:
                 raise ValueError("lane boundary references an unknown lane")
         return self
+
 
 class LaneMembershipFeature(BaseModel):
     """單一錨點的車道歸屬與穩定幾何特徵。"""

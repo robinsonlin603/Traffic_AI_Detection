@@ -3,6 +3,12 @@ from types import SimpleNamespace
 import pytest
 
 from dashcam_ai.domain.geometry import BBox
+from dashcam_ai.domain.lane import (
+    LaneBoundaryEvidenceSource,
+    LaneGeometry,
+    LaneGeometryProvenance,
+    LaneGeometryStatus,
+)
 from dashcam_ai.domain.perception import TrackedObject
 from dashcam_ai.domain.temporal import LaneChangeDirection
 from dashcam_ai.visualization.annotator import OpenCVAnnotator
@@ -56,3 +62,29 @@ def test_event_banner_shows_semantic_direction() -> None:
     )
 
     assert OpenCVAnnotator._event_banner(event) == "LANE CHANGE LEFT #9 CANDIDATE"
+
+
+def test_dynamic_geometry_banner_exposes_quality_and_topology() -> None:
+    geometry = LaneGeometry(
+        status=LaneGeometryStatus.DEGRADED,
+        provenance=LaneGeometryProvenance.DYNAMIC,
+        confidence=0.62,
+        frame_width=100,
+        frame_height=50,
+        topology_id="topology-3",
+        topology_version=3,
+        reason="temporally inferred",
+    )
+
+    assert OpenCVAnnotator._geometry_banner(geometry) == (
+        "LANES DEGRADED DYNAMIC topology-3 conf=0.62"
+    )
+    assert OpenCVAnnotator._geometry_color(geometry.status) == (0, 200, 255)
+
+
+def test_boundary_evidence_sources_use_distinct_colors() -> None:
+    colors = {
+        OpenCVAnnotator._boundary_color(source) for source in LaneBoundaryEvidenceSource
+    }
+
+    assert len(colors) == len(LaneBoundaryEvidenceSource)

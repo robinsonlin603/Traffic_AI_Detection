@@ -2,61 +2,54 @@ detection:
   model: yolo26m.pt
   confidence: 0.35
   imgsz: 1280
-  device: auto
-  classes:
-    - car
-    - motorcycle
-    - bus
-    - truck
-    - person
-    - bicycle
-
+  device: mps
+  classes: [car, motorcycle, bus, truck, person, bicycle]
 tracking:
   tracker: botsort.yaml
   minimum_track_length: 2
-
 lane_geometry:
   enabled: true
-  mode: configured
+  mode: dynamic
   lanes:
     - id: lane_left
       lateral_order: 0
       polygon:
-        - {x: 0.32, y: 0.45}
-        - {x: 0.44, y: 0.45}
-        - {x: 0.10, y: 1.00}
-        - {x: 0.00, y: 1.00}
+        - { x: 0.38, y: 0.45 }
+        - { x: 0.44, y: 0.45 }
+        - { x: 0.10, y: 1.00 }
+        - { x: 0.00, y: 1.00 }
     - id: lane_center
       lateral_order: 1
       polygon:
-        - {x: 0.44, y: 0.45}
-        - {x: 0.56, y: 0.45}
-        - {x: 0.90, y: 1.00}
-        - {x: 0.10, y: 1.00}
+        - { x: 0.44, y: 0.45 }
+        - { x: 0.50, y: 0.45 }
+        - { x: 0.76, y: 1.00 }
+        - { x: 0.10, y: 1.00 }
     - id: lane_right
       lateral_order: 2
       polygon:
-        - {x: 0.56, y: 0.45}
-        - {x: 0.68, y: 0.45}
-        - {x: 1.00, y: 1.00}
-        - {x: 0.90, y: 1.00}
+        - { x: 0.50, y: 0.45 }
+        - { x: 0.56, y: 0.45 }
+        - { x: 1.00, y: 1.00 }
+        - { x: 0.76, y: 1.00 }
   boundaries:
     - id: boundary_left
       left_lane_id: lane_left
       right_lane_id: lane_center
-      points: [{x: 0.44, y: 0.45}, {x: 0.10, y: 1.00}]
+      points: [{ x: 0.44, y: 0.45 }, { x: 0.10, y: 1.00 }]
     - id: boundary_right
       left_lane_id: lane_center
       right_lane_id: lane_right
-      points: [{x: 0.56, y: 0.45}, {x: 0.90, y: 1.00}]
+      points: [{ x: 0.50, y: 0.45 }, { x: 0.76, y: 1.00 }]
   confidence: 1.0
   dynamic:
-    backend: opencv
+    backend: yolop_onnx
+    weights: /tmp/dynamic-lane-prototypes.KPdQ9h/YOLOP/weights/yolop-640-640.onnx
     road_roi:
-      - {x: 0.05, y: 1.00}
-      - {x: 0.35, y: 0.35}
-      - {x: 0.65, y: 0.35}
-      - {x: 0.95, y: 1.00}
+      - { x: 0.05, y: 1.00 }
+      - { x: 0.35, y: 0.35 }
+      - { x: 0.65, y: 0.35 }
+      - { x: 0.95, y: 1.00 }
     minimum_confidence: 0.70
     minimum_curve_fit_confidence: 0.60
     missing_frame_tolerance: 10
@@ -76,11 +69,9 @@ lane_geometry:
     yolop_input_size: 640
     yolop_segmentation_threshold: 0.50
     yolop_minimum_component_area_ratio: 0.0001
-
 lane_membership:
   boundary_margin_pixels: 12.0
   minimum_geometry_confidence: 0.5
-
 ego_motion:
   max_features: 500
   feature_quality_level: 0.01
@@ -93,7 +84,6 @@ ego_motion:
   minimum_inlier_ratio: 0.5
   maximum_mean_reprojection_error: 2.5
   mask_padding_pixels: 8
-
 relative_motion:
   enabled: true
   stationary_residual_ratio: 0.001
@@ -106,7 +96,6 @@ relative_motion:
   scene_minimum_tracks: 3
   scene_lateral_motion_ratio: 0.003
   scene_consensus_ratio: 0.75
-
 temporal_lane:
   smoothing_window_frames: 3
   approaching_distance_pixels: 40.0
@@ -117,11 +106,9 @@ temporal_lane:
   maximum_missing_frames: 2
   candidate_timeout_seconds: 2.0
   history_size: 30
-
 output:
   save_video: true
   save_frames: true
   codec: mp4v
-
 logging:
   level: INFO

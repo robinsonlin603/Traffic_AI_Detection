@@ -68,6 +68,7 @@ class StreamingSceneAnalyzer:
         self._missing_counts: dict[int, int] = {}
         self._event_eligible_tracks: set[int] = set()
         self._events: dict[str, StructuredEvent] = {}
+        self._last_topology_id: str | None = None
 
     def process(
         self,
@@ -79,6 +80,15 @@ class StreamingSceneAnalyzer:
         height: int,
     ) -> FrameSceneAnalysis:
         geometry = self._lane_detector.detect(frame, width, height)
+        if (
+            geometry.topology_id is not None
+            and self._last_topology_id is not None
+            and geometry.topology_id != self._last_topology_id
+        ):
+            self._temporal.reset()
+            self._reject_candidates_for_topology_change(frame_id, timestamp)
+        if geometry.topology_id is not None:
+            self._last_topology_id = geometry.topology_id
         motion = (
             self._unknown_motion("previous frame unavailable")
             if self._previous_frame is None
@@ -102,9 +112,7 @@ class StreamingSceneAnalyzer:
             if obj.class_name.casefold() in EVENT_ELIGIBLE_CLASSES
         }
         relative_motion.update(
-            self._relative_motion_evaluator.apply_scene_consistency(
-                eligible_relative_motion
-            )
+            self._relative_motion_evaluator.apply_scene_consistency(eligible_relative_motion)
         )
         track_results: list[TrackSceneAnalysis] = []
         frame_lane_events: list[LaneChangeEvent] = []
@@ -125,13 +133,9 @@ class StreamingSceneAnalyzer:
                 relative_motion[obj.track_id],
             )
             track_results.append(
-                TrackSceneAnalysis(
-                    track_id=obj.track_id, membership=membership, temporal=temporal
-                )
+                TrackSceneAnalysis(track_id=obj.track_id, membership=membership, temporal=temporal)
             )
-            self._record_lane_event(
-                temporal, frame_lane_events, event_eligible=event_eligible
-            )
+            self._record_lane_event(temporal, frame_lane_events, event_eligible=event_eligible)
             self._last_anchors[obj.track_id] = obj.bbox.bottom_center
             self._missing_counts[obj.track_id] = 0
 
@@ -145,9 +149,7 @@ class StreamingSceneAnalyzer:
                 anchor=self._last_anchors[track_id],
                 geometry_confidence=geometry.confidence,
             )
-            temporal = self._temporal.update(
-                track_id, frame_id, timestamp, unknown, motion.status
-            )
+            temporal = self._temporal.update(track_id, frame_id, timestamp, unknown, motion.status)
             self._record_lane_event(
                 temporal,
                 frame_lane_events,
@@ -208,6 +210,20 @@ class StreamingSceneAnalyzer:
         self._events[event.event_id] = event
         output.append(event)
         return event
+
+    def _reject_candidates_for_topology_change(self, frame_id: int, timestamp: float) -> None:
+        for event_id, event in tuple(self._events.items()):
+            if event.status is not EventStatus.CANDIDATE:
+                continue
+            self._events[event_id] = event.model_copy(
+                update={
+                    "status": EventStatus.REJECTED,
+                    "completed_frame": None,
+                    "completed_at": None,
+                    "confidence": min(event.confidence, 0.4),
+                    "reason": (f"lane topology changed at frame {frame_id} ({timestamp:.3f}s)"),
+                }
+            )
 
     @staticmethod
     def _unknown_motion(reason: str) -> EgoMotionEstimate:

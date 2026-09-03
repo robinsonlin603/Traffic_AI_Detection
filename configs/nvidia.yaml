@@ -9,6 +9,7 @@ tracking:
   minimum_track_length: 2
 lane_geometry:
   enabled: true
+  mode: configured
   lanes:
     - id: lane_left
       lateral_order: 0
@@ -41,6 +42,32 @@ lane_geometry:
       right_lane_id: lane_right
       points: [{x: 0.54, y: 0.66}, {x: 0.78, y: 1.00}]
   confidence: 1.0
+  dynamic:
+    backend: opencv
+    road_roi:
+      - {x: 0.05, y: 1.00}
+      - {x: 0.35, y: 0.35}
+      - {x: 0.65, y: 0.35}
+      - {x: 0.95, y: 1.00}
+    minimum_confidence: 0.70
+    minimum_curve_fit_confidence: 0.60
+    missing_frame_tolerance: 10
+    smoothing_alpha: 0.25
+    maximum_boundary_jump_ratio: 0.08
+    topology_confirmation_frames: 6
+    maximum_lane_count: 3
+    minimum_boundary_separation_ratio: 0.08
+    canny_low_threshold: 50
+    canny_high_threshold: 150
+    hough_threshold: 30
+    minimum_line_length_pixels: 40
+    maximum_line_gap_pixels: 40
+    minimum_absolute_slope: 0.30
+    boundary_cluster_distance_ratio: 0.08
+    curve_sample_count: 8
+    yolop_input_size: 640
+    yolop_segmentation_threshold: 0.50
+    yolop_minimum_component_area_ratio: 0.0001
 lane_membership:
   boundary_margin_pixels: 12.0
   minimum_geometry_confidence: 0.5
