@@ -72,7 +72,7 @@ def test_fake_pipeline_writes_normalized_artifacts(tmp_path: Path) -> None:
     assert json.loads((output / "events.json").read_text()) == []
     assert len((output / "frames.jsonl").read_text().splitlines()) == 2
     first_frame = json.loads((output / "frames.jsonl").read_text().splitlines()[0])
-    assert first_frame["analysis"] is None
+    assert set(first_frame) == {"frame_id", "timestamp", "objects"}
 
 
 def test_fake_pipeline_reports_progress(

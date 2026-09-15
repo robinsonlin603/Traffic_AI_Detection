@@ -5,16 +5,7 @@ from __future__ import annotations
 from collections import defaultdict, deque
 from typing import Any
 
-import numpy as np
-
-from dashcam_ai.domain.events import EventStatus, LaneChangeEvent
-from dashcam_ai.domain.lane import (
-    LaneBoundaryEvidenceSource,
-    LaneGeometry,
-    LaneGeometryStatus,
-)
 from dashcam_ai.domain.perception import TrackedObject
-from dashcam_ai.domain.scene import FrameSceneAnalysis
 from dashcam_ai.video.reader import _cv2
 
 LabelBox = tuple[int, int, int, int]
@@ -32,68 +23,16 @@ class OpenCVAnnotator:
         self,
         frame: Any,
         objects: list[TrackedObject],
-        analysis: FrameSceneAnalysis | None = None,
     ) -> Any:
-        """回傳加入物件框、ID、信心分數與歷史軌跡的影格。"""
+        """回傳加入物件框、精簡類別標籤與歷史軌跡的影格。"""
         cv2 = _cv2()
         output = frame.copy()
-        track_analysis = (
-            {item.track_id: item for item in analysis.tracks} if analysis is not None else {}
-        )
         occupied_labels: list[LabelBox] = []
-        if analysis is not None:
-            geometry = analysis.lane_geometry
-            geometry_color = self._geometry_color(geometry.status)
-            for lane in geometry.lanes:
-                lane_points = np.asarray(
-                    [(round(point.x), round(point.y)) for point in lane.polygon],
-                    dtype=np.int32,
-                )
-                cv2.polylines(output, [lane_points], True, geometry_color, 2)
-                label_x = round(sum(point.x for point in lane.polygon) / len(lane.polygon))
-                label_y = round(sum(point.y for point in lane.polygon) / len(lane.polygon))
-                cv2.putText(
-                    output,
-                    lane.lane_id,
-                    (label_x, label_y),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    0.55,
-                    geometry_color,
-                    2,
-                    cv2.LINE_AA,
-                )
-            for boundary in geometry.boundaries:
-                boundary_points = np.asarray(
-                    [(round(point.x), round(point.y)) for point in boundary.points],
-                    dtype=np.int32,
-                )
-                cv2.polylines(
-                    output,
-                    [boundary_points],
-                    False,
-                    self._boundary_color(boundary.evidence_source),
-                    3,
-                )
-            geometry_banner = self._geometry_banner(geometry)
-            banner_size = cv2.getTextSize(
-                geometry_banner, cv2.FONT_HERSHEY_SIMPLEX, 0.55, 2
-            )[0]
-            cv2.putText(
-                output,
-                geometry_banner,
-                (max(output.shape[1] - banner_size[0] - 20, 20), 30),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.55,
-                geometry_color,
-                2,
-                cv2.LINE_AA,
-            )
         for obj in objects:
             x1, y1, x2, y2 = (round(value) for value in obj.bbox.as_xyxy())
-            state = track_analysis.get(obj.track_id)
-            box_color = self._track_box_color(state)
+            box_color = (40, 220, 80)
             cv2.rectangle(output, (x1, y1), (x2, y2), box_color, 2)
-            lines = self._track_label_lines(obj, state)
+            lines = self._track_label_lines(obj)
             text_sizes = [
                 cv2.getTextSize(line, cv2.FONT_HERSHEY_SIMPLEX, 0.55, 2)[0]
                 for line in lines
@@ -112,7 +51,7 @@ class OpenCVAnnotator:
             occupied_labels.append(label_box)
             left, top, right, bottom_edge = label_box
             cv2.rectangle(output, (left, top), (right, bottom_edge), (25, 25, 25), -1)
-            label_color = self._track_label_color(state)
+            label_color = box_color
             for index, line in enumerate(lines):
                 baseline = top + 5 + line_height * (index + 1) - 4
                 cv2.putText(
@@ -131,7 +70,7 @@ class OpenCVAnnotator:
                 output,
                 (round(bottom.x), round(bottom.y)),
                 4,
-                self._membership_color(state),
+                (120, 120, 120),
                 -1,
             )
             trail = self._trails[obj.track_id]
@@ -139,29 +78,10 @@ class OpenCVAnnotator:
             points = list(trail)
             for start, end in zip(points, points[1:], strict=False):
                 cv2.line(output, start, end, (0, 180, 255), 2)
-        if analysis is not None:
-            banners: list[LaneChangeEvent] = list(analysis.lane_change_events)
-            for index, event in enumerate(banners[-3:]):
-                color = {
-                    EventStatus.CANDIDATE: (0, 200, 255),
-                    EventStatus.CONFIRMED: (0, 60, 255),
-                    EventStatus.REJECTED: (160, 160, 160),
-                    EventStatus.UNKNOWN: (120, 120, 120),
-                }[event.status]
-                cv2.putText(
-                    output,
-                    self._event_banner(event),
-                    (20, 30 + index * 26),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    0.65,
-                    color,
-                    2,
-                    cv2.LINE_AA,
-                )
         return output
 
     @staticmethod
-    def _track_label_lines(obj: TrackedObject, state: Any | None) -> tuple[str, ...]:
+    def _track_label_lines(obj: TrackedObject) -> tuple[str, ...]:
         return (f"#{obj.track_id} {OpenCVAnnotator._class_code(obj.class_name)}",)
 
     @staticmethod
@@ -175,67 +95,6 @@ class OpenCVAnnotator:
             "person": "P",
             "bicycle": "BC",
         }.get(normalized, normalized[:1].upper() or "?")
-
-    @staticmethod
-    def _track_box_color(state: Any | None) -> tuple[int, int, int]:
-        if state is None:
-            return (40, 220, 80)
-        return {
-            "candidate": (0, 200, 255),
-            "confirmed": (0, 60, 255),
-            "rejected": (160, 160, 160),
-            "unknown": (120, 120, 120),
-        }.get(state.temporal.lane_change_status.value, (40, 220, 80))
-
-    @staticmethod
-    def _track_label_color(state: Any | None) -> tuple[int, int, int]:
-        return OpenCVAnnotator._track_box_color(state)
-
-    @staticmethod
-    def _membership_color(state: Any | None) -> tuple[int, int, int]:
-        if state is None:
-            return (120, 120, 120)
-        return {
-            "inside_lane": (40, 220, 80),
-            "near_boundary": (0, 200, 255),
-            "outside_configured_lanes": (180, 100, 40),
-            "unknown": (120, 120, 120),
-        }[state.membership.membership.value]
-
-    @staticmethod
-    def _event_banner(event: LaneChangeEvent) -> str:
-        return (
-            f"LANE CHANGE {event.direction.value.upper()} "
-            f"#{event.track_id} {event.status.value.upper()}"
-        )
-
-    @staticmethod
-    def _geometry_color(status: LaneGeometryStatus) -> tuple[int, int, int]:
-        return {
-            LaneGeometryStatus.VALID: (40, 220, 80),
-            LaneGeometryStatus.DEGRADED: (0, 200, 255),
-            LaneGeometryStatus.UNKNOWN: (120, 120, 120),
-        }[status]
-
-    @staticmethod
-    def _boundary_color(
-        source: LaneBoundaryEvidenceSource,
-    ) -> tuple[int, int, int]:
-        return {
-            LaneBoundaryEvidenceSource.OBSERVED: (40, 220, 80),
-            LaneBoundaryEvidenceSource.INFERRED: (0, 200, 255),
-            LaneBoundaryEvidenceSource.CONFIGURED: (80, 220, 220),
-            LaneBoundaryEvidenceSource.CONFIGURED_FALLBACK: (150, 150, 150),
-        }[source]
-
-    @staticmethod
-    def _geometry_banner(geometry: LaneGeometry) -> str:
-        topology = geometry.topology_id or "none"
-        return (
-            f"LANES {geometry.status.value.upper()} "
-            f"{geometry.provenance.value.upper()} {topology} "
-            f"conf={geometry.confidence:.2f}"
-        )
 
     @classmethod
     def _place_label(

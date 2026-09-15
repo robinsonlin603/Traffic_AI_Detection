@@ -21,7 +21,10 @@ class UltralyticsDetectorTracker:
         class_names: list[str],
         tracker: str = "botsort.yaml",
         device: str | None = "auto",
+        minimum_vehicle_area_ratio: float = 0.001,
     ) -> None:
+        if not 0 <= minimum_vehicle_area_ratio <= 1:
+            raise ValueError("minimum_vehicle_area_ratio must be between 0 and 1")
         try:
             import torch
             from ultralytics import YOLO  # type: ignore[attr-defined]
@@ -32,6 +35,15 @@ class UltralyticsDetectorTracker:
         resolution = resolve_device(device, torch)
         self._model = YOLO(model)
         names = self._model.names
+        self._minimum_vehicle_area_ratio = minimum_vehicle_area_ratio
+        self._vehicle_class_ids = {
+            int(class_id)
+            for class_id, name in names.items()
+            if name in {"car", "motorcycle", "bus", "truck"}
+        }
+        # Register before track() appends its tracker callback: rejected detections
+        # must never reach tracker.update() or consume a new track ID.
+        self._model.add_callback("on_predict_postprocess_end", self._filter_small_vehicles)
         # 設定檔以易讀的類別名稱表示，推論 API 則需要數字 class ID。
         self._allowed_class_ids = [
             int(class_id) for class_id, name in names.items() if name in set(class_names)
@@ -47,6 +59,28 @@ class UltralyticsDetectorTracker:
             confidence=confidence,
             torch_module=torch,
         )
+        self.runtime_metadata = self.runtime_metadata.model_copy(
+            update={"minimum_vehicle_area_ratio": minimum_vehicle_area_ratio}
+        )
+
+    def _filter_small_vehicles(self, predictor: Any) -> None:
+        """Filter vehicle detections in original-image coordinates before tracking."""
+        if self._minimum_vehicle_area_ratio == 0:
+            return
+        for index, result in enumerate(predictor.results):
+            boxes = result.boxes
+            if boxes is None or len(boxes) == 0:
+                continue
+            height, width = result.orig_shape
+            xyxy = boxes.xyxy
+            areas = (xyxy[:, 2] - xyxy[:, 0]) * (xyxy[:, 3] - xyxy[:, 1])
+            vehicle = boxes.cls == -1
+            for class_id in self._vehicle_class_ids:
+                vehicle |= boxes.cls == class_id
+            keep = (~vehicle) | (
+                areas >= self._minimum_vehicle_area_ratio * width * height
+            )
+            predictor.results[index] = result[keep]
 
     def process(self, frame: Any) -> list[TrackedObject]:
         """分析單一影格，並將 Ultralytics 結果轉為專案領域模型。"""

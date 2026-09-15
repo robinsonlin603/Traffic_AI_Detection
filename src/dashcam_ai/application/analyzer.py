@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import Any
 
 from dashcam_ai.application.perception import PerceptionBackend
-from dashcam_ai.application.scene import SceneAnalysisBackend
 from dashcam_ai.domain.perception import Track, TrackObservation
 from dashcam_ai.domain.video import FrameRecord
 from dashcam_ai.logging import get_logger
@@ -43,7 +42,6 @@ class Analyzer:
         progress_interval: int = 100,
         minimum_track_length: int = 1,
         reader_factory: Callable[[Path], Any] = OpenCVVideoReader,
-        scene_analyzer: SceneAnalysisBackend | None = None,
     ) -> None:
         if progress_interval <= 0:
             raise ValueError("progress_interval must be positive")
@@ -56,7 +54,6 @@ class Analyzer:
         self.progress_interval = progress_interval
         self.minimum_track_length = minimum_track_length
         self.reader_factory = reader_factory
-        self.scene_analyzer = scene_analyzer
 
     def analyze(self, source: Path, output_directory: Path) -> AnalysisSummary:
         """分析來源影片，將所有成果寫入指定輸出目錄。"""
@@ -66,8 +63,6 @@ class Analyzer:
         observations: dict[int, list[TrackObservation]] = defaultdict(list)
         track_classes: dict[int, str] = {}
         frames_processed = 0
-        last_frame_id: int | None = None
-        last_timestamp: float | None = None
         writer: OpenCVVideoWriter | None = None
         annotator = OpenCVAnnotator()
         with self.reader_factory(source) as reader, ArtifactStore(
@@ -87,24 +82,11 @@ class Analyzer:
             try:
                 for video_frame in reader:
                     tracked = self.perception.process(video_frame.image)
-                    analysis = (
-                        self.scene_analyzer.process(
-                            video_frame.image,
-                            tracked,
-                            video_frame.frame_id,
-                            video_frame.timestamp,
-                            reader.metadata.width,
-                            reader.metadata.height,
-                        )
-                        if self.scene_analyzer is not None
-                        else None
-                    )
                     store.write_frame(
                         FrameRecord(
                             frame_id=video_frame.frame_id,
                             timestamp=video_frame.timestamp,
                             objects=tracked,
-                            analysis=analysis,
                         )
                     )
                     for obj in tracked:
@@ -115,10 +97,8 @@ class Analyzer:
                             )
                         )
                     if writer is not None:
-                        writer.write(annotator.annotate(video_frame.image, tracked, analysis))
+                        writer.write(annotator.annotate(video_frame.image, tracked))
                     frames_processed += 1
-                    last_frame_id = video_frame.frame_id
-                    last_timestamp = video_frame.timestamp
                     total_frames = reader.metadata.frame_count
                     if frames_processed % self.progress_interval == 0 or (
                         total_frames > 0 and frames_processed == total_frames
@@ -159,19 +139,11 @@ class Analyzer:
                 if len(items) >= self.minimum_track_length
             ]
             store.write_tracks(tracks)
-            if (
-                self.scene_analyzer is not None
-                and last_frame_id is not None
-                and last_timestamp is not None
-            ):
-                self.scene_analyzer.finalize(last_frame_id, last_timestamp)
-            events = self.scene_analyzer.events() if self.scene_analyzer is not None else []
-            store.write_events(events)
         elapsed = time.monotonic() - started
         summary = AnalysisSummary(
             frames_processed=frames_processed,
             tracks_created=len(tracks),
-            events_created=len(events),
+            events_created=0,
             elapsed_seconds=elapsed,
             processing_fps=frames_processed / elapsed if elapsed else 0.0,
             output_directory=output_directory,

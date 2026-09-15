@@ -8,7 +8,6 @@ from typing import TextIO
 
 from pydantic import BaseModel
 
-from dashcam_ai.domain.events import LaneChangeEvent
 from dashcam_ai.domain.perception import Track
 from dashcam_ai.domain.video import FrameRecord, VideoMetadata
 
@@ -35,11 +34,11 @@ class ArtifactStore:
         """寫入所有物件的完整跨幀軌跡。"""
         self._write_json_value("tracks.json", [track.model_dump(mode="json") for track in tracks])
 
-    def write_events(self, events: list[LaneChangeEvent]) -> None:
-        """寫入去重後的一般換道事件最新狀態。"""
-        self._write_json_value(
-            "events.json", [event.model_dump(mode="json") for event in events]
-        )
+    def write_events(self, events: list[object]) -> None:
+        """Milestone 1 僅輸出空事件占位資料。"""
+        if events:
+            raise ValueError("Milestone 1 does not produce events")
+        self._write_json_value("events.json", [])
 
     def close(self) -> None:
         """關閉仍開啟的逐幀輸出檔案。"""

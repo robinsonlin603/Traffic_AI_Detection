@@ -96,7 +96,7 @@ def test_record_rejects_a_fabricated_verdict() -> None:
     now = datetime.now(UTC)
     with pytest.raises(ValidationError, match="do not match"):
         ValidationRecord(
-            milestone="milestone-2",
+            milestone="milestone-1",
             platform="linux-cuda",
             source_commit="a" * 40,
             worktree_dirty=True,

@@ -3,35 +3,16 @@
 from __future__ import annotations
 
 import json
+import subprocess
 from pathlib import Path
 from typing import Annotated
 
 import typer
 
 from dashcam_ai.application.analyzer import Analyzer
-from dashcam_ai.application.lane_overlay import run_lane_overlay
-from dashcam_ai.application.scene import StreamingSceneAnalyzer
-from dashcam_ai.config.models import (
-    AppConfig,
-    DynamicLaneGeometryConfig,
-    LaneEvidenceBackendName,
-    LaneGeometryMode,
-    load_config,
-)
+from dashcam_ai.config.models import load_config
 from dashcam_ai.detection.ultralytics import UltralyticsDetectorTracker
-from dashcam_ai.events.lane_change import LaneChangeEventBuilder
-from dashcam_ai.lane.base import LaneDetector
-from dashcam_ai.lane.configured import ConfiguredLaneDetector
-from dashcam_ai.lane.dynamic import DynamicLaneDetector, TemporalLaneGeometryTracker
-from dashcam_ai.lane.evidence import LaneEvidenceBackend
-from dashcam_ai.lane.hybrid import HybridLaneDetector
-from dashcam_ai.lane.membership import LaneMembershipEvaluator
-from dashcam_ai.lane.opencv_evidence import OpenCVLaneEvidenceBackend
-from dashcam_ai.lane.temporal import TemporalLaneTracker
-from dashcam_ai.lane.yolop_onnx import YOLOPOnnxLaneEvidenceBackend
 from dashcam_ai.logging import configure_logging
-from dashcam_ai.motion.opencv import OpenCVEgoMotionEstimator
-from dashcam_ai.motion.relative import RelativeMotionEvaluator
 from dashcam_ai.runtime.device import inspect_devices
 from dashcam_ai.validation.records import SUPPORTED_PLATFORMS
 from dashcam_ai.validation.render import write_report
@@ -44,6 +25,31 @@ app = typer.Typer(no_args_is_help=True, help="Analyze motorcycle dashcam videos 
 def _resolve_output_path(input_path: Path, output_path: Path | None) -> Path:
     """未指定輸出目錄時，以來源影片檔名建立預設目錄。"""
     return output_path if output_path is not None else Path("output") / input_path.stem
+
+
+def _resolve_model_path(model: str) -> str:
+    """Find local weights, sharing the main checkout's weights with Git worktrees."""
+    path = Path(model).expanduser()
+    if path.is_file():
+        return str(path.resolve())
+    # Only bare filenames may fall back. Explicit paths must not silently select
+    # a different model when misspelled or missing.
+    if model == path.name:
+        try:
+            result = subprocess.run(
+                ["git", "rev-parse", "--path-format=absolute", "--git-common-dir"],
+                capture_output=True, text=True, check=True, timeout=5,
+            )
+            candidate = Path(result.stdout.strip()).parent / path.name
+            if candidate.is_file():
+                return str(candidate.resolve())
+        except (OSError, subprocess.SubprocessError):
+            pass
+    raise typer.BadParameter(
+        f"找不到本機模型：{model}。請將權重放在目前或主要 Git 工作目錄，"
+        "或使用 --model 指定既有檔案；不會自動下載。",
+        param_hint="--model / detection.model",
+    )
 
 
 @app.callback()
@@ -65,15 +71,15 @@ def devices() -> None:
 
 @app.command("validate")
 def validate_platform(
-    milestone: Annotated[str, typer.Option("--milestone")] = "2",
+    milestone: Annotated[str, typer.Option("--milestone")] = "1",
     platform_id: Annotated[str, typer.Option("--platform")] = "cpu",
 ) -> None:
     """執行共通 gates 並寫入目前平台的 Git-friendly 驗證報告。"""
     normalized_milestone = (
         milestone if milestone.startswith("milestone-") else f"milestone-{milestone}"
     )
-    if normalized_milestone != "milestone-2":
-        raise typer.BadParameter("currently supported milestone: 2", param_hint="--milestone")
+    if normalized_milestone != "milestone-1":
+        raise typer.BadParameter("currently supported milestone: 1", param_hint="--milestone")
     if platform_id not in SUPPORTED_PLATFORMS:
         raise typer.BadParameter(
             f"supported platforms: {', '.join(sorted(SUPPORTED_PLATFORMS))}",
@@ -134,7 +140,7 @@ def validation_status(
 
 @app.command("milestone-status")
 def show_milestone_status(
-    milestone: Annotated[str, typer.Option("--milestone")] = "2",
+    milestone: Annotated[str, typer.Option("--milestone")] = "1",
 ) -> None:
     """彙整目前 commit 所需的 macOS 與 Linux 平台證據。"""
     normalized = milestone if milestone.startswith("milestone-") else f"milestone-{milestone}"
@@ -179,10 +185,11 @@ def analyze(
     output = config.output
     # 命令列參數優先於設定檔，未指定時才採用 YAML 中的預設值。
     backend = UltralyticsDetectorTracker(
-        model=model or detection.model,
+        model=_resolve_model_path(model if model is not None else detection.model),
         confidence=confidence if confidence is not None else detection.confidence,
         imgsz=imgsz or detection.imgsz,
         class_names=detection.classes,
+        minimum_vehicle_area_ratio=detection.minimum_vehicle_area_ratio,
         tracker=config.tracking.tracker,
         device=device if device is not None else detection.device,
     )
@@ -192,7 +199,6 @@ def analyze(
         save_frames=output.save_frames if save_frames is None else save_frames,
         codec=output.codec,
         minimum_track_length=config.tracking.minimum_track_length,
-        scene_analyzer=_build_scene_analyzer(config),
     )
     summary = analyzer.analyze(input_path, resolved_output_path)
     typer.echo(
@@ -207,195 +213,6 @@ def analyze(
             },
             indent=2,
         )
-    )
-
-
-@app.command("lane-overlay")
-def lane_overlay(
-    input_path: Annotated[Path, typer.Option("--input", exists=True, dir_okay=False)],
-    output_path: Annotated[Path, typer.Option("--output", file_okay=False)],
-    config_path: Annotated[Path, typer.Option("--config", exists=True, dir_okay=False)] = Path(
-        "configs/default.yaml"
-    ),
-    maximum_frames: Annotated[int | None, typer.Option("--maximum-frames", min=1)] = None,
-    backend_name: Annotated[str, typer.Option("--backend")] = "opencv",
-    weights: Annotated[Path | None, typer.Option("--weights", dir_okay=False)] = None,
-) -> None:
-    """輸出單幀 lane evidence overlay；不執行 Track 或事件分析。"""
-    config = load_config(config_path)
-    dynamic = config.lane_geometry.dynamic
-    backend: LaneEvidenceBackend
-    if backend_name == "opencv":
-        backend = OpenCVLaneEvidenceBackend(
-            minimum_confidence=dynamic.minimum_confidence,
-            minimum_curve_fit_confidence=dynamic.minimum_curve_fit_confidence,
-            canny_low_threshold=dynamic.canny_low_threshold,
-            canny_high_threshold=dynamic.canny_high_threshold,
-            hough_threshold=dynamic.hough_threshold,
-            minimum_line_length_pixels=dynamic.minimum_line_length_pixels,
-            maximum_line_gap_pixels=dynamic.maximum_line_gap_pixels,
-            minimum_absolute_slope=dynamic.minimum_absolute_slope,
-            boundary_cluster_distance_ratio=dynamic.boundary_cluster_distance_ratio,
-            curve_sample_count=dynamic.curve_sample_count,
-        )
-    elif backend_name == "yolop-onnx":
-        if weights is None:
-            raise typer.BadParameter("--weights is required for yolop-onnx", param_hint="--weights")
-        backend = YOLOPOnnxLaneEvidenceBackend(
-            weights,
-            input_size=dynamic.yolop_input_size,
-            minimum_confidence=dynamic.minimum_confidence,
-            segmentation_threshold=dynamic.yolop_segmentation_threshold,
-            minimum_component_area_ratio=(dynamic.yolop_minimum_component_area_ratio),
-            curve_sample_count=dynamic.curve_sample_count,
-        )
-    else:
-        raise typer.BadParameter("supported backends: opencv, yolop-onnx", param_hint="--backend")
-    summary = run_lane_overlay(
-        input_path,
-        output_path,
-        backend,
-        dynamic.road_roi,
-        codec=config.output.codec,
-        maximum_frames=maximum_frames,
-        temporal_tracker=TemporalLaneGeometryTracker(
-            smoothing_alpha=dynamic.smoothing_alpha,
-            maximum_boundary_jump_ratio=dynamic.maximum_boundary_jump_ratio,
-            missing_frame_tolerance=dynamic.missing_frame_tolerance,
-            topology_confirmation_frames=dynamic.topology_confirmation_frames,
-            maximum_lane_count=dynamic.maximum_lane_count,
-            minimum_boundary_separation_ratio=(dynamic.minimum_boundary_separation_ratio),
-            curve_sample_count=dynamic.curve_sample_count,
-            minimum_confidence=dynamic.minimum_confidence,
-        ),
-    )
-    typer.echo(
-        json.dumps(
-            {
-                "frames_processed": summary.frames_processed,
-                "valid_frames": summary.valid_frames,
-                "degraded_frames": summary.degraded_frames,
-                "unknown_frames": summary.unknown_frames,
-                "output_directory": str(summary.output_directory.resolve()),
-            },
-            indent=2,
-        )
-    )
-
-
-def _build_scene_analyzer(config: AppConfig) -> StreamingSceneAnalyzer | None:
-    """由 validated application config 建立 Milestone 2 scene pipeline。"""
-    lane = config.lane_geometry
-    if not lane.enabled:
-        return None
-    motion = config.ego_motion
-    relative = config.relative_motion
-    temporal = config.temporal_lane
-    lane_detector: LaneDetector
-    if lane.mode is LaneGeometryMode.CONFIGURED:
-        lane_detector = ConfiguredLaneDetector(lane.lanes, lane.boundaries, lane.confidence)
-    else:
-        dynamic_detector = DynamicLaneDetector(
-            _build_dynamic_evidence_backend(lane.dynamic),
-            _build_temporal_geometry_tracker(lane.dynamic),
-            lane.dynamic.road_roi,
-        )
-        if lane.mode is LaneGeometryMode.DYNAMIC:
-            lane_detector = dynamic_detector
-        else:
-            lane_detector = HybridLaneDetector(
-                dynamic_detector,
-                ConfiguredLaneDetector(lane.lanes, lane.boundaries, lane.confidence),
-            )
-    return StreamingSceneAnalyzer(
-        lane_detector=lane_detector,
-        membership_evaluator=LaneMembershipEvaluator(
-            config.lane_membership.boundary_margin_pixels,
-            config.lane_membership.minimum_geometry_confidence,
-        ),
-        motion_estimator=OpenCVEgoMotionEstimator(
-            max_features=motion.max_features,
-            feature_quality_level=motion.feature_quality_level,
-            feature_min_distance=motion.feature_min_distance,
-            optical_flow_window_size=motion.optical_flow_window_size,
-            optical_flow_max_level=motion.optical_flow_max_level,
-            ransac_reprojection_threshold=motion.ransac_reprojection_threshold,
-            minimum_tracked_features=motion.minimum_tracked_features,
-            minimum_inliers=motion.minimum_inliers,
-            minimum_inlier_ratio=motion.minimum_inlier_ratio,
-            maximum_mean_reprojection_error=motion.maximum_mean_reprojection_error,
-            mask_padding_pixels=motion.mask_padding_pixels,
-        ),
-        relative_motion_evaluator=RelativeMotionEvaluator(
-            stationary_residual_ratio=relative.stationary_residual_ratio,
-            maximum_projection_margin_ratio=relative.maximum_projection_margin_ratio,
-            scene_minimum_tracks=relative.scene_minimum_tracks,
-            scene_lateral_motion_ratio=relative.scene_lateral_motion_ratio,
-            scene_consensus_ratio=relative.scene_consensus_ratio,
-        ),
-        temporal_tracker=TemporalLaneTracker(
-            smoothing_window_frames=temporal.smoothing_window_frames,
-            approaching_distance_pixels=temporal.approaching_distance_pixels,
-            entered_distance_pixels=temporal.entered_distance_pixels,
-            debounce_frames=temporal.debounce_frames,
-            minimum_confirmation_frames=temporal.minimum_confirmation_frames,
-            minimum_confirmation_duration_seconds=(temporal.minimum_confirmation_duration_seconds),
-            maximum_missing_frames=temporal.maximum_missing_frames,
-            candidate_timeout_seconds=temporal.candidate_timeout_seconds,
-            history_size=temporal.history_size,
-            require_relative_motion=relative.enabled,
-            minimum_relative_motion_observations=relative.minimum_valid_observations,
-            minimum_cumulative_lateral_ratio=(relative.minimum_cumulative_lateral_ratio),
-            minimum_directional_consistency=(relative.minimum_directional_consistency),
-            minimum_scene_consistency=relative.minimum_scene_consistency,
-            maximum_stationary_ratio=relative.maximum_stationary_ratio,
-        ),
-        lane_change_builder=LaneChangeEventBuilder(temporal.history_size),
-        maximum_missing_frames=temporal.maximum_missing_frames,
-    )
-
-
-def _build_dynamic_evidence_backend(
-    dynamic: DynamicLaneGeometryConfig,
-) -> LaneEvidenceBackend:
-    if dynamic.backend is LaneEvidenceBackendName.OPENCV:
-        return OpenCVLaneEvidenceBackend(
-            minimum_confidence=dynamic.minimum_confidence,
-            minimum_curve_fit_confidence=dynamic.minimum_curve_fit_confidence,
-            canny_low_threshold=dynamic.canny_low_threshold,
-            canny_high_threshold=dynamic.canny_high_threshold,
-            hough_threshold=dynamic.hough_threshold,
-            minimum_line_length_pixels=dynamic.minimum_line_length_pixels,
-            maximum_line_gap_pixels=dynamic.maximum_line_gap_pixels,
-            minimum_absolute_slope=dynamic.minimum_absolute_slope,
-            boundary_cluster_distance_ratio=dynamic.boundary_cluster_distance_ratio,
-            curve_sample_count=dynamic.curve_sample_count,
-        )
-    weights = dynamic.weights
-    if weights is None:
-        raise ValueError("yolop_onnx lane evidence requires a weights path")
-    return YOLOPOnnxLaneEvidenceBackend(
-        weights,
-        input_size=dynamic.yolop_input_size,
-        minimum_confidence=dynamic.minimum_confidence,
-        segmentation_threshold=dynamic.yolop_segmentation_threshold,
-        minimum_component_area_ratio=dynamic.yolop_minimum_component_area_ratio,
-        curve_sample_count=dynamic.curve_sample_count,
-    )
-
-
-def _build_temporal_geometry_tracker(
-    dynamic: DynamicLaneGeometryConfig,
-) -> TemporalLaneGeometryTracker:
-    return TemporalLaneGeometryTracker(
-        smoothing_alpha=dynamic.smoothing_alpha,
-        maximum_boundary_jump_ratio=dynamic.maximum_boundary_jump_ratio,
-        missing_frame_tolerance=dynamic.missing_frame_tolerance,
-        topology_confirmation_frames=dynamic.topology_confirmation_frames,
-        maximum_lane_count=dynamic.maximum_lane_count,
-        minimum_boundary_separation_ratio=dynamic.minimum_boundary_separation_ratio,
-        curve_sample_count=dynamic.curve_sample_count,
-        minimum_confidence=dynamic.minimum_confidence,
     )
 
 

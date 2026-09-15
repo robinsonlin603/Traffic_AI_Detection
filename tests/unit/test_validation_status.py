@@ -13,7 +13,7 @@ from dashcam_ai.validation.render import load_report, report_paths, write_report
 def record(commit: str = "a" * 40) -> ValidationRecord:
     now = datetime.now(UTC)
     return ValidationRecord(
-        milestone="milestone-2",
+        milestone="milestone-1",
         platform="cpu",
         source_commit=commit,
         worktree_dirty=False,
@@ -61,7 +61,7 @@ def test_repeated_write_replaces_stable_platform_files(tmp_path: Path) -> None:
 
 def test_report_paths_reject_path_traversal(tmp_path: Path) -> None:
     try:
-        report_paths(tmp_path, "milestone-2", "../../outside")
+        report_paths(tmp_path, "milestone-1", "../../outside")
     except ValueError as error:
         assert "unsupported platform" in str(error)
     else:

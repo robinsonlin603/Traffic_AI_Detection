@@ -10,7 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 SUPPORTED_PLATFORMS = {"macos-mps", "linux-cuda", "cpu"}
 REQUIRED_GATES = {"pytest", "ruff", "mypy"}
-MILESTONE_PLATFORMS = {"milestone-2": {"macos-mps", "linux-cuda"}}
+MILESTONE_PLATFORMS = {"milestone-1": {"macos-mps", "linux-cuda"}}
 
 
 class ResultStatus(StrEnum):

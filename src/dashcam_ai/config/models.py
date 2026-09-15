@@ -2,18 +2,11 @@
 
 from __future__ import annotations
 
-from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
 import yaml  # type: ignore[import-untyped]
-from pydantic import BaseModel, Field, field_validator, model_validator
-
-from dashcam_ai.domain.lane import (
-    NormalizedLaneBoundary,
-    NormalizedLaneRegion,
-    NormalizedPoint2D,
-)
+from pydantic import BaseModel, Field
 
 
 class DetectionConfig(BaseModel):
@@ -23,8 +16,9 @@ class DetectionConfig(BaseModel):
     confidence: float = Field(default=0.35, ge=0, le=1)
     imgsz: int = Field(default=1280, gt=0)
     device: str = "auto"
+    minimum_vehicle_area_ratio: float = Field(default=0.001, ge=0, le=1)
     classes: list[str] = Field(
-        default_factory=lambda: ["car", "motorcycle", "bus", "truck", "person", "bicycle"]
+        default_factory=lambda: ["car", "motorcycle", "bus", "truck", "bicycle"]
     )
 
 
@@ -33,163 +27,6 @@ class TrackingConfig(BaseModel):
 
     tracker: str = "botsort.yaml"
     minimum_track_length: int = Field(default=2, gt=0)
-
-
-class LaneGeometryMode(StrEnum):
-    CONFIGURED = "configured"
-    DYNAMIC = "dynamic"
-    HYBRID = "hybrid"
-
-
-class LaneEvidenceBackendName(StrEnum):
-    OPENCV = "opencv"
-    YOLOP_ONNX = "yolop_onnx"
-
-
-class DynamicLaneGeometryConfig(BaseModel):
-    """動態車道 evidence、時間平滑與拓撲品質門檻。"""
-
-    road_roi: tuple[NormalizedPoint2D, ...] = Field(
-        default_factory=lambda: (
-            NormalizedPoint2D(x=0.05, y=1.0),
-            NormalizedPoint2D(x=0.35, y=0.35),
-            NormalizedPoint2D(x=0.65, y=0.35),
-            NormalizedPoint2D(x=0.95, y=1.0),
-        ),
-        min_length=3,
-    )
-    backend: LaneEvidenceBackendName = LaneEvidenceBackendName.OPENCV
-    weights: Path | None = None
-    minimum_confidence: float = Field(default=0.7, ge=0, le=1)
-    minimum_curve_fit_confidence: float = Field(default=0.6, ge=0, le=1)
-    missing_frame_tolerance: int = Field(default=10, ge=0)
-    smoothing_alpha: float = Field(default=0.25, gt=0, le=1)
-    maximum_boundary_jump_ratio: float = Field(default=0.08, gt=0, le=1)
-    topology_confirmation_frames: int = Field(default=6, gt=0)
-    maximum_lane_count: int = Field(default=3, ge=2)
-    minimum_boundary_separation_ratio: float = Field(default=0.08, gt=0, lt=1)
-    canny_low_threshold: int = Field(default=50, ge=0, le=255)
-    canny_high_threshold: int = Field(default=150, ge=0, le=255)
-    hough_threshold: int = Field(default=30, gt=0)
-    minimum_line_length_pixels: int = Field(default=40, gt=0)
-    maximum_line_gap_pixels: int = Field(default=40, ge=0)
-    minimum_absolute_slope: float = Field(default=0.3, gt=0)
-    boundary_cluster_distance_ratio: float = Field(default=0.08, gt=0, le=1)
-    curve_sample_count: int = Field(default=8, ge=2)
-    yolop_input_size: int = Field(default=640, gt=0)
-    yolop_segmentation_threshold: float = Field(default=0.5, gt=0, lt=1)
-    yolop_minimum_component_area_ratio: float = Field(default=0.0001, gt=0, lt=1)
-
-    @model_validator(mode="after")
-    def validate_edge_thresholds(self) -> DynamicLaneGeometryConfig:
-        if self.canny_low_threshold >= self.canny_high_threshold:
-            raise ValueError("canny low threshold must be below high threshold")
-        if self.backend is LaneEvidenceBackendName.YOLOP_ONNX and self.weights is None:
-            raise ValueError("yolop_onnx lane evidence requires a weights path")
-        return self
-
-
-class LaneGeometryConfig(BaseModel):
-    """Configured baseline 與可替換的 dynamic/hybrid 車道設定。"""
-
-    enabled: bool = True
-    mode: LaneGeometryMode = LaneGeometryMode.CONFIGURED
-    lanes: list[NormalizedLaneRegion] = Field(
-        default_factory=lambda: [
-            NormalizedLaneRegion(
-                lane_id="lane_center",
-                lateral_order=0,
-                polygon=(
-                    NormalizedPoint2D(x=0.44, y=0.45),
-                    NormalizedPoint2D(x=0.56, y=0.45),
-                    NormalizedPoint2D(x=0.90, y=1.00),
-                    NormalizedPoint2D(x=0.10, y=1.00),
-                ),
-            )
-        ],
-    )
-    boundaries: list[NormalizedLaneBoundary] = Field(default_factory=list)
-    confidence: float = Field(default=1.0, ge=0, le=1)
-    dynamic: DynamicLaneGeometryConfig = Field(default_factory=DynamicLaneGeometryConfig)
-
-    @model_validator(mode="after")
-    def validate_topology(self) -> LaneGeometryConfig:
-        if self.mode in {LaneGeometryMode.CONFIGURED, LaneGeometryMode.HYBRID} and not self.lanes:
-            raise ValueError(f"{self.mode.value} lane geometry requires configured lanes")
-        lane_ids = [lane.lane_id for lane in self.lanes]
-        orders = [lane.lateral_order for lane in self.lanes]
-        boundary_ids = [boundary.boundary_id for boundary in self.boundaries]
-        if len(set(lane_ids)) != len(lane_ids):
-            raise ValueError("lane IDs must be unique")
-        if len(set(orders)) != len(orders):
-            raise ValueError("lane lateral orders must be unique")
-        if len(set(boundary_ids)) != len(boundary_ids):
-            raise ValueError("boundary IDs must be unique")
-        known_lanes = set(lane_ids)
-        for boundary in self.boundaries:
-            if {boundary.left_lane_id, boundary.right_lane_id} - known_lanes:
-                raise ValueError("boundary references an unknown lane")
-        return self
-
-
-class LaneMembershipConfig(BaseModel):
-    """車道邊界帶設定；時間平滑參數於後續 slice 加入。"""
-
-    boundary_margin_pixels: float = Field(default=12.0, ge=0)
-    minimum_geometry_confidence: float = Field(default=0.5, ge=0, le=1)
-
-
-class EgoMotionConfig(BaseModel):
-    """OpenCV 背景特徵追蹤及 homography 品質門檻。"""
-
-    max_features: int = Field(default=500, gt=0)
-    feature_quality_level: float = Field(default=0.01, gt=0, le=1)
-    feature_min_distance: float = Field(default=8.0, ge=0)
-    optical_flow_window_size: int = Field(default=21, gt=0)
-    optical_flow_max_level: int = Field(default=3, ge=0)
-    ransac_reprojection_threshold: float = Field(default=3.0, gt=0)
-    minimum_tracked_features: int = Field(default=12, ge=4)
-    minimum_inliers: int = Field(default=8, ge=4)
-    minimum_inlier_ratio: float = Field(default=0.5, ge=0, le=1)
-    maximum_mean_reprojection_error: float = Field(default=2.5, ge=0)
-    mask_padding_pixels: int = Field(default=8, ge=0)
-
-    @field_validator("optical_flow_window_size")
-    @classmethod
-    def validate_odd_window_size(cls, value: int) -> int:
-        if value % 2 == 0:
-            raise ValueError("optical_flow_window_size must be odd")
-        return value
-
-
-class RelativeMotionConfig(BaseModel):
-    """相機補償後 Track 位移、方向一致性與群體異常門檻。"""
-
-    enabled: bool = True
-    stationary_residual_ratio: float = Field(default=0.001, ge=0)
-    maximum_projection_margin_ratio: float = Field(default=0.25, ge=0)
-    minimum_valid_observations: int = Field(default=2, gt=0)
-    minimum_cumulative_lateral_ratio: float = Field(default=0.003, gt=0)
-    minimum_directional_consistency: float = Field(default=0.6, ge=0, le=1)
-    minimum_scene_consistency: float = Field(default=0.8, ge=0, le=1)
-    maximum_stationary_ratio: float = Field(default=0.5, ge=0, le=1)
-    scene_minimum_tracks: int = Field(default=3, ge=2)
-    scene_lateral_motion_ratio: float = Field(default=0.003, gt=0)
-    scene_consensus_ratio: float = Field(default=0.75, ge=0.5, le=1)
-
-
-class TemporalLaneConfig(BaseModel):
-    """車道歸屬時間平滑、遲滯、缺失容忍與確認門檻。"""
-
-    smoothing_window_frames: int = Field(default=3, gt=0)
-    approaching_distance_pixels: float = Field(default=40.0, gt=0)
-    entered_distance_pixels: float = Field(default=20.0, gt=0)
-    debounce_frames: int = Field(default=2, gt=0)
-    minimum_confirmation_frames: int = Field(default=3, gt=0)
-    minimum_confirmation_duration_seconds: float = Field(default=0.1, ge=0)
-    maximum_missing_frames: int = Field(default=2, ge=0)
-    candidate_timeout_seconds: float = Field(default=2.0, gt=0)
-    history_size: int = Field(default=30, gt=0)
 
 
 class OutputConfig(BaseModel):
@@ -211,11 +48,6 @@ class AppConfig(BaseModel):
 
     detection: DetectionConfig = Field(default_factory=DetectionConfig)
     tracking: TrackingConfig = Field(default_factory=TrackingConfig)
-    lane_geometry: LaneGeometryConfig = Field(default_factory=LaneGeometryConfig)
-    lane_membership: LaneMembershipConfig = Field(default_factory=LaneMembershipConfig)
-    ego_motion: EgoMotionConfig = Field(default_factory=EgoMotionConfig)
-    relative_motion: RelativeMotionConfig = Field(default_factory=RelativeMotionConfig)
-    temporal_lane: TemporalLaneConfig = Field(default_factory=TemporalLaneConfig)
     output: OutputConfig = Field(default_factory=OutputConfig)
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
 

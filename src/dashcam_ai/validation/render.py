@@ -12,7 +12,7 @@ from dashcam_ai.validation.records import ValidationRecord
 
 def report_paths(root: Path, milestone: str, platform_id: str) -> tuple[Path, Path]:
     safe_milestone = milestone if milestone.startswith("milestone-") else f"milestone-{milestone}"
-    if safe_milestone != "milestone-2":
+    if safe_milestone != "milestone-1":
         raise ValueError(f"unsupported milestone: {safe_milestone}")
     if platform_id not in {"macos-mps", "linux-cuda", "cpu"}:
         raise ValueError(f"unsupported platform: {platform_id}")
