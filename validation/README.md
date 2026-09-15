@@ -14,9 +14,11 @@ private paths, credentials, or large logs.
 
 Generate and inspect evidence from the repository root:
 
-    dashcam-ai validate --milestone 2 --platform linux-cuda
-    dashcam-ai validation-status validation/milestone-2/linux-cuda.json
-    dashcam-ai milestone-status --milestone 2
+    dashcam-ai validate --milestone 1 --platform linux-cuda
+    dashcam-ai validation-status validation/milestone-1/linux-cuda.json
+    dashcam-ai milestone-status --milestone 1
 
 The validation command does not commit or push. Review `git diff -- validation/` before publishing
 the platform-owned JSON and Markdown pair.
+
+Historical Milestone 2 reports are preserved byte-for-byte in `history/legacy-milestone-2/`. They describe the removed implementation, not the new white-line milestone. New reports for Milestone 1 require fresh runs.
