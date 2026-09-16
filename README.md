@@ -20,7 +20,7 @@ dashcam-ai analyze --input ./samples/test1.mp4
 
 ## 輸出與標註
 
-標註僅顯示綠色物件框、單行 #ID 類別縮寫、深色文字底板與橘色軌跡。預設追蹤 car、truck、bus、motorcycle、bicycle，類別縮寫分別為 C/T/B/M/BC；不追蹤 person。保留標籤避讓；不顯示車道、事件或信心數字。
+標註僅顯示綠色物件框、單行 #ID 類別縮寫、深色文字底板與橘色軌跡。預設只偵測 car、truck、bus、motorcycle，追蹤與輸出時統一為 vehicle；不追蹤 person 或 bicycle。畫面標籤只顯示 #ID，保留標籤避讓；不顯示類別、車道、事件或信心數字。
 
 | 檔案 | 內容 |
 |---|---|
@@ -52,7 +52,7 @@ Linux 電腦使用 --platform linux-cuda。各平台必須在同一乾淨來源�
 
 ## 小型車輛篩選
 
-detection.minimum_vehicle_area_ratio 預設 0.001（畫面面積的 0.1%）。car、motorcycle、bus、truck 的偵測框面積低於門檻時，在追蹤分配 ID 前排除；bicycle 不受此設定影響。person 預設不進行偵測或追蹤。設為 0 可停用尺寸篩選，設定值會寫入 metadata.json 的 runtime。此門檻只近似排除過小目標，不代表實際距離，也不處理重複框或車種跳動。
+detection.minimum_vehicle_area_ratio 預設為 0，不依尺寸排除有動力車輛。detection.duplicate_vehicle_iou_threshold 預設 0.85；同一幀高度重疊的 car、motorcycle、bus、truck 偵測只保留信心較高者。巢狀框另以 0.9 的較小框包含比例與 0.2 的中心距離比例判斷，再統一為 vehicle 送入追蹤。兩項設定均記錄於 metadata.json。
 
 1920×1080 影像的門檻為 2073.6 平方像素，按原始解析度比例計算。遠處機車或被遮擋的車輛也可能被排除；車輛達到門檻後才提供給追蹤器。既有追蹤若暫時低於門檻，仍依 BoT-SORT 的遺失追蹤規則保留內部狀態，重新出現時不保證沿用 ID。
 
@@ -63,4 +63,4 @@ detection.minimum_vehicle_area_ratio 預設 0.001（畫面面積的 0.1%）。ca
 dashcam-ai analyze --input samples/test4.mp4 --output output/test4-size-filter
 ```
 
---output 也可省略，自動使用 output/test4。預設使用 yolo26m.pt、imgsz 1280、裝置 auto 及 0.1% 小型車輛面積門檻；--model 與 --config 等覆寫選項仍保留。輸入影片路徑仍須指向實際存在的檔案。
+--output 也可省略，自動使用 output/test4。預設使用 yolo26m.pt、imgsz 1280、裝置 auto、停用尺寸篩選及 0.85 重複框 IoU 門檻；--model 與 --config 等覆寫選項仍保留。輸入影片路徑仍須指向實際存在的檔案。

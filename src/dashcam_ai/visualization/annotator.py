@@ -82,19 +82,7 @@ class OpenCVAnnotator:
 
     @staticmethod
     def _track_label_lines(obj: TrackedObject) -> tuple[str, ...]:
-        return (f"#{obj.track_id} {OpenCVAnnotator._class_code(obj.class_name)}",)
-
-    @staticmethod
-    def _class_code(class_name: str) -> str:
-        normalized = class_name.casefold()
-        return {
-            "car": "C",
-            "truck": "T",
-            "bus": "B",
-            "motorcycle": "M",
-            "person": "P",
-            "bicycle": "BC",
-        }.get(normalized, normalized[:1].upper() or "?")
+        return (f"#{obj.track_id}",)
 
     @classmethod
     def _place_label(

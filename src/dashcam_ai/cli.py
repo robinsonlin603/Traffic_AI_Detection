@@ -190,6 +190,13 @@ def analyze(
         imgsz=imgsz or detection.imgsz,
         class_names=detection.classes,
         minimum_vehicle_area_ratio=detection.minimum_vehicle_area_ratio,
+        duplicate_vehicle_iou_threshold=detection.duplicate_vehicle_iou_threshold,
+        duplicate_vehicle_containment_threshold=(
+            detection.duplicate_vehicle_containment_threshold
+        ),
+        duplicate_vehicle_center_distance_ratio=(
+            detection.duplicate_vehicle_center_distance_ratio
+        ),
         tracker=config.tracking.tracker,
         device=device if device is not None else detection.device,
     )

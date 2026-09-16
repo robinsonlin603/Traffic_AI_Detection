@@ -40,7 +40,11 @@ def test_analyze_passes_minimum_track_length_from_config(tmp_path: Path, monkeyp
     input_path.touch()
     config_path = tmp_path / "config.yaml"
     config_path.write_text(
-        "tracking:\n  minimum_track_length: 7\ndetection:\n  minimum_vehicle_area_ratio: 0.002\n",
+        "tracking:\n  minimum_track_length: 7\n"
+        "detection:\n  minimum_vehicle_area_ratio: 0.002\n"
+        "  duplicate_vehicle_iou_threshold: 0.9\n"
+        "  duplicate_vehicle_containment_threshold: 0.92\n"
+        "  duplicate_vehicle_center_distance_ratio: 0.18\n",
         encoding="utf-8",
     )
     captured: dict[str, object] = {}
@@ -84,6 +88,9 @@ def test_analyze_passes_minimum_track_length_from_config(tmp_path: Path, monkeyp
     assert result.exit_code == 0
     assert captured["minimum_track_length"] == 7
     assert backend_options["minimum_vehicle_area_ratio"] == 0.002
+    assert backend_options["duplicate_vehicle_iou_threshold"] == 0.9
+    assert backend_options["duplicate_vehicle_containment_threshold"] == 0.92
+    assert backend_options["duplicate_vehicle_center_distance_ratio"] == 0.18
 
 
 def test_model_uses_current_directory_before_main_checkout(tmp_path, monkeypatch) -> None:

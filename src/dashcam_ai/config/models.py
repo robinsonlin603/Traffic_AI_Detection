@@ -16,9 +16,12 @@ class DetectionConfig(BaseModel):
     confidence: float = Field(default=0.35, ge=0, le=1)
     imgsz: int = Field(default=1280, gt=0)
     device: str = "auto"
-    minimum_vehicle_area_ratio: float = Field(default=0.001, ge=0, le=1)
+    minimum_vehicle_area_ratio: float = Field(default=0, ge=0, le=1)
+    duplicate_vehicle_iou_threshold: float = Field(default=0.85, ge=0, le=1)
+    duplicate_vehicle_containment_threshold: float = Field(default=0.9, ge=0, le=1)
+    duplicate_vehicle_center_distance_ratio: float = Field(default=0.2, ge=0, le=1)
     classes: list[str] = Field(
-        default_factory=lambda: ["car", "motorcycle", "bus", "truck", "bicycle"]
+        default_factory=lambda: ["car", "motorcycle", "bus", "truck"]
     )
 
 

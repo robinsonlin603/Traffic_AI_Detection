@@ -30,7 +30,7 @@ MP4 影片
 ### 影片與分析產物
 
 - 使用 OpenCV 讀取 MP4 影片並保留原始解析度資訊。
-- 產生包含邊界框、類別、追蹤 ID 與精簡類別標籤的標註影片。
+- 產生包含邊界框、追蹤 ID 與軌跡的標註影片；標籤只顯示 #ID。
 - 將逐影格資料串流寫入 JSONL，避免長影片必須將所有影格保留在記憶體中。
 - 產生追蹤摘要、事件占位資料及執行環境 metadata。
 
@@ -162,3 +162,8 @@ macOS MPS：blocked，本機執行環境無法使用 MPS，且工作目錄包含
 預設偵測類別移除 person，人物不再送入 BoT-SORT，也不會產生人物 ID、軌跡或逐幀物件資料。保留 car、motorcycle、bus、truck、bicycle。此變更可減少騎士與機車同時標註，但模型若將人物誤判成 motorcycle，仍可能形成重複 M 框；重複框處理不在本次範圍。
 
 設定測試與完整 64 項 pytest、Ruff、strict Mypy（36 來源檔）通過，git diff --check 通過。本次依使用者縮減後的核准範圍未執行實拍影片分析，macOS MPS 與 Linux CUDA 報告均未更新；未 commit/push。
+
+
+## 2026-09-15 有動力車輛統一與追蹤前去重
+
+依核准的 EXEC_PLAN_MILESTONE1_VEHICLE_DEDUP.md，YOLO 僅偵測 car、truck、bus、motorcycle；追蹤前以 0.85 IoU 信心優先去除跨原始類別的高度重疊框；另以較小框包含比例 0.9 且水平、垂直中心距離比例皆低於 0.2 去除巢狀框，再統一映射為 vehicle。person 與 bicycle 不追蹤，標註只顯示 #ID。尺寸篩選預設停用，minimum_track_length 保持不變。實拍影片重跑及人工審查由使用者執行，不在本次自動驗證範圍。加入巢狀框規則後，完整 71 項 pytest、Ruff、strict Mypy（36 來源檔）及 git diff --check 通過；未更新平台報告，未 commit/push。

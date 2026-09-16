@@ -1,10 +1,13 @@
 detection:
   model: yolo26m.pt
   confidence: 0.35
-  minimum_vehicle_area_ratio: 0.001
+  minimum_vehicle_area_ratio: 0
+  duplicate_vehicle_iou_threshold: 0.85
+  duplicate_vehicle_containment_threshold: 0.9
+  duplicate_vehicle_center_distance_ratio: 0.2
   imgsz: 1280
   device: mps
-  classes: [car, motorcycle, bus, truck, bicycle]
+  classes: [car, motorcycle, bus, truck]
 tracking:
   tracker: botsort.yaml
   minimum_track_length: 2
