@@ -166,4 +166,14 @@ macOS MPS：blocked，本機執行環境無法使用 MPS，且工作目錄包含
 
 ## 2026-09-15 有動力車輛統一與追蹤前去重
 
-依核准的 EXEC_PLAN_MILESTONE1_VEHICLE_DEDUP.md，YOLO 僅偵測 car、truck、bus、motorcycle；追蹤前以 0.85 IoU 信心優先去除跨原始類別的高度重疊框；另以較小框包含比例 0.9 且水平、垂直中心距離比例皆低於 0.2 去除巢狀框，再統一映射為 vehicle。person 與 bicycle 不追蹤，標註只顯示 #ID。尺寸篩選預設停用，minimum_track_length 保持不變。實拍影片重跑及人工審查由使用者執行，不在本次自動驗證範圍。加入巢狀框規則後，完整 71 項 pytest、Ruff、strict Mypy（36 來源檔）及 git diff --check 通過；未更新平台報告，未 commit/push。
+依核准的 EXEC_PLAN_MILESTONE1_VEHICLE_DEDUP.md，YOLO 僅偵測 car、truck、bus、motorcycle；追蹤前以 0.85 IoU 信心優先去除跨原始類別的高度重疊框；另以較小框包含比例 0.9 且水平、垂直中心距離比例皆不高於 0.22 去除巢狀框，再統一映射為 vehicle。person 與 bicycle 不追蹤，標註只顯示 #ID。尺寸篩選預設停用，minimum_track_length 保持不變。實拍影片重跑及人工審查由使用者執行，不在本次自動驗證範圍。加入巢狀框規則後，完整 71 項 pytest、Ruff、strict Mypy（36 來源檔）及 git diff --check 通過；未更新平台報告，未 commit/push。
+
+
+## 2026-09-16 追蹤輸出身分修正
+
+BoT-SORT 輸出後再次消除高重疊或巢狀的同車框，並將被排除的 ID 映射到保留 ID。若新 ID 與中斷前車輛的端點框高度重疊且中間缺少一至兩幀，則沿用既有 ID；相鄰影格直接出現的新車不銜接。以既有 innovv-test-1 結構化輸出重播確認 #8/#9 與 #508/#523 修正，#177/#197 與 #275/#294 維持分離。完整 76 項 pytest、Ruff、strict Mypy（37 來源檔）與 git diff --check 通過；實拍影片未重跑，平台報告未更新。
+
+
+## 2026-09-16 canonical ID 碰撞防護
+
+同一 canonical ID 在同一影格對應到兩個不同位置的非重複框時，保留原始 ID 持有者，解除另一條軌跡的 alias 並恢復其原始 ID，避免兩台不同車同時標成 #275。
