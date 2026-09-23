@@ -13,7 +13,7 @@ def backend(
     area_ratio: float = 0,
     iou_threshold: float = 0.85,
     containment_threshold: float = 0.9,
-    center_distance_ratio: float = 0.2,
+    center_distance_ratio: float = 0.22,
 ):
     value = object.__new__(UltralyticsDetectorTracker)
     value._minimum_vehicle_area_ratio = area_ratio

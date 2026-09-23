@@ -20,4 +20,4 @@ class RuntimeMetadata(BaseModel):
     minimum_vehicle_area_ratio: float = Field(default=0, ge=0, le=1)
     duplicate_vehicle_iou_threshold: float = Field(default=0.85, ge=0, le=1)
     duplicate_vehicle_containment_threshold: float = Field(default=0.9, ge=0, le=1)
-    duplicate_vehicle_center_distance_ratio: float = Field(default=0.2, ge=0, le=1)
+    duplicate_vehicle_center_distance_ratio: float = Field(default=0.22, ge=0, le=1)

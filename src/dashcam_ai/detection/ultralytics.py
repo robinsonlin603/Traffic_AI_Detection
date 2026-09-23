@@ -8,6 +8,7 @@ from dashcam_ai.domain.geometry import BBox
 from dashcam_ai.domain.perception import TrackedObject
 from dashcam_ai.runtime.device import resolve_device
 from dashcam_ai.runtime.metadata import build_runtime_metadata
+from dashcam_ai.tracking.identity import VehicleIdentityResolver
 
 POWERED_VEHICLE_NAMES = {"car", "motorcycle", "bus", "truck"}
 VEHICLE_CLASS_NAME = "vehicle"
@@ -27,7 +28,7 @@ class UltralyticsDetectorTracker:
         minimum_vehicle_area_ratio: float = 0,
         duplicate_vehicle_iou_threshold: float = 0.85,
         duplicate_vehicle_containment_threshold: float = 0.9,
-        duplicate_vehicle_center_distance_ratio: float = 0.2,
+        duplicate_vehicle_center_distance_ratio: float = 0.22,
     ) -> None:
         if not 0 <= minimum_vehicle_area_ratio <= 1:
             raise ValueError("minimum_vehicle_area_ratio must be between 0 and 1")
@@ -49,12 +50,8 @@ class UltralyticsDetectorTracker:
         names = self._model.names
         self._minimum_vehicle_area_ratio = minimum_vehicle_area_ratio
         self._duplicate_vehicle_iou_threshold = duplicate_vehicle_iou_threshold
-        self._duplicate_vehicle_containment_threshold = (
-            duplicate_vehicle_containment_threshold
-        )
-        self._duplicate_vehicle_center_distance_ratio = (
-            duplicate_vehicle_center_distance_ratio
-        )
+        self._duplicate_vehicle_containment_threshold = duplicate_vehicle_containment_threshold
+        self._duplicate_vehicle_center_distance_ratio = duplicate_vehicle_center_distance_ratio
         self._vehicle_class_ids = {
             int(class_id) for class_id, name in names.items() if name in POWERED_VEHICLE_NAMES
         }
@@ -68,6 +65,11 @@ class UltralyticsDetectorTracker:
         self._confidence = confidence
         self._imgsz = imgsz
         self._tracker = tracker
+        self._identity_resolver = VehicleIdentityResolver(
+            duplicate_iou_threshold=duplicate_vehicle_iou_threshold,
+            duplicate_containment_threshold=duplicate_vehicle_containment_threshold,
+            duplicate_center_distance_ratio=duplicate_vehicle_center_distance_ratio,
+        )
         self._device = resolution.resolved
         self.runtime_metadata = build_runtime_metadata(
             resolution=resolution,
@@ -109,9 +111,7 @@ class UltralyticsDetectorTracker:
                     continue
                 candidate_box = boxes.xyxy[candidate]
                 if all(
-                    not self._boxes_are_duplicates(
-                        candidate_box, boxes.xyxy[accepted]
-                    )
+                    not self._boxes_are_duplicates(candidate_box, boxes.xyxy[accepted])
                     for accepted in selected
                 ):
                     selected.append(candidate)
@@ -124,9 +124,7 @@ class UltralyticsDetectorTracker:
 
     def _boxes_are_duplicates(self, first: Any, second: Any) -> bool:
         intersection_width = max(0.0, float(min(first[2], second[2]) - max(first[0], second[0])))
-        intersection_height = max(
-            0.0, float(min(first[3], second[3]) - max(first[1], second[1]))
-        )
+        intersection_height = max(0.0, float(min(first[3], second[3]) - max(first[1], second[1])))
         intersection = intersection_width * intersection_height
         first_width = float(first[2] - first[0])
         first_height = float(first[3] - first[1])
@@ -142,12 +140,8 @@ class UltralyticsDetectorTracker:
         containment = intersection / smaller_area if smaller_area > 0 else 0.0
         maximum_width = max(first_width, second_width)
         maximum_height = max(first_height, second_height)
-        horizontal_center_distance = abs(
-            float(first[0] + first[2] - second[0] - second[2]) / 2
-        )
-        vertical_center_distance = abs(
-            float(first[1] + first[3] - second[1] - second[3]) / 2
-        )
+        horizontal_center_distance = abs(float(first[0] + first[2] - second[0] - second[2]) / 2)
+        vertical_center_distance = abs(float(first[1] + first[3] - second[1] - second[3]) / 2)
         return (
             containment >= self._duplicate_vehicle_containment_threshold
             and maximum_width > 0
@@ -171,10 +165,10 @@ class UltralyticsDetectorTracker:
             verbose=False,
         )
         if not results:
-            return []
+            return self._identity_resolver.update([])
         boxes = results[0].boxes
         if boxes is None or boxes.id is None:
-            return []
+            return self._identity_resolver.update([])
         ids_tensor: Any = boxes.id
         classes_tensor: Any = boxes.cls
         confidence_tensor: Any = boxes.conf
@@ -184,7 +178,7 @@ class UltralyticsDetectorTracker:
         confidences = confidence_tensor.cpu().tolist()
         coordinates = coordinates_tensor.cpu().tolist()
         names = results[0].names
-        return [
+        tracked = [
             TrackedObject(
                 track_id=track_id,
                 class_id=class_id,
@@ -196,3 +190,4 @@ class UltralyticsDetectorTracker:
                 track_ids, class_ids, confidences, coordinates, strict=True
             )
         ]
+        return self._identity_resolver.update(tracked)
