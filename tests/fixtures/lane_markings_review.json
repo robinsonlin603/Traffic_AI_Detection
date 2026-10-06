@@ -1,0 +1,1342 @@
+{
+  "scope": "Manually reviewed visible road-paint regions in the two existing videos; 5-frame neighborhoods. Coordinates follow local optical flow and are visually checked. Development and held_out are fixed before final measurements. Same scenes are not an unseen dataset. Parking held_out is the same grid at a different time.",
+  "videos": [
+    {
+      "input_sha256": "220611d110329da7a5ad89405c475ed4104c4c5c8eae6eb0ec8f34e0d6f0ea2d",
+      "name": "sample_1",
+      "width": 1280,
+      "height": 720,
+      "fps": 30,
+      "tolerance_pixels": 10,
+      "scope": "Manually reviewed visible road-paint regions in the two existing videos; 5-frame neighborhoods. Coordinates follow local optical flow and are visually checked. Development and held_out are fixed before final measurements. Same scenes are not an unseen dataset. Parking held_out is the same grid at a different time.",
+      "cases": [
+        {
+          "frame_id": 63,
+          "group": "sample_1-64-road_text",
+          "category": "road_text",
+          "split": "development",
+          "expected_line": false,
+          "polygon": [
+            [
+              923,
+              564
+            ],
+            [
+              1227,
+              647
+            ],
+            [
+              1227,
+              691
+            ],
+            [
+              944,
+              692
+            ]
+          ]
+        },
+        {
+          "frame_id": 64,
+          "group": "sample_1-64-road_text",
+          "category": "road_text",
+          "split": "development",
+          "expected_line": false,
+          "polygon": [
+            [
+              947,
+              580
+            ],
+            [
+              1279,
+              670
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              970,
+              719
+            ]
+          ]
+        },
+        {
+          "frame_id": 65,
+          "group": "sample_1-64-road_text",
+          "category": "road_text",
+          "split": "development",
+          "expected_line": false,
+          "polygon": [
+            [
+              982,
+              615
+            ],
+            [
+              1279,
+              696
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1007,
+              719
+            ]
+          ]
+        },
+        {
+          "frame_id": 66,
+          "group": "sample_1-64-road_text",
+          "category": "road_text",
+          "split": "development",
+          "expected_line": false,
+          "polygon": [
+            [
+              987,
+              612
+            ],
+            [
+              1279,
+              708
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1006,
+              719
+            ]
+          ]
+        },
+        {
+          "frame_id": 67,
+          "group": "sample_1-64-road_text",
+          "category": "road_text",
+          "split": "development",
+          "expected_line": false,
+          "polygon": [
+            [
+              1019,
+              580
+            ],
+            [
+              1279,
+              717
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1015,
+              707
+            ]
+          ]
+        },
+        {
+          "frame_id": 108,
+          "group": "sample_1-110-parking",
+          "category": "parking",
+          "split": "development",
+          "expected_line": false,
+          "polygon": [
+            [
+              699,
+              464
+            ],
+            [
+              1027,
+              485
+            ],
+            [
+              1157,
+              719
+            ],
+            [
+              780,
+              719
+            ]
+          ]
+        },
+        {
+          "frame_id": 109,
+          "group": "sample_1-110-parking",
+          "category": "parking",
+          "split": "development",
+          "expected_line": false,
+          "polygon": [
+            [
+              701,
+              464
+            ],
+            [
+              1027,
+              489
+            ],
+            [
+              1154,
+              719
+            ],
+            [
+              779,
+              719
+            ]
+          ]
+        },
+        {
+          "frame_id": 110,
+          "group": "sample_1-110-parking",
+          "category": "parking",
+          "split": "development",
+          "expected_line": false,
+          "polygon": [
+            [
+              703,
+              464
+            ],
+            [
+              1030,
+              485
+            ],
+            [
+              1160,
+              719
+            ],
+            [
+              784,
+              719
+            ]
+          ]
+        },
+        {
+          "frame_id": 111,
+          "group": "sample_1-110-parking",
+          "category": "parking",
+          "split": "development",
+          "expected_line": false,
+          "polygon": [
+            [
+              700,
+              465
+            ],
+            [
+              1027,
+              479
+            ],
+            [
+              1162,
+              710
+            ],
+            [
+              786,
+              718
+            ]
+          ]
+        },
+        {
+          "frame_id": 112,
+          "group": "sample_1-110-parking",
+          "category": "parking",
+          "split": "development",
+          "expected_line": false,
+          "polygon": [
+            [
+              704,
+              465
+            ],
+            [
+              1030,
+              482
+            ],
+            [
+              1162,
+              715
+            ],
+            [
+              787,
+              719
+            ]
+          ]
+        },
+        {
+          "frame_id": 93,
+          "group": "sample_1-95-parking",
+          "category": "parking",
+          "split": "held_out",
+          "expected_line": false,
+          "polygon": [
+            [
+              673,
+              401
+            ],
+            [
+              856,
+              434
+            ],
+            [
+              1056,
+              716
+            ],
+            [
+              776,
+              719
+            ]
+          ]
+        },
+        {
+          "frame_id": 94,
+          "group": "sample_1-95-parking",
+          "category": "parking",
+          "split": "held_out",
+          "expected_line": false,
+          "polygon": [
+            [
+              679,
+              399
+            ],
+            [
+              858,
+              435
+            ],
+            [
+              1047,
+              716
+            ],
+            [
+              773,
+              714
+            ]
+          ]
+        },
+        {
+          "frame_id": 95,
+          "group": "sample_1-95-parking",
+          "category": "parking",
+          "split": "held_out",
+          "expected_line": false,
+          "polygon": [
+            [
+              680,
+              405
+            ],
+            [
+              859,
+              440
+            ],
+            [
+              1050,
+              719
+            ],
+            [
+              776,
+              719
+            ]
+          ]
+        },
+        {
+          "frame_id": 96,
+          "group": "sample_1-95-parking",
+          "category": "parking",
+          "split": "held_out",
+          "expected_line": false,
+          "polygon": [
+            [
+              681,
+              405
+            ],
+            [
+              860,
+              440
+            ],
+            [
+              1052,
+              719
+            ],
+            [
+              777,
+              719
+            ]
+          ]
+        },
+        {
+          "frame_id": 97,
+          "group": "sample_1-95-parking",
+          "category": "parking",
+          "split": "held_out",
+          "expected_line": false,
+          "polygon": [
+            [
+              680,
+              400
+            ],
+            [
+              864,
+              436
+            ],
+            [
+              1059,
+              719
+            ],
+            [
+              778,
+              719
+            ]
+          ]
+        },
+        {
+          "frame_id": 108,
+          "group": "sample_1-110-arrow",
+          "category": "arrow",
+          "split": "development",
+          "expected_line": false,
+          "polygon": [
+            [
+              521,
+              413
+            ],
+            [
+              572,
+              389
+            ],
+            [
+              588,
+              374
+            ],
+            [
+              579,
+              394
+            ],
+            [
+              538,
+              414
+            ]
+          ]
+        },
+        {
+          "frame_id": 109,
+          "group": "sample_1-110-arrow",
+          "category": "arrow",
+          "split": "development",
+          "expected_line": false,
+          "polygon": [
+            [
+              517,
+              412
+            ],
+            [
+              570,
+              387
+            ],
+            [
+              587,
+              371
+            ],
+            [
+              578,
+              393
+            ],
+            [
+              535,
+              413
+            ]
+          ]
+        },
+        {
+          "frame_id": 110,
+          "group": "sample_1-110-arrow",
+          "category": "arrow",
+          "split": "development",
+          "expected_line": false,
+          "polygon": [
+            [
+              514,
+              413
+            ],
+            [
+              568,
+              388
+            ],
+            [
+              586,
+              372
+            ],
+            [
+              576,
+              394
+            ],
+            [
+              532,
+              414
+            ]
+          ]
+        },
+        {
+          "frame_id": 111,
+          "group": "sample_1-110-arrow",
+          "category": "arrow",
+          "split": "development",
+          "expected_line": false,
+          "polygon": [
+            [
+              511,
+              413
+            ],
+            [
+              566,
+              388
+            ],
+            [
+              585,
+              371
+            ],
+            [
+              575,
+              394
+            ],
+            [
+              530,
+              414
+            ]
+          ]
+        },
+        {
+          "frame_id": 112,
+          "group": "sample_1-110-arrow",
+          "category": "arrow",
+          "split": "development",
+          "expected_line": false,
+          "polygon": [
+            [
+              510,
+              412
+            ],
+            [
+              565,
+              387
+            ],
+            [
+              583,
+              371
+            ],
+            [
+              573,
+              393
+            ],
+            [
+              529,
+              413
+            ]
+          ]
+        },
+        {
+          "frame_id": 98,
+          "group": "sample_1-100-left_lane",
+          "category": "left_lane",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              151,
+              442
+            ],
+            [
+              283,
+              409
+            ]
+          ]
+        },
+        {
+          "frame_id": 99,
+          "group": "sample_1-100-left_lane",
+          "category": "left_lane",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              156,
+              445
+            ],
+            [
+              299,
+              409
+            ]
+          ]
+        },
+        {
+          "frame_id": 100,
+          "group": "sample_1-100-left_lane",
+          "category": "left_lane",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              160,
+              446
+            ],
+            [
+              281,
+              415
+            ]
+          ]
+        },
+        {
+          "frame_id": 101,
+          "group": "sample_1-100-left_lane",
+          "category": "left_lane",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              162,
+              447
+            ],
+            [
+              278,
+              418
+            ]
+          ]
+        },
+        {
+          "frame_id": 102,
+          "group": "sample_1-100-left_lane",
+          "category": "left_lane",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              161,
+              447
+            ],
+            [
+              280,
+              420
+            ]
+          ]
+        },
+        {
+          "frame_id": 238,
+          "group": "sample_1-240-arrow",
+          "category": "arrow",
+          "split": "held_out",
+          "expected_line": false,
+          "polygon": [
+            [
+              585,
+              489
+            ],
+            [
+              689,
+              446
+            ],
+            [
+              742,
+              453
+            ],
+            [
+              936,
+              629
+            ],
+            [
+              910,
+              663
+            ],
+            [
+              763,
+              581
+            ],
+            [
+              748,
+              691
+            ],
+            [
+              623,
+              692
+            ]
+          ]
+        },
+        {
+          "frame_id": 239,
+          "group": "sample_1-240-arrow",
+          "category": "arrow",
+          "split": "held_out",
+          "expected_line": false,
+          "polygon": [
+            [
+              584,
+              494
+            ],
+            [
+              692,
+              449
+            ],
+            [
+              747,
+              456
+            ],
+            [
+              948,
+              639
+            ],
+            [
+              922,
+              674
+            ],
+            [
+              769,
+              589
+            ],
+            [
+              754,
+              703
+            ],
+            [
+              624,
+              704
+            ]
+          ]
+        },
+        {
+          "frame_id": 240,
+          "group": "sample_1-240-arrow",
+          "category": "arrow",
+          "split": "held_out",
+          "expected_line": false,
+          "polygon": [
+            [
+              580,
+              500
+            ],
+            [
+              693,
+              454
+            ],
+            [
+              750,
+              462
+            ],
+            [
+              958,
+              654
+            ],
+            [
+              930,
+              690
+            ],
+            [
+              772,
+              600
+            ],
+            [
+              755,
+              719
+            ],
+            [
+              620,
+              719
+            ]
+          ]
+        },
+        {
+          "frame_id": 241,
+          "group": "sample_1-240-arrow",
+          "category": "arrow",
+          "split": "held_out",
+          "expected_line": false,
+          "polygon": [
+            [
+              574,
+              505
+            ],
+            [
+              695,
+              457
+            ],
+            [
+              756,
+              466
+            ],
+            [
+              977,
+              673
+            ],
+            [
+              947,
+              711
+            ],
+            [
+              779,
+              613
+            ],
+            [
+              759,
+              719
+            ],
+            [
+              615,
+              719
+            ]
+          ]
+        },
+        {
+          "frame_id": 242,
+          "group": "sample_1-240-arrow",
+          "category": "arrow",
+          "split": "held_out",
+          "expected_line": false,
+          "polygon": [
+            [
+              573,
+              510
+            ],
+            [
+              695,
+              463
+            ],
+            [
+              756,
+              473
+            ],
+            [
+              976,
+              683
+            ],
+            [
+              945,
+              719
+            ],
+            [
+              777,
+              621
+            ],
+            [
+              757,
+              719
+            ],
+            [
+              612,
+              719
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "input_sha256": "48f0e3010d7acffebf95b8bd55e1193589785a3d8835ec528040f0298edbf4ba",
+      "name": "sample_2",
+      "width": 1280,
+      "height": 720,
+      "fps": 30,
+      "tolerance_pixels": 10,
+      "scope": "Manually reviewed visible road-paint regions in the two existing videos; 5-frame neighborhoods. Coordinates follow local optical flow and are visually checked. Development and held_out are fixed before final measurements. Same scenes are not an unseen dataset. Parking held_out is the same grid at a different time.",
+      "cases": [
+        {
+          "frame_id": 148,
+          "group": "sample_2-150-left_lane",
+          "category": "left_lane",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              211,
+              430
+            ],
+            [
+              284,
+              408
+            ]
+          ]
+        },
+        {
+          "frame_id": 149,
+          "group": "sample_2-150-left_lane",
+          "category": "left_lane",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              204,
+              432
+            ],
+            [
+              278,
+              411
+            ]
+          ]
+        },
+        {
+          "frame_id": 150,
+          "group": "sample_2-150-left_lane",
+          "category": "left_lane",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              204,
+              432
+            ],
+            [
+              275,
+              411
+            ]
+          ]
+        },
+        {
+          "frame_id": 151,
+          "group": "sample_2-150-left_lane",
+          "category": "left_lane",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              197,
+              431
+            ],
+            [
+              269,
+              409
+            ]
+          ]
+        },
+        {
+          "frame_id": 152,
+          "group": "sample_2-150-left_lane",
+          "category": "left_lane",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              184,
+              431
+            ],
+            [
+              257,
+              409
+            ]
+          ]
+        },
+        {
+          "frame_id": 58,
+          "group": "sample_2-60-left_lane_glare",
+          "category": "left_lane_glare",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              152,
+              436
+            ],
+            [
+              239,
+              412
+            ]
+          ]
+        },
+        {
+          "frame_id": 59,
+          "group": "sample_2-60-left_lane_glare",
+          "category": "left_lane_glare",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              152,
+              436
+            ],
+            [
+              235,
+              412
+            ]
+          ]
+        },
+        {
+          "frame_id": 60,
+          "group": "sample_2-60-left_lane_glare",
+          "category": "left_lane_glare",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              150,
+              436
+            ],
+            [
+              230,
+              413
+            ]
+          ]
+        },
+        {
+          "frame_id": 61,
+          "group": "sample_2-60-left_lane_glare",
+          "category": "left_lane_glare",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              148,
+              436
+            ],
+            [
+              227,
+              413
+            ]
+          ]
+        },
+        {
+          "frame_id": 62,
+          "group": "sample_2-60-left_lane_glare",
+          "category": "left_lane_glare",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              148,
+              436
+            ],
+            [
+              224,
+              414
+            ]
+          ]
+        },
+        {
+          "frame_id": 1674,
+          "group": "sample_2-1676-crosswalk",
+          "category": "crosswalk",
+          "split": "development",
+          "expected_line": false,
+          "polygon": [
+            [
+              144,
+              391
+            ],
+            [
+              1232,
+              426
+            ],
+            [
+              1231,
+              575
+            ],
+            [
+              393,
+              585
+            ]
+          ]
+        },
+        {
+          "frame_id": 1675,
+          "group": "sample_2-1676-crosswalk",
+          "category": "crosswalk",
+          "split": "development",
+          "expected_line": false,
+          "polygon": [
+            [
+              122,
+              393
+            ],
+            [
+              1255,
+              426
+            ],
+            [
+              1254,
+              582
+            ],
+            [
+              381,
+              595
+            ]
+          ]
+        },
+        {
+          "frame_id": 1676,
+          "group": "sample_2-1676-crosswalk",
+          "category": "crosswalk",
+          "split": "development",
+          "expected_line": false,
+          "polygon": [
+            [
+              100,
+              395
+            ],
+            [
+              1279,
+              428
+            ],
+            [
+              1279,
+              590
+            ],
+            [
+              370,
+              605
+            ]
+          ]
+        },
+        {
+          "frame_id": 1677,
+          "group": "sample_2-1676-crosswalk",
+          "category": "crosswalk",
+          "split": "development",
+          "expected_line": false,
+          "polygon": [
+            [
+              79,
+              402
+            ],
+            [
+              1279,
+              430
+            ],
+            [
+              1279,
+              598
+            ],
+            [
+              360,
+              619
+            ]
+          ]
+        },
+        {
+          "frame_id": 1678,
+          "group": "sample_2-1676-crosswalk",
+          "category": "crosswalk",
+          "split": "development",
+          "expected_line": false,
+          "polygon": [
+            [
+              58,
+              405
+            ],
+            [
+              1279,
+              429
+            ],
+            [
+              1279,
+              603
+            ],
+            [
+              351,
+              629
+            ]
+          ]
+        },
+        {
+          "frame_id": 181,
+          "group": "sample_2-183-crosswalk",
+          "category": "crosswalk",
+          "split": "held_out",
+          "expected_line": false,
+          "polygon": [
+            [
+              110,
+              395
+            ],
+            [
+              1271,
+              441
+            ],
+            [
+              1270,
+              657
+            ],
+            [
+              467,
+              654
+            ]
+          ]
+        },
+        {
+          "frame_id": 182,
+          "group": "sample_2-183-crosswalk",
+          "category": "crosswalk",
+          "split": "held_out",
+          "expected_line": false,
+          "polygon": [
+            [
+              102,
+              396
+            ],
+            [
+              1274,
+              436
+            ],
+            [
+              1274,
+              654
+            ],
+            [
+              464,
+              656
+            ]
+          ]
+        },
+        {
+          "frame_id": 183,
+          "group": "sample_2-183-crosswalk",
+          "category": "crosswalk",
+          "split": "held_out",
+          "expected_line": false,
+          "polygon": [
+            [
+              94,
+              396
+            ],
+            [
+              1279,
+              435
+            ],
+            [
+              1279,
+              655
+            ],
+            [
+              460,
+              658
+            ]
+          ]
+        },
+        {
+          "frame_id": 184,
+          "group": "sample_2-183-crosswalk",
+          "category": "crosswalk",
+          "split": "held_out",
+          "expected_line": false,
+          "polygon": [
+            [
+              87,
+              398
+            ],
+            [
+              1279,
+              431
+            ],
+            [
+              1279,
+              653
+            ],
+            [
+              459,
+              661
+            ]
+          ]
+        },
+        {
+          "frame_id": 185,
+          "group": "sample_2-183-crosswalk",
+          "category": "crosswalk",
+          "split": "held_out",
+          "expected_line": false,
+          "polygon": [
+            [
+              79,
+              400
+            ],
+            [
+              1279,
+              435
+            ],
+            [
+              1279,
+              660
+            ],
+            [
+              453,
+              666
+            ]
+          ]
+        },
+        {
+          "frame_id": 1228,
+          "group": "sample_2-1230-left_lane",
+          "category": "left_lane",
+          "split": "held_out",
+          "expected_line": true,
+          "polyline": [
+            [
+              328,
+              553
+            ],
+            [
+              426,
+              485
+            ]
+          ]
+        },
+        {
+          "frame_id": 1229,
+          "group": "sample_2-1230-left_lane",
+          "category": "left_lane",
+          "split": "held_out",
+          "expected_line": true,
+          "polyline": [
+            [
+              328,
+              554
+            ],
+            [
+              426,
+              486
+            ]
+          ]
+        },
+        {
+          "frame_id": 1230,
+          "group": "sample_2-1230-left_lane",
+          "category": "left_lane",
+          "split": "held_out",
+          "expected_line": true,
+          "polyline": [
+            [
+              330,
+              555
+            ],
+            [
+              426,
+              488
+            ]
+          ]
+        },
+        {
+          "frame_id": 1231,
+          "group": "sample_2-1230-left_lane",
+          "category": "left_lane",
+          "split": "held_out",
+          "expected_line": true,
+          "polyline": [
+            [
+              330,
+              555
+            ],
+            [
+              427,
+              486
+            ]
+          ]
+        },
+        {
+          "frame_id": 1232,
+          "group": "sample_2-1230-left_lane",
+          "category": "left_lane",
+          "split": "held_out",
+          "expected_line": true,
+          "polyline": [
+            [
+              329,
+              554
+            ],
+            [
+              430,
+              485
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}

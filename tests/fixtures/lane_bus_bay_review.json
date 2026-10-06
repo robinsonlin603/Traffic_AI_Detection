@@ -1,0 +1,3497 @@
+{
+  "scope": "Known development videos only. Human visually checked bus-bay forbidden regions cover visible borders and interior labels; left edges stay right of neighboring true lane stripes. Region coordinates interpolated between manually reviewed original-image anchors, not detector outputs. Every frame in sample_1 19..97 and sample_2 914..961 is checked, plus approach anchors and true-paint controls. No claim of precise segmentation, hidden-paint reconstruction or independent-scene accuracy.",
+  "videos": [
+    {
+      "name": "sample_1",
+      "scope": "Known development videos only. Human visually checked bus-bay forbidden regions cover visible borders and interior labels; left edges stay right of neighboring true lane stripes. Region coordinates interpolated between manually reviewed original-image anchors, not detector outputs. Every frame in sample_1 19..97 and sample_2 914..961 is checked, plus approach anchors and true-paint controls. No claim of precise segmentation, hidden-paint reconstruction or independent-scene accuracy.",
+      "input_sha256": "220611d110329da7a5ad89405c475ed4104c4c5c8eae6eb0ec8f34e0d6f0ea2d",
+      "width": 1280,
+      "height": 720,
+      "fps": 30,
+      "tolerance_pixels": 10,
+      "cases": [
+        {
+          "frame_id": 19,
+          "group": "sample_1-19-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              650,
+              370
+            ],
+            [
+              1279,
+              370
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1000,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 20,
+          "group": "sample_1-20-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              650,
+              370
+            ],
+            [
+              1279,
+              370
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              990,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 21,
+          "group": "sample_1-21-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              650,
+              370
+            ],
+            [
+              1279,
+              370
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              980,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 22,
+          "group": "sample_1-22-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              650,
+              370
+            ],
+            [
+              1279,
+              370
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              970,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 23,
+          "group": "sample_1-23-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              650,
+              370
+            ],
+            [
+              1279,
+              370
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              960,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 24,
+          "group": "sample_1-24-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              650,
+              370
+            ],
+            [
+              1279,
+              370
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              950,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 25,
+          "group": "sample_1-25-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              650,
+              370
+            ],
+            [
+              1279,
+              370
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              948,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 26,
+          "group": "sample_1-26-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              650,
+              370
+            ],
+            [
+              1279,
+              370
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              946,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 27,
+          "group": "sample_1-27-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              650,
+              370
+            ],
+            [
+              1279,
+              370
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              944,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 28,
+          "group": "sample_1-28-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              650,
+              370
+            ],
+            [
+              1279,
+              370
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              942,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 29,
+          "group": "sample_1-29-adjacent-true-lane",
+          "category": "true_lane",
+          "expected_line": true,
+          "polyline": [
+            [
+              375,
+              421
+            ],
+            [
+              450,
+              398
+            ]
+          ],
+          "check_straight_geometry": true
+        },
+        {
+          "frame_id": 29,
+          "group": "sample_1-29-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              650,
+              370
+            ],
+            [
+              1279,
+              370
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              940,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 30,
+          "group": "sample_1-30-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              650,
+              370
+            ],
+            [
+              1279,
+              370
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              937,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 31,
+          "group": "sample_1-31-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              650,
+              370
+            ],
+            [
+              1279,
+              370
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              933,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 32,
+          "group": "sample_1-32-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              650,
+              370
+            ],
+            [
+              1279,
+              370
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              930,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 33,
+          "group": "sample_1-33-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              650,
+              370
+            ],
+            [
+              1279,
+              370
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              926,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 34,
+          "group": "sample_1-34-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              650,
+              370
+            ],
+            [
+              1279,
+              370
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              922,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 35,
+          "group": "sample_1-35-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              650,
+              370
+            ],
+            [
+              1279,
+              370
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              919,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 36,
+          "group": "sample_1-36-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              650,
+              370
+            ],
+            [
+              1279,
+              370
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              915,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 37,
+          "group": "sample_1-37-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              650,
+              370
+            ],
+            [
+              1279,
+              370
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              911,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 38,
+          "group": "sample_1-38-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              650,
+              370
+            ],
+            [
+              1279,
+              370
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              908,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 39,
+          "group": "sample_1-39-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              650,
+              370
+            ],
+            [
+              1279,
+              370
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              904,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 40,
+          "group": "sample_1-40-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              650,
+              370
+            ],
+            [
+              1279,
+              370
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              900,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 41,
+          "group": "sample_1-41-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              650,
+              370
+            ],
+            [
+              1279,
+              370
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              894,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 42,
+          "group": "sample_1-42-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              649,
+              370
+            ],
+            [
+              1279,
+              370
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              889,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 43,
+          "group": "sample_1-43-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              648,
+              369
+            ],
+            [
+              1279,
+              369
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              884,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 44,
+          "group": "sample_1-44-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              648,
+              369
+            ],
+            [
+              1279,
+              369
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              878,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 45,
+          "group": "sample_1-45-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              648,
+              369
+            ],
+            [
+              1279,
+              369
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              872,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 46,
+          "group": "sample_1-46-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              647,
+              369
+            ],
+            [
+              1279,
+              369
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              867,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 47,
+          "group": "sample_1-47-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              646,
+              369
+            ],
+            [
+              1279,
+              369
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              862,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 48,
+          "group": "sample_1-48-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              646,
+              368
+            ],
+            [
+              1279,
+              368
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              856,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 49,
+          "group": "sample_1-49-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              646,
+              368
+            ],
+            [
+              1279,
+              368
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              850,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 50,
+          "group": "sample_1-50-adjacent-true-lane",
+          "category": "true_lane",
+          "expected_line": true,
+          "polyline": [
+            [
+              575,
+              540
+            ],
+            [
+              556,
+              640
+            ]
+          ],
+          "check_straight_geometry": true
+        },
+        {
+          "frame_id": 50,
+          "group": "sample_1-50-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              645,
+              368
+            ],
+            [
+              1279,
+              368
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              845,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 51,
+          "group": "sample_1-51-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              645,
+              369
+            ],
+            [
+              1279,
+              369
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              839,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 52,
+          "group": "sample_1-52-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              646,
+              370
+            ],
+            [
+              1279,
+              370
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              834,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 53,
+          "group": "sample_1-53-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              646,
+              370
+            ],
+            [
+              1279,
+              370
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              828,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 54,
+          "group": "sample_1-54-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              646,
+              371
+            ],
+            [
+              1279,
+              371
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              822,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 55,
+          "group": "sample_1-55-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              647,
+              372
+            ],
+            [
+              1279,
+              372
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              817,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 56,
+          "group": "sample_1-56-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              647,
+              372
+            ],
+            [
+              1279,
+              372
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              811,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 57,
+          "group": "sample_1-57-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              648,
+              373
+            ],
+            [
+              1279,
+              373
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              806,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 58,
+          "group": "sample_1-58-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              648,
+              374
+            ],
+            [
+              1279,
+              374
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              800,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 59,
+          "group": "sample_1-59-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              648,
+              375
+            ],
+            [
+              1279,
+              375
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              796,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 60,
+          "group": "sample_1-60-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              649,
+              376
+            ],
+            [
+              1279,
+              376
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              793,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 61,
+          "group": "sample_1-61-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              649,
+              377
+            ],
+            [
+              1279,
+              377
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              789,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 62,
+          "group": "sample_1-62-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              649,
+              377
+            ],
+            [
+              1279,
+              377
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              786,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 63,
+          "group": "sample_1-63-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              649,
+              378
+            ],
+            [
+              1279,
+              378
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              782,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 64,
+          "group": "sample_1-64-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              650,
+              379
+            ],
+            [
+              1279,
+              379
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              779,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 65,
+          "group": "sample_1-65-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              650,
+              380
+            ],
+            [
+              1279,
+              380
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              775,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 66,
+          "group": "sample_1-66-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              651,
+              381
+            ],
+            [
+              1279,
+              381
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              773,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 67,
+          "group": "sample_1-67-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              651,
+              383
+            ],
+            [
+              1279,
+              383
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              771,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 68,
+          "group": "sample_1-68-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              652,
+              384
+            ],
+            [
+              1279,
+              384
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              769,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 69,
+          "group": "sample_1-69-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              653,
+              385
+            ],
+            [
+              1279,
+              385
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              767,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 70,
+          "group": "sample_1-70-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              653,
+              387
+            ],
+            [
+              1279,
+              387
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              765,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 71,
+          "group": "sample_1-71-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              654,
+              388
+            ],
+            [
+              1279,
+              388
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              763,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 72,
+          "group": "sample_1-72-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              655,
+              389
+            ],
+            [
+              1279,
+              389
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              761,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 73,
+          "group": "sample_1-73-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              655,
+              391
+            ],
+            [
+              1279,
+              391
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              759,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 74,
+          "group": "sample_1-74-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              656,
+              392
+            ],
+            [
+              1279,
+              392
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              757,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 75,
+          "group": "sample_1-75-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              657,
+              393
+            ],
+            [
+              1279,
+              393
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              755,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 76,
+          "group": "sample_1-76-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              657,
+              395
+            ],
+            [
+              1279,
+              395
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              753,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 77,
+          "group": "sample_1-77-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              658,
+              396
+            ],
+            [
+              1279,
+              396
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              751,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 78,
+          "group": "sample_1-78-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              659,
+              397
+            ],
+            [
+              1279,
+              397
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              749,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 79,
+          "group": "sample_1-79-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              659,
+              399
+            ],
+            [
+              1279,
+              399
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              747,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 80,
+          "group": "sample_1-80-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              660,
+              400
+            ],
+            [
+              1279,
+              400
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              745,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 81,
+          "group": "sample_1-81-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              662,
+              402
+            ],
+            [
+              1279,
+              402
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              744,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 82,
+          "group": "sample_1-82-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              663,
+              403
+            ],
+            [
+              1279,
+              403
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              743,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 83,
+          "group": "sample_1-83-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              665,
+              405
+            ],
+            [
+              1279,
+              405
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              742,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 84,
+          "group": "sample_1-84-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              666,
+              406
+            ],
+            [
+              1279,
+              406
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              740,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 85,
+          "group": "sample_1-85-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              668,
+              408
+            ],
+            [
+              1279,
+              408
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              739,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 86,
+          "group": "sample_1-86-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              669,
+              409
+            ],
+            [
+              1279,
+              409
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              738,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 87,
+          "group": "sample_1-87-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              671,
+              411
+            ],
+            [
+              1279,
+              411
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              737,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 88,
+          "group": "sample_1-88-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              672,
+              412
+            ],
+            [
+              1279,
+              412
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              736,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 89,
+          "group": "sample_1-89-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              674,
+              414
+            ],
+            [
+              1279,
+              414
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              735,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 90,
+          "group": "sample_1-90-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              675,
+              415
+            ],
+            [
+              1279,
+              415
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              733,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 91,
+          "group": "sample_1-91-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              677,
+              417
+            ],
+            [
+              1279,
+              417
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              732,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 92,
+          "group": "sample_1-92-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              678,
+              418
+            ],
+            [
+              1279,
+              418
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              731,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 93,
+          "group": "sample_1-93-adjacent-true-lane",
+          "category": "true_lane",
+          "expected_line": true,
+          "polyline": [
+            [
+              550,
+              493
+            ],
+            [
+              600,
+              425
+            ]
+          ],
+          "check_straight_geometry": true
+        },
+        {
+          "frame_id": 93,
+          "group": "sample_1-93-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              680,
+              420
+            ],
+            [
+              1279,
+              420
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              730,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 94,
+          "group": "sample_1-94-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              682,
+              422
+            ],
+            [
+              1279,
+              422
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              726,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 95,
+          "group": "sample_1-95-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              685,
+              425
+            ],
+            [
+              1279,
+              425
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              722,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 96,
+          "group": "sample_1-96-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              688,
+              428
+            ],
+            [
+              1279,
+              428
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              719,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 97,
+          "group": "sample_1-97-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              690,
+              430
+            ],
+            [
+              1279,
+              430
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              715,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        }
+      ]
+    },
+    {
+      "name": "sample_2",
+      "scope": "Known development videos only. Human visually checked bus-bay forbidden regions cover visible borders and interior labels; left edges stay right of neighboring true lane stripes. Region coordinates interpolated between manually reviewed original-image anchors, not detector outputs. Every frame in sample_1 19..97 and sample_2 914..961 is checked, plus approach anchors and true-paint controls. No claim of precise segmentation, hidden-paint reconstruction or independent-scene accuracy.",
+      "input_sha256": "48f0e3010d7acffebf95b8bd55e1193589785a3d8835ec528040f0298edbf4ba",
+      "width": 1280,
+      "height": 720,
+      "fps": 30,
+      "tolerance_pixels": 10,
+      "cases": [
+        {
+          "frame_id": 900,
+          "group": "sample_2-900-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              800,
+              425
+            ],
+            [
+              900,
+              425
+            ],
+            [
+              1280,
+              510
+            ],
+            [
+              1280,
+              719
+            ],
+            [
+              1020,
+              719
+            ]
+          ],
+          "annotation_method": "original image inspected; only bay side, painted end and inside markings forbidden; no hidden-paint reconstruction"
+        },
+        {
+          "frame_id": 911,
+          "group": "sample_2-911-adjacent-true-lane",
+          "category": "true_lane",
+          "expected_line": true,
+          "polyline": [
+            [
+              304,
+              531
+            ],
+            [
+              346,
+              512
+            ]
+          ],
+          "check_straight_geometry": true
+        },
+        {
+          "frame_id": 911,
+          "group": "sample_2-911-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              835,
+              450
+            ],
+            [
+              900,
+              450
+            ],
+            [
+              1279,
+              685
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1130,
+              719
+            ]
+          ],
+          "annotation_method": "magnified original image distinguishes outer continuous bay border from adjacent lane dash; only visible bay ribbon forbidden"
+        },
+        {
+          "frame_id": 914,
+          "group": "sample_2-914-right-adjacent-true-dash",
+          "category": "true_lane",
+          "expected_line": true,
+          "polyline": [
+            [
+              890,
+              542
+            ],
+            [
+              1010,
+              675
+            ]
+          ],
+          "check_straight_geometry": true
+        },
+        {
+          "frame_id": 914,
+          "group": "sample_2-914-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              864,
+              475
+            ],
+            [
+              1279,
+              475
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1145,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 915,
+          "group": "sample_2-915-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              865,
+              476
+            ],
+            [
+              1279,
+              476
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1145,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 916,
+          "group": "sample_2-916-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              867,
+              477
+            ],
+            [
+              1279,
+              477
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1146,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 917,
+          "group": "sample_2-917-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              868,
+              478
+            ],
+            [
+              1279,
+              478
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1146,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 918,
+          "group": "sample_2-918-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              869,
+              479
+            ],
+            [
+              1279,
+              479
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1146,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 919,
+          "group": "sample_2-919-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              870,
+              480
+            ],
+            [
+              1279,
+              480
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1146,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 920,
+          "group": "sample_2-920-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              872,
+              482
+            ],
+            [
+              1279,
+              482
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1147,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 921,
+          "group": "sample_2-921-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              873,
+              483
+            ],
+            [
+              1279,
+              483
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1147,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 922,
+          "group": "sample_2-922-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              874,
+              484
+            ],
+            [
+              1279,
+              484
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1147,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 923,
+          "group": "sample_2-923-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              875,
+              485
+            ],
+            [
+              1279,
+              485
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1147,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 924,
+          "group": "sample_2-924-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              877,
+              486
+            ],
+            [
+              1279,
+              486
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1148,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 925,
+          "group": "sample_2-925-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              878,
+              487
+            ],
+            [
+              1279,
+              487
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1148,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 926,
+          "group": "sample_2-926-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              880,
+              489
+            ],
+            [
+              1279,
+              489
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1149,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 927,
+          "group": "sample_2-927-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              883,
+              490
+            ],
+            [
+              1279,
+              490
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1151,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 928,
+          "group": "sample_2-928-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              885,
+              492
+            ],
+            [
+              1279,
+              492
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1152,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 929,
+          "group": "sample_2-929-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              888,
+              493
+            ],
+            [
+              1279,
+              493
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1154,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 930,
+          "group": "sample_2-930-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              890,
+              495
+            ],
+            [
+              1279,
+              495
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1155,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 931,
+          "group": "sample_2-931-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              890,
+              495
+            ],
+            [
+              1279,
+              495
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1156,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 932,
+          "group": "sample_2-932-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              890,
+              496
+            ],
+            [
+              1279,
+              496
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1157,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 933,
+          "group": "sample_2-933-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              891,
+              496
+            ],
+            [
+              1279,
+              496
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1158,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 934,
+          "group": "sample_2-934-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              891,
+              496
+            ],
+            [
+              1279,
+              496
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1159,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 935,
+          "group": "sample_2-935-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              891,
+              497
+            ],
+            [
+              1279,
+              497
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1160,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 936,
+          "group": "sample_2-936-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              891,
+              497
+            ],
+            [
+              1279,
+              497
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1161,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 937,
+          "group": "sample_2-937-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              891,
+              497
+            ],
+            [
+              1279,
+              497
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1162,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 938,
+          "group": "sample_2-938-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              892,
+              498
+            ],
+            [
+              1279,
+              498
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1163,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 939,
+          "group": "sample_2-939-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              892,
+              498
+            ],
+            [
+              1279,
+              498
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1164,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 940,
+          "group": "sample_2-940-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              892,
+              498
+            ],
+            [
+              1279,
+              498
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1165,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 941,
+          "group": "sample_2-941-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              892,
+              499
+            ],
+            [
+              1279,
+              499
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1166,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 942,
+          "group": "sample_2-942-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              892,
+              499
+            ],
+            [
+              1279,
+              499
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1167,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 943,
+          "group": "sample_2-943-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              893,
+              499
+            ],
+            [
+              1279,
+              499
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1168,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 944,
+          "group": "sample_2-944-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              893,
+              500
+            ],
+            [
+              1279,
+              500
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1169,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 945,
+          "group": "sample_2-945-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              893,
+              500
+            ],
+            [
+              1279,
+              500
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1170,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 946,
+          "group": "sample_2-946-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              893,
+              500
+            ],
+            [
+              1279,
+              500
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1171,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 947,
+          "group": "sample_2-947-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              894,
+              501
+            ],
+            [
+              1279,
+              501
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1171,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 948,
+          "group": "sample_2-948-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              894,
+              501
+            ],
+            [
+              1279,
+              501
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1172,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 949,
+          "group": "sample_2-949-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              895,
+              501
+            ],
+            [
+              1279,
+              501
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1173,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 950,
+          "group": "sample_2-950-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              895,
+              502
+            ],
+            [
+              1279,
+              502
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1173,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 951,
+          "group": "sample_2-951-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              896,
+              502
+            ],
+            [
+              1279,
+              502
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1174,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 952,
+          "group": "sample_2-952-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              896,
+              502
+            ],
+            [
+              1279,
+              502
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1175,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 953,
+          "group": "sample_2-953-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              897,
+              503
+            ],
+            [
+              1279,
+              503
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1175,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 954,
+          "group": "sample_2-954-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              897,
+              503
+            ],
+            [
+              1279,
+              503
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1176,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 955,
+          "group": "sample_2-955-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              898,
+              503
+            ],
+            [
+              1279,
+              503
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1177,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 956,
+          "group": "sample_2-956-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              898,
+              504
+            ],
+            [
+              1279,
+              504
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1177,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 957,
+          "group": "sample_2-957-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              899,
+              504
+            ],
+            [
+              1279,
+              504
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1178,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 958,
+          "group": "sample_2-958-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              899,
+              504
+            ],
+            [
+              1279,
+              504
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1179,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 959,
+          "group": "sample_2-959-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              900,
+              505
+            ],
+            [
+              1279,
+              505
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1179,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 960,
+          "group": "sample_2-960-adjacent-true-lane",
+          "category": "true_lane",
+          "expected_line": true,
+          "polyline": [
+            [
+              341,
+              550
+            ],
+            [
+              410,
+              507
+            ]
+          ],
+          "check_straight_geometry": true
+        },
+        {
+          "frame_id": 960,
+          "group": "sample_2-960-right-adjacent-true-dash",
+          "category": "true_lane",
+          "expected_line": true,
+          "polyline": [
+            [
+              940,
+              557
+            ],
+            [
+              1033,
+              632
+            ]
+          ],
+          "check_straight_geometry": true
+        },
+        {
+          "frame_id": 960,
+          "group": "sample_2-960-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              900,
+              505
+            ],
+            [
+              1279,
+              505
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1180,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        },
+        {
+          "frame_id": 961,
+          "group": "sample_2-961-visible-bus-bay",
+          "category": "bus_bay",
+          "expected_line": false,
+          "polygon": [
+            [
+              904,
+              505
+            ],
+            [
+              1279,
+              505
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1185,
+              719
+            ]
+          ],
+          "annotation_method": "Human original-image forbidden bay region including visible border and lettering; manually reviewed anchor interpolation, neighboring true lane stripe remains left of region. Vehicle occlusion uses each version own rendering mask."
+        }
+      ]
+    }
+  ],
+  "annotation_revision": "v2: enlarged original-image audit corrected newly added sample2 911/914/960/961 forbidden regions and added right-dash positive controls. Original lane_human_review 930 case unchanged. Early broad fixture hash 9f2d9b5f61e3319c488ce2d5de6e708f320467699443be450cedbc87dad7e5b2 retained in window-v3 reports.",
+  "dense_annotation_revision": {
+    "date": "2026-10-06",
+    "reason": "Full-frame contact review exposed bay flicker and interior-letter candidates missed by sparse and overly narrow initial new polygons. The original pre-round human fixture is unchanged. Prior new-fixture hash and cases remain in trial evidence.",
+    "manual_anchor_coordinates": {
+      "1": [
+        [
+          19,
+          650,
+          370,
+          1000
+        ],
+        [
+          24,
+          650,
+          370,
+          950
+        ],
+        [
+          29,
+          650,
+          370,
+          940
+        ],
+        [
+          32,
+          650,
+          370,
+          930
+        ],
+        [
+          40,
+          650,
+          370,
+          900
+        ],
+        [
+          50,
+          645,
+          368,
+          845
+        ],
+        [
+          58,
+          648,
+          374,
+          800
+        ],
+        [
+          65,
+          650,
+          380,
+          775
+        ],
+        [
+          80,
+          660,
+          400,
+          745
+        ],
+        [
+          93,
+          680,
+          420,
+          730
+        ],
+        [
+          97,
+          690,
+          430,
+          715
+        ]
+      ],
+      "2": [
+        [
+          914,
+          864,
+          475,
+          1145
+        ],
+        [
+          925,
+          878,
+          487,
+          1148
+        ],
+        [
+          930,
+          890,
+          495,
+          1155
+        ],
+        [
+          945,
+          893,
+          500,
+          1170
+        ],
+        [
+          960,
+          900,
+          505,
+          1180
+        ],
+        [
+          961,
+          904,
+          505,
+          1185
+        ]
+      ]
+    },
+    "counts": {
+      "forbidden_regions": 129,
+      "true_stripe_controls": 7,
+      "total": 136
+    }
+  }
+}

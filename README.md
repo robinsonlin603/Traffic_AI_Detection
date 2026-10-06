@@ -1,6 +1,6 @@
 # 機車行車記錄器 AI 分析
 
-目前提供 Milestone 1：離線 YOLO 偵測、BoT-SORT 持續追蹤、結構化資料及簡單標註影片。舊 Milestone 2 已移除；動態白線與一般換道分為新的 Milestone 2、3，尚未實作。
+目前提供 Milestone 1 的離線 YOLO 偵測與 BoT-SORT 追蹤，以及 Milestone 2 的 YOLOP 動態道路白線疊圖。一般換道屬於 Milestone 3，尚未實作。
 
 ## 安裝與分析
 
@@ -10,27 +10,41 @@
 python3.12 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e '.[cv,dev]'
+mkdir -p models
+curl -L --fail --output models/yolop-640-640.onnx \
+  https://github.com/hustvl/YOLOP/raw/main/weights/yolop-640-640.onnx
 dashcam-ai devices
 dashcam-ai analyze --input ./samples/test1.mp4
 ```
 
 自動輸出到 output/test1/。可指定 --output、--config、--model、--imgsz、--confidence、--device，以及 --no-save-video 或 --no-save-frames。
 
-預設設定 configs/default.yaml 自動依 CUDA、MPS、CPU 順序選擇裝置；configs/mac.yaml 使用 MPS，configs/nvidia.yaml 使用 cuda:0。NVIDIA 環境需安裝相容的 PyTorch。分析僅使用既有本機權重，不自動下載。預設 yolo26m.pt 先從目前目錄尋找；若只提供檔名且目前目錄沒有，則從主要 Git 工作目錄尋找，讓獨立 worktree 共用權重。明確指定的路徑不存在時會報錯，不改用其他模型。
+預設設定 configs/default.yaml 自動依 CUDA、MPS、CPU 順序選擇裝置；configs/mac.yaml 使用 MPS，configs/nvidia.yaml 使用 cuda:0。NVIDIA 環境需安裝相容的 PyTorch。分析僅使用既有本機權重，不自動下載。車輛模型預設為 yolo26m.pt；白線模型預設為 models/yolop-640-640.onnx。明確指定的路徑不存在時會報錯，不改用其他模型。ONNX 權重已由 `.gitignore` 排除，不應提交到 Git。
 
 ## 輸出與標註
 
-標註僅顯示綠色物件框、單行 #ID 類別縮寫、深色文字底板與橘色軌跡。預設只偵測 car、truck、bus、motorcycle，追蹤與輸出時統一為 vehicle；不追蹤 person 或 bicycle。畫面標籤只顯示 #ID，保留標籤避讓；不顯示類別、車道、事件或信心數字。
+標註顯示動態白色道路曲線、綠色物件框、單行 #ID、深色文字底板與橘色軌跡。預設只偵測 car、truck、bus、motorcycle，追蹤與輸出時統一為 vehicle；不追蹤 person 或 bicycle。畫面標籤只顯示 #ID，保留標籤避讓；不顯示類別、車道歸屬、事件或信心數字。
+
+白線偵測由 YOLOP 的車道線與可行駛區域分割提出候選。此 ONNX 輸出已經過 Sigmoid，兩類分數先除以總和，0.5 表示前景分數高於背景；相對分數不等同經校準的正確率。minimum_drivable_probability 預設為 0.5，候選中心支持不足時需由兩側道路證據補足。原圖漆面的主方向、寬度膨脹與非細長形狀協助排除箭頭；道路／非道路的兩側差異協助拒絕路緣。漆面形狀在車框裁切前辨識，超過半數被遮擋的元件不作箭頭形狀證據；內部寬度突變補足粗箭身的判斷。淺斜曲線需能延伸回畫面中的道路遠端，以排除橫跨行車方向的停止線，近垂直真線仍保留。紅／黃色路緣須同時有一側道路支持不足才拒絕。候選先通過道路與漆面檢查，再以雙向垂直連接誤差判斷能否合併；低於原本跨度門檻的片段需有端點鄰近遮擋、可見長度及上下文支持，避免放行孤立小圖案。
+
+大型貼底角落車框以高分數道路區域細化，其餘車框仍完整遮擋；偵測與繪圖共用同一像素遮罩，避免自車誤框清空可見道路。白線遮罩本身不刪除車框或 ID；自車 ID 由下述追蹤前排除處理。候選需確認兩幀，跨幀以共同高度內的位置與方向配對，只在共同觀測高度內平滑，位移不超過當前候選半寬，新出現的端點保留當幀位置。低道路支持的候選若只有一端缺乏白漆，會嘗試裁去該端再驗證。短暫缺失最多沿用一幀，並以灰色顯示；未確認、衰減後低信心或與新白線重疊的曲線不會沿用。模型是在 BDD100K 道路資料上訓練，台灣道路、機車鏡頭位置及極端逆光仍可能產生領域差異。
 
 | 檔案 | 內容 |
 |---|---|
 | metadata.json | 影片、裝置、套件版本及模型雜湊 |
 | frames.jsonl | frame_id、timestamp、objects；包含偵測信心，沒有場景分析欄位 |
+| lane-lines.jsonl | 每幀白線狀態、曲線與確認／沿用幀數，以及模型、形狀、像素數、候選數與淘汰原因診斷 |
 | tracks.json | 達到 minimum_track_length 的追蹤摘要 |
 | events.json | 空陣列 [] |
-| annotated.mp4 | 簡單標註影片 |
+| annotated.mp4 | 車輛追蹤與動態白線標註影片 |
 
 --no-save-frames 與 --no-save-video 分別停用逐幀資料與影片輸出。
+
+### 固定攝影機的自車排除
+
+目前三份設定檔的 `detection.ego_vehicle_polygon` 已標出本專案影片左下角自車外殼；頂點是 0..1 的影像比例。偵測用影像副本在此區填入灰色，原始輸出畫面與白線輸入仍保留原圖。進入 BoT-SORT 前，遮罩覆蓋偵測框至少 `ego_vehicle_overlap_threshold`（預設 0.8）才排除殘留誤框；局部重疊的旁車仍保留。為避免遮罩改變整張影像的偵測信心，另用同一權重在原圖做一次純偵測，補回完全不與自車輪廓相交的候選，再一起去重。原圖偵測器不分配 ID。這會增加一次推論；設定、門檻與補回狀態會寫入 runtime metadata。
+
+換用不同鏡頭位置時必須重新標定輪廓；設為 `ego_vehicle_polygon: []` 可停用。這個輪廓適用於目前固定鏡頭，不是所有行車紀錄器的共用遮罩。
 
 ## 驗證
 
@@ -46,9 +60,9 @@ Linux 電腦使用 --platform linux-cuda。各平台必須在同一乾淨來源�
 
 ## 階段與限制
 
-目前只偵測與追蹤物件，不判斷白線、車道、換道、cut-in、方向燈、距離或責任。短暫遮擋仍可能造成追蹤 ID 改變。
+目前偵測與追蹤物件並畫出道路白線，但不建立車道歸屬，也不判斷換道、cut-in、方向燈、距離或責任。YOLOP 的訓練場景與本地機車行車記錄器仍有差異；Milestone 2 已完成兩支各 60 秒實拍的成對 CPU 白線重播，但完整品質與跨平台驗收尚未通過。短暫遮擋仍可能造成追蹤 ID 改變。
 
-[Milestone 1](docs/MILESTONE_1.md) · [新 Roadmap](docs/ROADMAP.md) · [回退計畫](docs/EXEC_PLAN_RESTORE_MILESTONE1.md) · [平台驗證](validation/README.md) · [舊 Milestone 2 歷史](docs/history/legacy-milestone-2/README.md)
+[Milestone 1](docs/MILESTONE_1.md) · [Milestone 2](docs/EXEC_PLAN_MILESTONE2_DYNAMIC_WHITE_LINES.md) · [白線聚焦驗證](docs/MILESTONE2_FOCUSED_REVIEW.md) · [v5 修正重播](docs/MILESTONE2_V5_REVIEW.md) · [v7 穩定性驗證](docs/MILESTONE2_STABILITY_REVIEW.md) · [v8 人工回報驗證](docs/MILESTONE2_HUMAN_REVIEW.md) · [左白漆恢復驗證](docs/MILESTONE2_LEFT_PAINT_REVIEW.md) · [公車格排除驗證](docs/MILESTONE2_BUS_BAY_REVIEW.md) · [新 Roadmap](docs/ROADMAP.md) · [平台驗證](validation/README.md) · [舊 Milestone 2 歷史](docs/history/legacy-milestone-2/README.md)
 
 ## 小型車輛篩選
 

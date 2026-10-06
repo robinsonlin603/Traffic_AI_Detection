@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from dashcam_ai.detection.ego_mask import EgoVehicleMask
 from dashcam_ai.domain.geometry import BBox
 from dashcam_ai.domain.perception import TrackedObject
 from dashcam_ai.runtime.device import resolve_device
@@ -29,7 +30,12 @@ class UltralyticsDetectorTracker:
         duplicate_vehicle_iou_threshold: float = 0.85,
         duplicate_vehicle_containment_threshold: float = 0.9,
         duplicate_vehicle_center_distance_ratio: float = 0.22,
+        ego_vehicle_polygon: list[tuple[float, float]] | None = None,
+        ego_vehicle_overlap_threshold: float = 0.8,
     ) -> None:
+        self._ego_vehicle_mask = EgoVehicleMask(
+            ego_vehicle_polygon or [], ego_vehicle_overlap_threshold
+        )
         if not 0 <= minimum_vehicle_area_ratio <= 1:
             raise ValueError("minimum_vehicle_area_ratio must be between 0 and 1")
         if not 0 <= duplicate_vehicle_iou_threshold <= 1:
@@ -47,6 +53,10 @@ class UltralyticsDetectorTracker:
             ) from error
         resolution = resolve_device(device, torch)
         self._model = YOLO(model)
+        # Keep unmasked context predictions separate: predict() on the tracking model
+        # would invoke its persistent tracker callbacks and allocate extra IDs.
+        self._context_model = YOLO(model) if self._ego_vehicle_mask.polygon else None
+        self._context_boxes: Any = None
         names = self._model.names
         self._minimum_vehicle_area_ratio = minimum_vehicle_area_ratio
         self._duplicate_vehicle_iou_threshold = duplicate_vehicle_iou_threshold
@@ -80,6 +90,9 @@ class UltralyticsDetectorTracker:
         ).model_copy(
             update={
                 "minimum_vehicle_area_ratio": minimum_vehicle_area_ratio,
+                "ego_vehicle_polygon": self._ego_vehicle_mask.polygon,
+                "ego_vehicle_overlap_threshold": ego_vehicle_overlap_threshold,
+                "ego_vehicle_context_recovery": bool(self._ego_vehicle_mask.polygon),
                 "duplicate_vehicle_iou_threshold": duplicate_vehicle_iou_threshold,
                 "duplicate_vehicle_containment_threshold": (
                     duplicate_vehicle_containment_threshold
@@ -94,6 +107,24 @@ class UltralyticsDetectorTracker:
         """Filter, class-agnostically deduplicate, then normalize powered vehicles."""
         for index, result in enumerate(predictor.results):
             boxes = result.boxes
+            if self._context_boxes is not None:
+                import torch
+
+                outside = [
+                    row
+                    for row in self._context_boxes
+                    if self._ego_vehicle_mask.overlap(row[:4], result.orig_shape) == 0
+                ]
+                if outside:
+                    recovered = torch.stack(outside)
+                    result.update(
+                        boxes=(
+                            torch.cat((boxes.data, recovered), dim=0)
+                            if boxes is not None
+                            else recovered
+                        )
+                    )
+                    boxes = result.boxes
             if boxes is None or len(boxes) == 0:
                 continue
             vehicle = boxes.cls == -1
@@ -110,6 +141,8 @@ class UltralyticsDetectorTracker:
                 if not bool(vehicle[candidate]):
                     continue
                 candidate_box = boxes.xyxy[candidate]
+                if self._ego_vehicle_mask.excludes(candidate_box, result.orig_shape):
+                    continue
                 if all(
                     not self._boxes_are_duplicates(candidate_box, boxes.xyxy[accepted])
                     for accepted in selected
@@ -154,16 +187,31 @@ class UltralyticsDetectorTracker:
 
     def process(self, frame: Any) -> list[TrackedObject]:
         """分析單一影格，並將 Ultralytics 結果轉為專案領域模型。"""
-        results = self._model.track(
-            source=frame,
-            persist=True,
-            tracker=self._tracker,
-            conf=self._confidence,
-            imgsz=self._imgsz,
-            classes=self._allowed_class_ids,
-            device=self._device,
-            verbose=False,
-        )
+        if self._context_model is not None:
+            context: Any = self._context_model.predict(
+                source=frame,
+                conf=self._confidence,
+                imgsz=self._imgsz,
+                classes=self._allowed_class_ids,
+                device=self._device,
+                verbose=False,
+            )
+            self._context_boxes = (
+                context[0].boxes.data if context and context[0].boxes is not None else None
+            )
+        try:
+            results = self._model.track(
+                source=self._ego_vehicle_mask.prepare(frame),
+                persist=True,
+                tracker=self._tracker,
+                conf=self._confidence,
+                imgsz=self._imgsz,
+                classes=self._allowed_class_ids,
+                device=self._device,
+                verbose=False,
+            )
+        finally:
+            self._context_boxes = None
         if not results:
             return self._identity_resolver.update([])
         boxes = results[0].boxes

@@ -1,0 +1,5048 @@
+{
+  "schema_version": 1,
+  "selection_note": "Extra windows reserved in output/lane-prototype-v1/reserved.json before any model inference/training. Anchored manual paint labels propagated with LK and visually reviewed; vehicles manually outlined. All previous held_out are now regression. No independent new video exists locally.",
+  "videos": [
+    {
+      "name": "sample_1",
+      "input_sha256": "220611d110329da7a5ad89405c475ed4104c4c5c8eae6eb0ec8f34e0d6f0ea2d",
+      "width": 1280,
+      "height": 720,
+      "fps": 30,
+      "tolerance_pixels": 10,
+      "scope": "Existing published cases are regression; extra windows were fixed before training. Same two videos, not unseen roads.",
+      "cases": [
+        {
+          "frame_id": 63,
+          "group": "sample_1-64-road_text",
+          "category": "road_text",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              923,
+              564
+            ],
+            [
+              1227,
+              647
+            ],
+            [
+              1227,
+              691
+            ],
+            [
+              944,
+              692
+            ]
+          ]
+        },
+        {
+          "frame_id": 64,
+          "group": "sample_1-64-road_text",
+          "category": "road_text",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              947,
+              580
+            ],
+            [
+              1279,
+              670
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              970,
+              719
+            ]
+          ]
+        },
+        {
+          "frame_id": 65,
+          "group": "sample_1-64-road_text",
+          "category": "road_text",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              982,
+              615
+            ],
+            [
+              1279,
+              696
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1007,
+              719
+            ]
+          ]
+        },
+        {
+          "frame_id": 66,
+          "group": "sample_1-64-road_text",
+          "category": "road_text",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              987,
+              612
+            ],
+            [
+              1279,
+              708
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1006,
+              719
+            ]
+          ]
+        },
+        {
+          "frame_id": 67,
+          "group": "sample_1-64-road_text",
+          "category": "road_text",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              1019,
+              580
+            ],
+            [
+              1279,
+              717
+            ],
+            [
+              1279,
+              719
+            ],
+            [
+              1015,
+              707
+            ]
+          ]
+        },
+        {
+          "frame_id": 108,
+          "group": "sample_1-110-parking",
+          "category": "parking",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              699,
+              464
+            ],
+            [
+              1027,
+              485
+            ],
+            [
+              1157,
+              719
+            ],
+            [
+              780,
+              719
+            ]
+          ]
+        },
+        {
+          "frame_id": 109,
+          "group": "sample_1-110-parking",
+          "category": "parking",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              701,
+              464
+            ],
+            [
+              1027,
+              489
+            ],
+            [
+              1154,
+              719
+            ],
+            [
+              779,
+              719
+            ]
+          ]
+        },
+        {
+          "frame_id": 110,
+          "group": "sample_1-110-parking",
+          "category": "parking",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              703,
+              464
+            ],
+            [
+              1030,
+              485
+            ],
+            [
+              1160,
+              719
+            ],
+            [
+              784,
+              719
+            ]
+          ]
+        },
+        {
+          "frame_id": 111,
+          "group": "sample_1-110-parking",
+          "category": "parking",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              700,
+              465
+            ],
+            [
+              1027,
+              479
+            ],
+            [
+              1162,
+              710
+            ],
+            [
+              786,
+              718
+            ]
+          ]
+        },
+        {
+          "frame_id": 112,
+          "group": "sample_1-110-parking",
+          "category": "parking",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              704,
+              465
+            ],
+            [
+              1030,
+              482
+            ],
+            [
+              1162,
+              715
+            ],
+            [
+              787,
+              719
+            ]
+          ]
+        },
+        {
+          "frame_id": 93,
+          "group": "sample_1-95-parking",
+          "category": "parking",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              673,
+              401
+            ],
+            [
+              856,
+              434
+            ],
+            [
+              1056,
+              716
+            ],
+            [
+              776,
+              719
+            ]
+          ]
+        },
+        {
+          "frame_id": 94,
+          "group": "sample_1-95-parking",
+          "category": "parking",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              679,
+              399
+            ],
+            [
+              858,
+              435
+            ],
+            [
+              1047,
+              716
+            ],
+            [
+              773,
+              714
+            ]
+          ]
+        },
+        {
+          "frame_id": 95,
+          "group": "sample_1-95-parking",
+          "category": "parking",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              680,
+              405
+            ],
+            [
+              859,
+              440
+            ],
+            [
+              1050,
+              719
+            ],
+            [
+              776,
+              719
+            ]
+          ]
+        },
+        {
+          "frame_id": 96,
+          "group": "sample_1-95-parking",
+          "category": "parking",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              681,
+              405
+            ],
+            [
+              860,
+              440
+            ],
+            [
+              1052,
+              719
+            ],
+            [
+              777,
+              719
+            ]
+          ]
+        },
+        {
+          "frame_id": 97,
+          "group": "sample_1-95-parking",
+          "category": "parking",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              680,
+              400
+            ],
+            [
+              864,
+              436
+            ],
+            [
+              1059,
+              719
+            ],
+            [
+              778,
+              719
+            ]
+          ]
+        },
+        {
+          "frame_id": 108,
+          "group": "sample_1-110-arrow",
+          "category": "arrow",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              521,
+              413
+            ],
+            [
+              572,
+              389
+            ],
+            [
+              588,
+              374
+            ],
+            [
+              579,
+              394
+            ],
+            [
+              538,
+              414
+            ]
+          ]
+        },
+        {
+          "frame_id": 109,
+          "group": "sample_1-110-arrow",
+          "category": "arrow",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              517,
+              412
+            ],
+            [
+              570,
+              387
+            ],
+            [
+              587,
+              371
+            ],
+            [
+              578,
+              393
+            ],
+            [
+              535,
+              413
+            ]
+          ]
+        },
+        {
+          "frame_id": 110,
+          "group": "sample_1-110-arrow",
+          "category": "arrow",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              514,
+              413
+            ],
+            [
+              568,
+              388
+            ],
+            [
+              586,
+              372
+            ],
+            [
+              576,
+              394
+            ],
+            [
+              532,
+              414
+            ]
+          ]
+        },
+        {
+          "frame_id": 111,
+          "group": "sample_1-110-arrow",
+          "category": "arrow",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              511,
+              413
+            ],
+            [
+              566,
+              388
+            ],
+            [
+              585,
+              371
+            ],
+            [
+              575,
+              394
+            ],
+            [
+              530,
+              414
+            ]
+          ]
+        },
+        {
+          "frame_id": 112,
+          "group": "sample_1-110-arrow",
+          "category": "arrow",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              510,
+              412
+            ],
+            [
+              565,
+              387
+            ],
+            [
+              583,
+              371
+            ],
+            [
+              573,
+              393
+            ],
+            [
+              529,
+              413
+            ]
+          ]
+        },
+        {
+          "frame_id": 98,
+          "group": "sample_1-100-left_lane",
+          "category": "left_lane",
+          "split": "regression",
+          "expected_line": true,
+          "polyline": [
+            [
+              151,
+              442
+            ],
+            [
+              283,
+              409
+            ]
+          ]
+        },
+        {
+          "frame_id": 99,
+          "group": "sample_1-100-left_lane",
+          "category": "left_lane",
+          "split": "regression",
+          "expected_line": true,
+          "polyline": [
+            [
+              156,
+              445
+            ],
+            [
+              299,
+              409
+            ]
+          ]
+        },
+        {
+          "frame_id": 100,
+          "group": "sample_1-100-left_lane",
+          "category": "left_lane",
+          "split": "regression",
+          "expected_line": true,
+          "polyline": [
+            [
+              160,
+              446
+            ],
+            [
+              281,
+              415
+            ]
+          ]
+        },
+        {
+          "frame_id": 101,
+          "group": "sample_1-100-left_lane",
+          "category": "left_lane",
+          "split": "regression",
+          "expected_line": true,
+          "polyline": [
+            [
+              162,
+              447
+            ],
+            [
+              278,
+              418
+            ]
+          ]
+        },
+        {
+          "frame_id": 102,
+          "group": "sample_1-100-left_lane",
+          "category": "left_lane",
+          "split": "regression",
+          "expected_line": true,
+          "polyline": [
+            [
+              161,
+              447
+            ],
+            [
+              280,
+              420
+            ]
+          ]
+        },
+        {
+          "frame_id": 238,
+          "group": "sample_1-240-arrow",
+          "category": "arrow",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              585,
+              489
+            ],
+            [
+              689,
+              446
+            ],
+            [
+              742,
+              453
+            ],
+            [
+              936,
+              629
+            ],
+            [
+              910,
+              663
+            ],
+            [
+              763,
+              581
+            ],
+            [
+              748,
+              691
+            ],
+            [
+              623,
+              692
+            ]
+          ]
+        },
+        {
+          "frame_id": 239,
+          "group": "sample_1-240-arrow",
+          "category": "arrow",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              584,
+              494
+            ],
+            [
+              692,
+              449
+            ],
+            [
+              747,
+              456
+            ],
+            [
+              948,
+              639
+            ],
+            [
+              922,
+              674
+            ],
+            [
+              769,
+              589
+            ],
+            [
+              754,
+              703
+            ],
+            [
+              624,
+              704
+            ]
+          ]
+        },
+        {
+          "frame_id": 240,
+          "group": "sample_1-240-arrow",
+          "category": "arrow",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              580,
+              500
+            ],
+            [
+              693,
+              454
+            ],
+            [
+              750,
+              462
+            ],
+            [
+              958,
+              654
+            ],
+            [
+              930,
+              690
+            ],
+            [
+              772,
+              600
+            ],
+            [
+              755,
+              719
+            ],
+            [
+              620,
+              719
+            ]
+          ]
+        },
+        {
+          "frame_id": 241,
+          "group": "sample_1-240-arrow",
+          "category": "arrow",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              574,
+              505
+            ],
+            [
+              695,
+              457
+            ],
+            [
+              756,
+              466
+            ],
+            [
+              977,
+              673
+            ],
+            [
+              947,
+              711
+            ],
+            [
+              779,
+              613
+            ],
+            [
+              759,
+              719
+            ],
+            [
+              615,
+              719
+            ]
+          ]
+        },
+        {
+          "frame_id": 242,
+          "group": "sample_1-240-arrow",
+          "category": "arrow",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              573,
+              510
+            ],
+            [
+              695,
+              463
+            ],
+            [
+              756,
+              473
+            ],
+            [
+              976,
+              683
+            ],
+            [
+              945,
+              719
+            ],
+            [
+              777,
+              621
+            ],
+            [
+              757,
+              719
+            ],
+            [
+              612,
+              719
+            ]
+          ]
+        },
+        {
+          "frame_id": 330,
+          "group": "sample_1-332-arrow-extra",
+          "category": "arrow",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              690.5,
+              714.7
+            ],
+            [
+              750.5,
+              565.8
+            ],
+            [
+              839.9,
+              714.7
+            ]
+          ]
+        },
+        {
+          "frame_id": 331,
+          "group": "sample_1-332-arrow-extra",
+          "category": "arrow",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              687.4,
+              718.6
+            ],
+            [
+              756.7,
+              578.3
+            ],
+            [
+              838.2,
+              714.4
+            ]
+          ]
+        },
+        {
+          "frame_id": 332,
+          "group": "sample_1-332-arrow-extra",
+          "category": "arrow",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              703,
+              718
+            ],
+            [
+              763,
+              588
+            ],
+            [
+              836,
+              718
+            ]
+          ]
+        },
+        {
+          "frame_id": 333,
+          "group": "sample_1-332-arrow-extra",
+          "category": "arrow",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              717.3,
+              719.0
+            ],
+            [
+              770.4,
+              597.0
+            ],
+            [
+              838.2,
+              719.0
+            ]
+          ]
+        },
+        {
+          "frame_id": 334,
+          "group": "sample_1-332-arrow-extra",
+          "category": "arrow",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              718.8,
+              713.8
+            ],
+            [
+              778.8,
+              606.3
+            ],
+            [
+              831.0,
+              713.8
+            ]
+          ]
+        },
+        {
+          "frame_id": 330,
+          "group": "sample_1-332-waiting_box-extra",
+          "category": "waiting_box",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              426.3,
+              575.8
+            ],
+            [
+              479.2,
+              518.2
+            ],
+            [
+              571.0,
+              480.1
+            ],
+            [
+              865.9,
+              535.0
+            ],
+            [
+              982.2,
+              552.8
+            ],
+            [
+              986.2,
+              563.6
+            ],
+            [
+              552.8,
+              497.4
+            ],
+            [
+              465.4,
+              589.7
+            ]
+          ]
+        },
+        {
+          "frame_id": 331,
+          "group": "sample_1-332-waiting_box-extra",
+          "category": "waiting_box",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              430.6,
+              579.8
+            ],
+            [
+              486.8,
+              518.7
+            ],
+            [
+              572.7,
+              484.9
+            ],
+            [
+              874.4,
+              543.1
+            ],
+            [
+              993.7,
+              561.5
+            ],
+            [
+              997.9,
+              572.5
+            ],
+            [
+              554.3,
+              502.7
+            ],
+            [
+              468.9,
+              594.9
+            ]
+          ]
+        },
+        {
+          "frame_id": 332,
+          "group": "sample_1-332-waiting_box-extra",
+          "category": "waiting_box",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              436,
+              580
+            ],
+            [
+              493,
+              517
+            ],
+            [
+              573,
+              487
+            ],
+            [
+              880,
+              548
+            ],
+            [
+              1005,
+              568
+            ],
+            [
+              1009,
+              579
+            ],
+            [
+              555,
+              505
+            ],
+            [
+              468,
+              600
+            ]
+          ]
+        },
+        {
+          "frame_id": 333,
+          "group": "sample_1-332-waiting_box-extra",
+          "category": "waiting_box",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              440.2,
+              581.0
+            ],
+            [
+              493.4,
+              521.1
+            ],
+            [
+              573.0,
+              491.3
+            ],
+            [
+              883.4,
+              552.3
+            ],
+            [
+              1017.3,
+              573.6
+            ],
+            [
+              1021.2,
+              584.7
+            ],
+            [
+              554.9,
+              509.9
+            ],
+            [
+              475.4,
+              599.3
+            ]
+          ]
+        },
+        {
+          "frame_id": 334,
+          "group": "sample_1-332-waiting_box-extra",
+          "category": "waiting_box",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              446.8,
+              580.6
+            ],
+            [
+              494.2,
+              525.1
+            ],
+            [
+              574.1,
+              496.2
+            ],
+            [
+              896.8,
+              558.4
+            ],
+            [
+              1029.3,
+              578.6
+            ],
+            [
+              1033.3,
+              589.6
+            ],
+            [
+              555.3,
+              514.6
+            ],
+            [
+              479.1,
+              600.7
+            ]
+          ]
+        },
+        {
+          "frame_id": 600,
+          "group": "sample_1-602-crosswalk-extra",
+          "category": "crosswalk",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              426.5,
+              406.9
+            ],
+            [
+              587.4,
+              394.3
+            ],
+            [
+              587.5,
+              433.3
+            ],
+            [
+              422.5,
+              446.3
+            ]
+          ]
+        },
+        {
+          "frame_id": 601,
+          "group": "sample_1-602-crosswalk-extra",
+          "category": "crosswalk",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              426.1,
+              406.9
+            ],
+            [
+              587.0,
+              394.2
+            ],
+            [
+              587.0,
+              433.0
+            ],
+            [
+              422.2,
+              446.2
+            ]
+          ]
+        },
+        {
+          "frame_id": 602,
+          "group": "sample_1-602-crosswalk-extra",
+          "category": "crosswalk",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              426,
+              407
+            ],
+            [
+              587,
+              394
+            ],
+            [
+              587,
+              433
+            ],
+            [
+              422,
+              446
+            ]
+          ]
+        },
+        {
+          "frame_id": 603,
+          "group": "sample_1-602-crosswalk-extra",
+          "category": "crosswalk",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              425.5,
+              407.7
+            ],
+            [
+              586.6,
+              394.4
+            ],
+            [
+              586.6,
+              433.2
+            ],
+            [
+              421.5,
+              446.6
+            ]
+          ]
+        },
+        {
+          "frame_id": 604,
+          "group": "sample_1-602-crosswalk-extra",
+          "category": "crosswalk",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              425.5,
+              407.6
+            ],
+            [
+              586.6,
+              394.0
+            ],
+            [
+              586.5,
+              432.7
+            ],
+            [
+              421.5,
+              446.5
+            ]
+          ]
+        },
+        {
+          "frame_id": 600,
+          "group": "sample_1-602-stop_line-extra",
+          "category": "stop_line",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              864.0,
+              528.6
+            ],
+            [
+              945.1,
+              528.6
+            ],
+            [
+              945.0,
+              560.6
+            ],
+            [
+              862.2,
+              560.7
+            ]
+          ]
+        },
+        {
+          "frame_id": 601,
+          "group": "sample_1-602-stop_line-extra",
+          "category": "stop_line",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              863.7,
+              528.0
+            ],
+            [
+              944.8,
+              528.0
+            ],
+            [
+              944.8,
+              560.1
+            ],
+            [
+              862.0,
+              560.0
+            ]
+          ]
+        },
+        {
+          "frame_id": 602,
+          "group": "sample_1-602-stop_line-extra",
+          "category": "stop_line",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              864,
+              528
+            ],
+            [
+              945,
+              528
+            ],
+            [
+              945,
+              560
+            ],
+            [
+              862,
+              560
+            ]
+          ]
+        },
+        {
+          "frame_id": 603,
+          "group": "sample_1-602-stop_line-extra",
+          "category": "stop_line",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              864.1,
+              527.7
+            ],
+            [
+              944.8,
+              527.6
+            ],
+            [
+              944.8,
+              559.6
+            ],
+            [
+              862.2,
+              559.7
+            ]
+          ]
+        },
+        {
+          "frame_id": 604,
+          "group": "sample_1-602-stop_line-extra",
+          "category": "stop_line",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              864.0,
+              527.5
+            ],
+            [
+              944.8,
+              527.4
+            ],
+            [
+              945.0,
+              559.4
+            ],
+            [
+              862.1,
+              559.5
+            ]
+          ]
+        },
+        {
+          "frame_id": 1020,
+          "group": "sample_1-1022-stop_line-extra",
+          "category": "stop_line",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              858.8,
+              525.7
+            ],
+            [
+              960.8,
+              525.7
+            ],
+            [
+              961.0,
+              556.7
+            ],
+            [
+              858.0,
+              556.6
+            ]
+          ]
+        },
+        {
+          "frame_id": 1021,
+          "group": "sample_1-1022-stop_line-extra",
+          "category": "stop_line",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              858.9,
+              525.7
+            ],
+            [
+              960.6,
+              526.0
+            ],
+            [
+              960.9,
+              556.7
+            ],
+            [
+              858.2,
+              556.6
+            ]
+          ]
+        },
+        {
+          "frame_id": 1022,
+          "group": "sample_1-1022-stop_line-extra",
+          "category": "stop_line",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              859,
+              525
+            ],
+            [
+              961,
+              525
+            ],
+            [
+              961,
+              556
+            ],
+            [
+              858,
+              556
+            ]
+          ]
+        },
+        {
+          "frame_id": 1023,
+          "group": "sample_1-1022-stop_line-extra",
+          "category": "stop_line",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              858.9,
+              525.1
+            ],
+            [
+              961.0,
+              524.8
+            ],
+            [
+              961.0,
+              555.8
+            ],
+            [
+              858.1,
+              556.0
+            ]
+          ]
+        },
+        {
+          "frame_id": 1024,
+          "group": "sample_1-1022-stop_line-extra",
+          "category": "stop_line",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              858.9,
+              524.3
+            ],
+            [
+              960.7,
+              523.7
+            ],
+            [
+              960.7,
+              555.1
+            ],
+            [
+              858.1,
+              555.4
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "sample_2",
+      "input_sha256": "48f0e3010d7acffebf95b8bd55e1193589785a3d8835ec528040f0298edbf4ba",
+      "width": 1280,
+      "height": 720,
+      "fps": 30,
+      "tolerance_pixels": 10,
+      "scope": "Existing published cases are regression; extra windows were fixed before training. Same two videos, not unseen roads.",
+      "cases": [
+        {
+          "frame_id": 148,
+          "group": "sample_2-150-left_lane",
+          "category": "left_lane",
+          "split": "regression",
+          "expected_line": true,
+          "polyline": [
+            [
+              211,
+              430
+            ],
+            [
+              284,
+              408
+            ]
+          ]
+        },
+        {
+          "frame_id": 149,
+          "group": "sample_2-150-left_lane",
+          "category": "left_lane",
+          "split": "regression",
+          "expected_line": true,
+          "polyline": [
+            [
+              204,
+              432
+            ],
+            [
+              278,
+              411
+            ]
+          ]
+        },
+        {
+          "frame_id": 150,
+          "group": "sample_2-150-left_lane",
+          "category": "left_lane",
+          "split": "regression",
+          "expected_line": true,
+          "polyline": [
+            [
+              204,
+              432
+            ],
+            [
+              275,
+              411
+            ]
+          ]
+        },
+        {
+          "frame_id": 151,
+          "group": "sample_2-150-left_lane",
+          "category": "left_lane",
+          "split": "regression",
+          "expected_line": true,
+          "polyline": [
+            [
+              197,
+              431
+            ],
+            [
+              269,
+              409
+            ]
+          ]
+        },
+        {
+          "frame_id": 152,
+          "group": "sample_2-150-left_lane",
+          "category": "left_lane",
+          "split": "regression",
+          "expected_line": true,
+          "polyline": [
+            [
+              184,
+              431
+            ],
+            [
+              257,
+              409
+            ]
+          ]
+        },
+        {
+          "frame_id": 58,
+          "group": "sample_2-60-left_lane_glare",
+          "category": "left_lane_glare",
+          "split": "regression",
+          "expected_line": true,
+          "polyline": [
+            [
+              152,
+              436
+            ],
+            [
+              239,
+              412
+            ]
+          ]
+        },
+        {
+          "frame_id": 59,
+          "group": "sample_2-60-left_lane_glare",
+          "category": "left_lane_glare",
+          "split": "regression",
+          "expected_line": true,
+          "polyline": [
+            [
+              152,
+              436
+            ],
+            [
+              235,
+              412
+            ]
+          ]
+        },
+        {
+          "frame_id": 60,
+          "group": "sample_2-60-left_lane_glare",
+          "category": "left_lane_glare",
+          "split": "regression",
+          "expected_line": true,
+          "polyline": [
+            [
+              150,
+              436
+            ],
+            [
+              230,
+              413
+            ]
+          ]
+        },
+        {
+          "frame_id": 61,
+          "group": "sample_2-60-left_lane_glare",
+          "category": "left_lane_glare",
+          "split": "regression",
+          "expected_line": true,
+          "polyline": [
+            [
+              148,
+              436
+            ],
+            [
+              227,
+              413
+            ]
+          ]
+        },
+        {
+          "frame_id": 62,
+          "group": "sample_2-60-left_lane_glare",
+          "category": "left_lane_glare",
+          "split": "regression",
+          "expected_line": true,
+          "polyline": [
+            [
+              148,
+              436
+            ],
+            [
+              224,
+              414
+            ]
+          ]
+        },
+        {
+          "frame_id": 1674,
+          "group": "sample_2-1676-crosswalk",
+          "category": "crosswalk",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              144,
+              391
+            ],
+            [
+              1232,
+              426
+            ],
+            [
+              1231,
+              575
+            ],
+            [
+              393,
+              585
+            ]
+          ]
+        },
+        {
+          "frame_id": 1675,
+          "group": "sample_2-1676-crosswalk",
+          "category": "crosswalk",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              122,
+              393
+            ],
+            [
+              1255,
+              426
+            ],
+            [
+              1254,
+              582
+            ],
+            [
+              381,
+              595
+            ]
+          ]
+        },
+        {
+          "frame_id": 1676,
+          "group": "sample_2-1676-crosswalk",
+          "category": "crosswalk",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              100,
+              395
+            ],
+            [
+              1279,
+              428
+            ],
+            [
+              1279,
+              590
+            ],
+            [
+              370,
+              605
+            ]
+          ]
+        },
+        {
+          "frame_id": 1677,
+          "group": "sample_2-1676-crosswalk",
+          "category": "crosswalk",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              79,
+              402
+            ],
+            [
+              1279,
+              430
+            ],
+            [
+              1279,
+              598
+            ],
+            [
+              360,
+              619
+            ]
+          ]
+        },
+        {
+          "frame_id": 1678,
+          "group": "sample_2-1676-crosswalk",
+          "category": "crosswalk",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              58,
+              405
+            ],
+            [
+              1279,
+              429
+            ],
+            [
+              1279,
+              603
+            ],
+            [
+              351,
+              629
+            ]
+          ]
+        },
+        {
+          "frame_id": 181,
+          "group": "sample_2-183-crosswalk",
+          "category": "crosswalk",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              110,
+              395
+            ],
+            [
+              1271,
+              441
+            ],
+            [
+              1270,
+              657
+            ],
+            [
+              467,
+              654
+            ]
+          ]
+        },
+        {
+          "frame_id": 182,
+          "group": "sample_2-183-crosswalk",
+          "category": "crosswalk",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              102,
+              396
+            ],
+            [
+              1274,
+              436
+            ],
+            [
+              1274,
+              654
+            ],
+            [
+              464,
+              656
+            ]
+          ]
+        },
+        {
+          "frame_id": 183,
+          "group": "sample_2-183-crosswalk",
+          "category": "crosswalk",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              94,
+              396
+            ],
+            [
+              1279,
+              435
+            ],
+            [
+              1279,
+              655
+            ],
+            [
+              460,
+              658
+            ]
+          ]
+        },
+        {
+          "frame_id": 184,
+          "group": "sample_2-183-crosswalk",
+          "category": "crosswalk",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              87,
+              398
+            ],
+            [
+              1279,
+              431
+            ],
+            [
+              1279,
+              653
+            ],
+            [
+              459,
+              661
+            ]
+          ]
+        },
+        {
+          "frame_id": 185,
+          "group": "sample_2-183-crosswalk",
+          "category": "crosswalk",
+          "split": "regression",
+          "expected_line": false,
+          "polygon": [
+            [
+              79,
+              400
+            ],
+            [
+              1279,
+              435
+            ],
+            [
+              1279,
+              660
+            ],
+            [
+              453,
+              666
+            ]
+          ]
+        },
+        {
+          "frame_id": 1228,
+          "group": "sample_2-1230-left_lane",
+          "category": "left_lane",
+          "split": "regression",
+          "expected_line": true,
+          "polyline": [
+            [
+              328,
+              553
+            ],
+            [
+              426,
+              485
+            ]
+          ]
+        },
+        {
+          "frame_id": 1229,
+          "group": "sample_2-1230-left_lane",
+          "category": "left_lane",
+          "split": "regression",
+          "expected_line": true,
+          "polyline": [
+            [
+              328,
+              554
+            ],
+            [
+              426,
+              486
+            ]
+          ]
+        },
+        {
+          "frame_id": 1230,
+          "group": "sample_2-1230-left_lane",
+          "category": "left_lane",
+          "split": "regression",
+          "expected_line": true,
+          "polyline": [
+            [
+              330,
+              555
+            ],
+            [
+              426,
+              488
+            ]
+          ]
+        },
+        {
+          "frame_id": 1231,
+          "group": "sample_2-1230-left_lane",
+          "category": "left_lane",
+          "split": "regression",
+          "expected_line": true,
+          "polyline": [
+            [
+              330,
+              555
+            ],
+            [
+              427,
+              486
+            ]
+          ]
+        },
+        {
+          "frame_id": 1232,
+          "group": "sample_2-1230-left_lane",
+          "category": "left_lane",
+          "split": "regression",
+          "expected_line": true,
+          "polyline": [
+            [
+              329,
+              554
+            ],
+            [
+              430,
+              485
+            ]
+          ]
+        },
+        {
+          "frame_id": 330,
+          "group": "sample_2-332-curb-extra",
+          "category": "curb",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              954.4,
+              394.4
+            ],
+            [
+              1208.4,
+              422.9
+            ],
+            [
+              1207.1,
+              437.6
+            ],
+            [
+              955.4,
+              408.2
+            ]
+          ]
+        },
+        {
+          "frame_id": 331,
+          "group": "sample_2-332-curb-extra",
+          "category": "curb",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              961.2,
+              394.8
+            ],
+            [
+              1200.4,
+              414.1
+            ],
+            [
+              1203.5,
+              433.7
+            ],
+            [
+              962.1,
+              408.7
+            ]
+          ]
+        },
+        {
+          "frame_id": 332,
+          "group": "sample_2-332-curb-extra",
+          "category": "curb",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              967,
+              396
+            ],
+            [
+              1213,
+              415
+            ],
+            [
+              1216,
+              435
+            ],
+            [
+              968,
+              410
+            ]
+          ]
+        },
+        {
+          "frame_id": 333,
+          "group": "sample_2-332-curb-extra",
+          "category": "curb",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              973.1,
+              394.2
+            ],
+            [
+              1226.2,
+              412.5
+            ],
+            [
+              1229.1,
+              432.4
+            ],
+            [
+              974.2,
+              408.2
+            ]
+          ]
+        },
+        {
+          "frame_id": 334,
+          "group": "sample_2-332-curb-extra",
+          "category": "curb",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              980.8,
+              392.8
+            ],
+            [
+              1211.8,
+              407.2
+            ],
+            [
+              1214.9,
+              426.1
+            ],
+            [
+              981.8,
+              406.9
+            ]
+          ]
+        },
+        {
+          "frame_id": 630,
+          "group": "sample_2-632-lane-extra",
+          "category": "lane",
+          "split": "extra",
+          "expected_line": true,
+          "polyline": [
+            [
+              687.0,
+              442.0
+            ],
+            [
+              699.8,
+              579.0
+            ]
+          ]
+        },
+        {
+          "frame_id": 631,
+          "group": "sample_2-632-lane-extra",
+          "category": "lane",
+          "split": "extra",
+          "expected_line": true,
+          "polyline": [
+            [
+              687.4,
+              444.3
+            ],
+            [
+              699.3,
+              581.3
+            ]
+          ]
+        },
+        {
+          "frame_id": 632,
+          "group": "sample_2-632-lane-extra",
+          "category": "lane",
+          "split": "extra",
+          "expected_line": true,
+          "polyline": [
+            [
+              688,
+              448
+            ],
+            [
+              702,
+              600
+            ]
+          ]
+        },
+        {
+          "frame_id": 633,
+          "group": "sample_2-632-lane-extra",
+          "category": "lane",
+          "split": "extra",
+          "expected_line": true,
+          "polyline": [
+            [
+              688.4,
+              452.4
+            ],
+            [
+              703.9,
+              624.8
+            ]
+          ]
+        },
+        {
+          "frame_id": 634,
+          "group": "sample_2-632-lane-extra",
+          "category": "lane",
+          "split": "extra",
+          "expected_line": true,
+          "polyline": [
+            [
+              688.6,
+              456.8
+            ],
+            [
+              704.2,
+              631.6
+            ]
+          ]
+        },
+        {
+          "frame_id": 873,
+          "group": "sample_2-875-vehicle_edge-extra",
+          "category": "vehicle_edge",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              2.0,
+              364.7
+            ],
+            [
+              181.0,
+              337.7
+            ],
+            [
+              198.0,
+              356.5
+            ],
+            [
+              21.3,
+              389.7
+            ]
+          ]
+        },
+        {
+          "frame_id": 874,
+          "group": "sample_2-875-vehicle_edge-extra",
+          "category": "vehicle_edge",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              0.3,
+              366.4
+            ],
+            [
+              176.9,
+              336.6
+            ],
+            [
+              204.3,
+              354.7
+            ],
+            [
+              24.0,
+              389.4
+            ]
+          ]
+        },
+        {
+          "frame_id": 875,
+          "group": "sample_2-875-vehicle_edge-extra",
+          "category": "vehicle_edge",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              13,
+              364
+            ],
+            [
+              192,
+              337
+            ],
+            [
+              209,
+              353
+            ],
+            [
+              24,
+              389
+            ]
+          ]
+        },
+        {
+          "frame_id": 876,
+          "group": "sample_2-875-vehicle_edge-extra",
+          "category": "vehicle_edge",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              26.2,
+              361.9
+            ],
+            [
+              202.6,
+              336.0
+            ],
+            [
+              213.0,
+              351.2
+            ],
+            [
+              29.5,
+              389.1
+            ]
+          ]
+        },
+        {
+          "frame_id": 877,
+          "group": "sample_2-875-vehicle_edge-extra",
+          "category": "vehicle_edge",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              38.1,
+              361.7
+            ],
+            [
+              215.5,
+              337.8
+            ],
+            [
+              217.0,
+              351.2
+            ],
+            [
+              34.1,
+              390.8
+            ]
+          ]
+        },
+        {
+          "frame_id": 1410,
+          "group": "sample_2-1412-lane-extra",
+          "category": "lane",
+          "split": "extra",
+          "expected_line": true,
+          "polyline": [
+            [
+              1073.2,
+              585.0
+            ],
+            [
+              1257.5,
+              698.9
+            ]
+          ]
+        },
+        {
+          "frame_id": 1411,
+          "group": "sample_2-1412-lane-extra",
+          "category": "lane",
+          "split": "extra",
+          "expected_line": true,
+          "polyline": [
+            [
+              1091.7,
+              596.4
+            ],
+            [
+              1258.3,
+              699.0
+            ]
+          ]
+        },
+        {
+          "frame_id": 1412,
+          "group": "sample_2-1412-lane-extra",
+          "category": "lane",
+          "split": "extra",
+          "expected_line": true,
+          "polyline": [
+            [
+              1113,
+              609
+            ],
+            [
+              1259,
+              699
+            ]
+          ]
+        },
+        {
+          "frame_id": 1413,
+          "group": "sample_2-1412-lane-extra",
+          "category": "lane",
+          "split": "extra",
+          "expected_line": true,
+          "polyline": [
+            [
+              1160,
+              640
+            ],
+            [
+              1270,
+              708
+            ]
+          ]
+        },
+        {
+          "frame_id": 1414,
+          "group": "sample_2-1412-lane-extra",
+          "category": "lane",
+          "split": "extra",
+          "expected_line": true,
+          "polyline": [
+            [
+              1220,
+              676
+            ],
+            [
+              1276,
+              708
+            ]
+          ]
+        },
+        {
+          "frame_id": 1410,
+          "group": "sample_2-1412-crosswalk-extra",
+          "category": "crosswalk",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              1130.3,
+              405.8
+            ],
+            [
+              1249.8,
+              405.3
+            ],
+            [
+              1249.8,
+              460.3
+            ],
+            [
+              1123.0,
+              437.7
+            ]
+          ]
+        },
+        {
+          "frame_id": 1411,
+          "group": "sample_2-1412-crosswalk-extra",
+          "category": "crosswalk",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              1130.3,
+              409.5
+            ],
+            [
+              1264.0,
+              410.4
+            ],
+            [
+              1259.3,
+              462.7
+            ],
+            [
+              1136.2,
+              441.9
+            ]
+          ]
+        },
+        {
+          "frame_id": 1412,
+          "group": "sample_2-1412-crosswalk-extra",
+          "category": "crosswalk",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              1137,
+              413
+            ],
+            [
+              1279,
+              413
+            ],
+            [
+              1279,
+              468
+            ],
+            [
+              1149,
+              446
+            ]
+          ]
+        },
+        {
+          "frame_id": 1413,
+          "group": "sample_2-1412-crosswalk-extra",
+          "category": "crosswalk",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              1147.7,
+              415.7
+            ],
+            [
+              1279.0,
+              416.0
+            ],
+            [
+              1279.0,
+              471.0
+            ],
+            [
+              1164.0,
+              449.4
+            ]
+          ]
+        },
+        {
+          "frame_id": 1414,
+          "group": "sample_2-1412-crosswalk-extra",
+          "category": "crosswalk",
+          "split": "extra",
+          "expected_line": false,
+          "polygon": [
+            [
+              1158.6,
+              419.9
+            ],
+            [
+              1279.0,
+              420.7
+            ],
+            [
+              1279.0,
+              475.7
+            ],
+            [
+              1175.7,
+              453.7
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "training_regions": [
+    {
+      "frame_id": 63,
+      "group": "sample_1-64-road_text",
+      "category": "road_text",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          923,
+          564
+        ],
+        [
+          1227,
+          647
+        ],
+        [
+          1227,
+          691
+        ],
+        [
+          944,
+          692
+        ]
+      ],
+      "video": "sample_1",
+      "label": "text"
+    },
+    {
+      "frame_id": 64,
+      "group": "sample_1-64-road_text",
+      "category": "road_text",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          947,
+          580
+        ],
+        [
+          1279,
+          670
+        ],
+        [
+          1279,
+          719
+        ],
+        [
+          970,
+          719
+        ]
+      ],
+      "video": "sample_1",
+      "label": "text"
+    },
+    {
+      "frame_id": 65,
+      "group": "sample_1-64-road_text",
+      "category": "road_text",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          982,
+          615
+        ],
+        [
+          1279,
+          696
+        ],
+        [
+          1279,
+          719
+        ],
+        [
+          1007,
+          719
+        ]
+      ],
+      "video": "sample_1",
+      "label": "text"
+    },
+    {
+      "frame_id": 66,
+      "group": "sample_1-64-road_text",
+      "category": "road_text",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          987,
+          612
+        ],
+        [
+          1279,
+          708
+        ],
+        [
+          1279,
+          719
+        ],
+        [
+          1006,
+          719
+        ]
+      ],
+      "video": "sample_1",
+      "label": "text"
+    },
+    {
+      "frame_id": 67,
+      "group": "sample_1-64-road_text",
+      "category": "road_text",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          1019,
+          580
+        ],
+        [
+          1279,
+          717
+        ],
+        [
+          1279,
+          719
+        ],
+        [
+          1015,
+          707
+        ]
+      ],
+      "video": "sample_1",
+      "label": "text"
+    },
+    {
+      "frame_id": 108,
+      "group": "sample_1-110-parking",
+      "category": "parking",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          699,
+          464
+        ],
+        [
+          1027,
+          485
+        ],
+        [
+          1157,
+          719
+        ],
+        [
+          780,
+          719
+        ]
+      ],
+      "video": "sample_1",
+      "label": "parking"
+    },
+    {
+      "frame_id": 109,
+      "group": "sample_1-110-parking",
+      "category": "parking",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          701,
+          464
+        ],
+        [
+          1027,
+          489
+        ],
+        [
+          1154,
+          719
+        ],
+        [
+          779,
+          719
+        ]
+      ],
+      "video": "sample_1",
+      "label": "parking"
+    },
+    {
+      "frame_id": 110,
+      "group": "sample_1-110-parking",
+      "category": "parking",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          703,
+          464
+        ],
+        [
+          1030,
+          485
+        ],
+        [
+          1160,
+          719
+        ],
+        [
+          784,
+          719
+        ]
+      ],
+      "video": "sample_1",
+      "label": "parking"
+    },
+    {
+      "frame_id": 111,
+      "group": "sample_1-110-parking",
+      "category": "parking",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          700,
+          465
+        ],
+        [
+          1027,
+          479
+        ],
+        [
+          1162,
+          710
+        ],
+        [
+          786,
+          718
+        ]
+      ],
+      "video": "sample_1",
+      "label": "parking"
+    },
+    {
+      "frame_id": 112,
+      "group": "sample_1-110-parking",
+      "category": "parking",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          704,
+          465
+        ],
+        [
+          1030,
+          482
+        ],
+        [
+          1162,
+          715
+        ],
+        [
+          787,
+          719
+        ]
+      ],
+      "video": "sample_1",
+      "label": "parking"
+    },
+    {
+      "frame_id": 93,
+      "group": "sample_1-95-parking",
+      "category": "parking",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          673,
+          401
+        ],
+        [
+          856,
+          434
+        ],
+        [
+          1056,
+          716
+        ],
+        [
+          776,
+          719
+        ]
+      ],
+      "video": "sample_1",
+      "label": "parking"
+    },
+    {
+      "frame_id": 94,
+      "group": "sample_1-95-parking",
+      "category": "parking",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          679,
+          399
+        ],
+        [
+          858,
+          435
+        ],
+        [
+          1047,
+          716
+        ],
+        [
+          773,
+          714
+        ]
+      ],
+      "video": "sample_1",
+      "label": "parking"
+    },
+    {
+      "frame_id": 95,
+      "group": "sample_1-95-parking",
+      "category": "parking",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          680,
+          405
+        ],
+        [
+          859,
+          440
+        ],
+        [
+          1050,
+          719
+        ],
+        [
+          776,
+          719
+        ]
+      ],
+      "video": "sample_1",
+      "label": "parking"
+    },
+    {
+      "frame_id": 96,
+      "group": "sample_1-95-parking",
+      "category": "parking",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          681,
+          405
+        ],
+        [
+          860,
+          440
+        ],
+        [
+          1052,
+          719
+        ],
+        [
+          777,
+          719
+        ]
+      ],
+      "video": "sample_1",
+      "label": "parking"
+    },
+    {
+      "frame_id": 97,
+      "group": "sample_1-95-parking",
+      "category": "parking",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          680,
+          400
+        ],
+        [
+          864,
+          436
+        ],
+        [
+          1059,
+          719
+        ],
+        [
+          778,
+          719
+        ]
+      ],
+      "video": "sample_1",
+      "label": "parking"
+    },
+    {
+      "frame_id": 108,
+      "group": "sample_1-110-arrow",
+      "category": "arrow",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          521,
+          413
+        ],
+        [
+          572,
+          389
+        ],
+        [
+          588,
+          374
+        ],
+        [
+          579,
+          394
+        ],
+        [
+          538,
+          414
+        ]
+      ],
+      "video": "sample_1",
+      "label": "arrow"
+    },
+    {
+      "frame_id": 109,
+      "group": "sample_1-110-arrow",
+      "category": "arrow",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          517,
+          412
+        ],
+        [
+          570,
+          387
+        ],
+        [
+          587,
+          371
+        ],
+        [
+          578,
+          393
+        ],
+        [
+          535,
+          413
+        ]
+      ],
+      "video": "sample_1",
+      "label": "arrow"
+    },
+    {
+      "frame_id": 110,
+      "group": "sample_1-110-arrow",
+      "category": "arrow",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          514,
+          413
+        ],
+        [
+          568,
+          388
+        ],
+        [
+          586,
+          372
+        ],
+        [
+          576,
+          394
+        ],
+        [
+          532,
+          414
+        ]
+      ],
+      "video": "sample_1",
+      "label": "arrow"
+    },
+    {
+      "frame_id": 111,
+      "group": "sample_1-110-arrow",
+      "category": "arrow",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          511,
+          413
+        ],
+        [
+          566,
+          388
+        ],
+        [
+          585,
+          371
+        ],
+        [
+          575,
+          394
+        ],
+        [
+          530,
+          414
+        ]
+      ],
+      "video": "sample_1",
+      "label": "arrow"
+    },
+    {
+      "frame_id": 112,
+      "group": "sample_1-110-arrow",
+      "category": "arrow",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          510,
+          412
+        ],
+        [
+          565,
+          387
+        ],
+        [
+          583,
+          371
+        ],
+        [
+          573,
+          393
+        ],
+        [
+          529,
+          413
+        ]
+      ],
+      "video": "sample_1",
+      "label": "arrow"
+    },
+    {
+      "frame_id": 98,
+      "group": "sample_1-100-left_lane",
+      "category": "left_lane",
+      "split": "train",
+      "expected_line": true,
+      "polyline": [
+        [
+          151,
+          442
+        ],
+        [
+          283,
+          409
+        ]
+      ],
+      "video": "sample_1",
+      "label": "lane"
+    },
+    {
+      "frame_id": 99,
+      "group": "sample_1-100-left_lane",
+      "category": "left_lane",
+      "split": "train",
+      "expected_line": true,
+      "polyline": [
+        [
+          156,
+          445
+        ],
+        [
+          299,
+          409
+        ]
+      ],
+      "video": "sample_1",
+      "label": "lane"
+    },
+    {
+      "frame_id": 100,
+      "group": "sample_1-100-left_lane",
+      "category": "left_lane",
+      "split": "train",
+      "expected_line": true,
+      "polyline": [
+        [
+          160,
+          446
+        ],
+        [
+          281,
+          415
+        ]
+      ],
+      "video": "sample_1",
+      "label": "lane"
+    },
+    {
+      "frame_id": 101,
+      "group": "sample_1-100-left_lane",
+      "category": "left_lane",
+      "split": "train",
+      "expected_line": true,
+      "polyline": [
+        [
+          162,
+          447
+        ],
+        [
+          278,
+          418
+        ]
+      ],
+      "video": "sample_1",
+      "label": "lane"
+    },
+    {
+      "frame_id": 102,
+      "group": "sample_1-100-left_lane",
+      "category": "left_lane",
+      "split": "train",
+      "expected_line": true,
+      "polyline": [
+        [
+          161,
+          447
+        ],
+        [
+          280,
+          420
+        ]
+      ],
+      "video": "sample_1",
+      "label": "lane"
+    },
+    {
+      "frame_id": 238,
+      "group": "sample_1-240-arrow",
+      "category": "arrow",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          585,
+          489
+        ],
+        [
+          689,
+          446
+        ],
+        [
+          742,
+          453
+        ],
+        [
+          936,
+          629
+        ],
+        [
+          910,
+          663
+        ],
+        [
+          763,
+          581
+        ],
+        [
+          748,
+          691
+        ],
+        [
+          623,
+          692
+        ]
+      ],
+      "video": "sample_1",
+      "label": "arrow"
+    },
+    {
+      "frame_id": 239,
+      "group": "sample_1-240-arrow",
+      "category": "arrow",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          584,
+          494
+        ],
+        [
+          692,
+          449
+        ],
+        [
+          747,
+          456
+        ],
+        [
+          948,
+          639
+        ],
+        [
+          922,
+          674
+        ],
+        [
+          769,
+          589
+        ],
+        [
+          754,
+          703
+        ],
+        [
+          624,
+          704
+        ]
+      ],
+      "video": "sample_1",
+      "label": "arrow"
+    },
+    {
+      "frame_id": 240,
+      "group": "sample_1-240-arrow",
+      "category": "arrow",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          580,
+          500
+        ],
+        [
+          693,
+          454
+        ],
+        [
+          750,
+          462
+        ],
+        [
+          958,
+          654
+        ],
+        [
+          930,
+          690
+        ],
+        [
+          772,
+          600
+        ],
+        [
+          755,
+          719
+        ],
+        [
+          620,
+          719
+        ]
+      ],
+      "video": "sample_1",
+      "label": "arrow"
+    },
+    {
+      "frame_id": 241,
+      "group": "sample_1-240-arrow",
+      "category": "arrow",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          574,
+          505
+        ],
+        [
+          695,
+          457
+        ],
+        [
+          756,
+          466
+        ],
+        [
+          977,
+          673
+        ],
+        [
+          947,
+          711
+        ],
+        [
+          779,
+          613
+        ],
+        [
+          759,
+          719
+        ],
+        [
+          615,
+          719
+        ]
+      ],
+      "video": "sample_1",
+      "label": "arrow"
+    },
+    {
+      "frame_id": 242,
+      "group": "sample_1-240-arrow",
+      "category": "arrow",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          573,
+          510
+        ],
+        [
+          695,
+          463
+        ],
+        [
+          756,
+          473
+        ],
+        [
+          976,
+          683
+        ],
+        [
+          945,
+          719
+        ],
+        [
+          777,
+          621
+        ],
+        [
+          757,
+          719
+        ],
+        [
+          612,
+          719
+        ]
+      ],
+      "video": "sample_1",
+      "label": "arrow"
+    },
+    {
+      "frame_id": 148,
+      "group": "sample_2-150-left_lane",
+      "category": "left_lane",
+      "split": "train",
+      "expected_line": true,
+      "polyline": [
+        [
+          211,
+          430
+        ],
+        [
+          284,
+          408
+        ]
+      ],
+      "video": "sample_2",
+      "label": "lane"
+    },
+    {
+      "frame_id": 149,
+      "group": "sample_2-150-left_lane",
+      "category": "left_lane",
+      "split": "train",
+      "expected_line": true,
+      "polyline": [
+        [
+          204,
+          432
+        ],
+        [
+          278,
+          411
+        ]
+      ],
+      "video": "sample_2",
+      "label": "lane"
+    },
+    {
+      "frame_id": 150,
+      "group": "sample_2-150-left_lane",
+      "category": "left_lane",
+      "split": "train",
+      "expected_line": true,
+      "polyline": [
+        [
+          204,
+          432
+        ],
+        [
+          275,
+          411
+        ]
+      ],
+      "video": "sample_2",
+      "label": "lane"
+    },
+    {
+      "frame_id": 151,
+      "group": "sample_2-150-left_lane",
+      "category": "left_lane",
+      "split": "train",
+      "expected_line": true,
+      "polyline": [
+        [
+          197,
+          431
+        ],
+        [
+          269,
+          409
+        ]
+      ],
+      "video": "sample_2",
+      "label": "lane"
+    },
+    {
+      "frame_id": 152,
+      "group": "sample_2-150-left_lane",
+      "category": "left_lane",
+      "split": "train",
+      "expected_line": true,
+      "polyline": [
+        [
+          184,
+          431
+        ],
+        [
+          257,
+          409
+        ]
+      ],
+      "video": "sample_2",
+      "label": "lane"
+    },
+    {
+      "frame_id": 58,
+      "group": "sample_2-60-left_lane_glare",
+      "category": "left_lane_glare",
+      "split": "train",
+      "expected_line": true,
+      "polyline": [
+        [
+          152,
+          436
+        ],
+        [
+          239,
+          412
+        ]
+      ],
+      "video": "sample_2",
+      "label": "lane"
+    },
+    {
+      "frame_id": 59,
+      "group": "sample_2-60-left_lane_glare",
+      "category": "left_lane_glare",
+      "split": "train",
+      "expected_line": true,
+      "polyline": [
+        [
+          152,
+          436
+        ],
+        [
+          235,
+          412
+        ]
+      ],
+      "video": "sample_2",
+      "label": "lane"
+    },
+    {
+      "frame_id": 60,
+      "group": "sample_2-60-left_lane_glare",
+      "category": "left_lane_glare",
+      "split": "train",
+      "expected_line": true,
+      "polyline": [
+        [
+          150,
+          436
+        ],
+        [
+          230,
+          413
+        ]
+      ],
+      "video": "sample_2",
+      "label": "lane"
+    },
+    {
+      "frame_id": 61,
+      "group": "sample_2-60-left_lane_glare",
+      "category": "left_lane_glare",
+      "split": "train",
+      "expected_line": true,
+      "polyline": [
+        [
+          148,
+          436
+        ],
+        [
+          227,
+          413
+        ]
+      ],
+      "video": "sample_2",
+      "label": "lane"
+    },
+    {
+      "frame_id": 62,
+      "group": "sample_2-60-left_lane_glare",
+      "category": "left_lane_glare",
+      "split": "train",
+      "expected_line": true,
+      "polyline": [
+        [
+          148,
+          436
+        ],
+        [
+          224,
+          414
+        ]
+      ],
+      "video": "sample_2",
+      "label": "lane"
+    },
+    {
+      "frame_id": 1674,
+      "group": "sample_2-1676-crosswalk",
+      "category": "crosswalk",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          144,
+          391
+        ],
+        [
+          1232,
+          426
+        ],
+        [
+          1231,
+          575
+        ],
+        [
+          393,
+          585
+        ]
+      ],
+      "video": "sample_2",
+      "label": "crosswalk"
+    },
+    {
+      "frame_id": 1675,
+      "group": "sample_2-1676-crosswalk",
+      "category": "crosswalk",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          122,
+          393
+        ],
+        [
+          1255,
+          426
+        ],
+        [
+          1254,
+          582
+        ],
+        [
+          381,
+          595
+        ]
+      ],
+      "video": "sample_2",
+      "label": "crosswalk"
+    },
+    {
+      "frame_id": 1676,
+      "group": "sample_2-1676-crosswalk",
+      "category": "crosswalk",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          100,
+          395
+        ],
+        [
+          1279,
+          428
+        ],
+        [
+          1279,
+          590
+        ],
+        [
+          370,
+          605
+        ]
+      ],
+      "video": "sample_2",
+      "label": "crosswalk"
+    },
+    {
+      "frame_id": 1677,
+      "group": "sample_2-1676-crosswalk",
+      "category": "crosswalk",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          79,
+          402
+        ],
+        [
+          1279,
+          430
+        ],
+        [
+          1279,
+          598
+        ],
+        [
+          360,
+          619
+        ]
+      ],
+      "video": "sample_2",
+      "label": "crosswalk"
+    },
+    {
+      "frame_id": 1678,
+      "group": "sample_2-1676-crosswalk",
+      "category": "crosswalk",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          58,
+          405
+        ],
+        [
+          1279,
+          429
+        ],
+        [
+          1279,
+          603
+        ],
+        [
+          351,
+          629
+        ]
+      ],
+      "video": "sample_2",
+      "label": "crosswalk"
+    },
+    {
+      "frame_id": 181,
+      "group": "sample_2-183-crosswalk",
+      "category": "crosswalk",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          110,
+          395
+        ],
+        [
+          1271,
+          441
+        ],
+        [
+          1270,
+          657
+        ],
+        [
+          467,
+          654
+        ]
+      ],
+      "video": "sample_2",
+      "label": "crosswalk"
+    },
+    {
+      "frame_id": 182,
+      "group": "sample_2-183-crosswalk",
+      "category": "crosswalk",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          102,
+          396
+        ],
+        [
+          1274,
+          436
+        ],
+        [
+          1274,
+          654
+        ],
+        [
+          464,
+          656
+        ]
+      ],
+      "video": "sample_2",
+      "label": "crosswalk"
+    },
+    {
+      "frame_id": 183,
+      "group": "sample_2-183-crosswalk",
+      "category": "crosswalk",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          94,
+          396
+        ],
+        [
+          1279,
+          435
+        ],
+        [
+          1279,
+          655
+        ],
+        [
+          460,
+          658
+        ]
+      ],
+      "video": "sample_2",
+      "label": "crosswalk"
+    },
+    {
+      "frame_id": 184,
+      "group": "sample_2-183-crosswalk",
+      "category": "crosswalk",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          87,
+          398
+        ],
+        [
+          1279,
+          431
+        ],
+        [
+          1279,
+          653
+        ],
+        [
+          459,
+          661
+        ]
+      ],
+      "video": "sample_2",
+      "label": "crosswalk"
+    },
+    {
+      "frame_id": 185,
+      "group": "sample_2-183-crosswalk",
+      "category": "crosswalk",
+      "split": "train",
+      "expected_line": false,
+      "polygon": [
+        [
+          79,
+          400
+        ],
+        [
+          1279,
+          435
+        ],
+        [
+          1279,
+          660
+        ],
+        [
+          453,
+          666
+        ]
+      ],
+      "video": "sample_2",
+      "label": "crosswalk"
+    },
+    {
+      "frame_id": 1228,
+      "group": "sample_2-1230-left_lane",
+      "category": "left_lane",
+      "split": "train",
+      "expected_line": true,
+      "polyline": [
+        [
+          328,
+          553
+        ],
+        [
+          426,
+          485
+        ]
+      ],
+      "video": "sample_2",
+      "label": "lane"
+    },
+    {
+      "frame_id": 1229,
+      "group": "sample_2-1230-left_lane",
+      "category": "left_lane",
+      "split": "train",
+      "expected_line": true,
+      "polyline": [
+        [
+          328,
+          554
+        ],
+        [
+          426,
+          486
+        ]
+      ],
+      "video": "sample_2",
+      "label": "lane"
+    },
+    {
+      "frame_id": 1230,
+      "group": "sample_2-1230-left_lane",
+      "category": "left_lane",
+      "split": "train",
+      "expected_line": true,
+      "polyline": [
+        [
+          330,
+          555
+        ],
+        [
+          426,
+          488
+        ]
+      ],
+      "video": "sample_2",
+      "label": "lane"
+    },
+    {
+      "frame_id": 1231,
+      "group": "sample_2-1230-left_lane",
+      "category": "left_lane",
+      "split": "train",
+      "expected_line": true,
+      "polyline": [
+        [
+          330,
+          555
+        ],
+        [
+          427,
+          486
+        ]
+      ],
+      "video": "sample_2",
+      "label": "lane"
+    },
+    {
+      "frame_id": 1232,
+      "group": "sample_2-1230-left_lane",
+      "category": "left_lane",
+      "split": "train",
+      "expected_line": true,
+      "polyline": [
+        [
+          329,
+          554
+        ],
+        [
+          430,
+          485
+        ]
+      ],
+      "video": "sample_2",
+      "label": "lane"
+    },
+    {
+      "video": "sample_1",
+      "frame_id": 62,
+      "group": "sample_1-64-lane-supplement",
+      "split": "train",
+      "label": "lane",
+      "polyline": [
+        [
+          567.9,
+          465.7
+        ],
+        [
+          584.7,
+          417.3
+        ]
+      ]
+    },
+    {
+      "video": "sample_1",
+      "frame_id": 63,
+      "group": "sample_1-64-lane-supplement",
+      "split": "train",
+      "label": "lane",
+      "polyline": [
+        [
+          565.2,
+          477.2
+        ],
+        [
+          586.2,
+          422.1
+        ]
+      ]
+    },
+    {
+      "video": "sample_1",
+      "frame_id": 64,
+      "group": "sample_1-64-lane-supplement",
+      "split": "train",
+      "label": "lane",
+      "polyline": [
+        [
+          556,
+          484
+        ],
+        [
+          581,
+          422
+        ]
+      ]
+    },
+    {
+      "video": "sample_1",
+      "frame_id": 65,
+      "group": "sample_1-64-lane-supplement",
+      "split": "train",
+      "label": "lane",
+      "polyline": [
+        [
+          550.8,
+          496.5
+        ],
+        [
+          580.8,
+          425.6
+        ]
+      ]
+    },
+    {
+      "video": "sample_1",
+      "frame_id": 66,
+      "group": "sample_1-64-lane-supplement",
+      "split": "train",
+      "label": "lane",
+      "polyline": [
+        [
+          549.2,
+          501.7
+        ],
+        [
+          580.1,
+          430.0
+        ]
+      ]
+    },
+    {
+      "video": "sample_1",
+      "frame_id": 98,
+      "group": "sample_1-100-lane-supplement",
+      "split": "train",
+      "label": "lane",
+      "polyline": [
+        [
+          480.1,
+          579.8
+        ],
+        [
+          585.3,
+          451.5
+        ]
+      ]
+    },
+    {
+      "video": "sample_1",
+      "frame_id": 99,
+      "group": "sample_1-100-lane-supplement",
+      "split": "train",
+      "label": "lane",
+      "polyline": [
+        [
+          468.1,
+          599.3
+        ],
+        [
+          581.6,
+          459.9
+        ]
+      ]
+    },
+    {
+      "video": "sample_1",
+      "frame_id": 100,
+      "group": "sample_1-100-lane-supplement",
+      "split": "train",
+      "label": "lane",
+      "polyline": [
+        [
+          469,
+          601
+        ],
+        [
+          577,
+          467
+        ]
+      ]
+    },
+    {
+      "video": "sample_1",
+      "frame_id": 101,
+      "group": "sample_1-100-lane-supplement",
+      "split": "train",
+      "label": "lane",
+      "polyline": [
+        [
+          469.8,
+          601.6
+        ],
+        [
+          573.4,
+          475.1
+        ]
+      ]
+    },
+    {
+      "video": "sample_1",
+      "frame_id": 102,
+      "group": "sample_1-100-lane-supplement",
+      "split": "train",
+      "label": "lane",
+      "polyline": [
+        [
+          472.1,
+          601.6
+        ],
+        [
+          568.7,
+          484.9
+        ]
+      ]
+    },
+    {
+      "video": "sample_1",
+      "frame_id": 238,
+      "group": "sample_1-240-lane-supplement",
+      "split": "train",
+      "label": "lane",
+      "polyline": [
+        [
+          392.5,
+          578.9
+        ],
+        [
+          487.2,
+          488.7
+        ]
+      ]
+    },
+    {
+      "video": "sample_1",
+      "frame_id": 239,
+      "group": "sample_1-240-lane-supplement",
+      "split": "train",
+      "label": "lane",
+      "polyline": [
+        [
+          391.6,
+          577.2
+        ],
+        [
+          481.7,
+          492.9
+        ]
+      ]
+    },
+    {
+      "video": "sample_1",
+      "frame_id": 240,
+      "group": "sample_1-240-lane-supplement",
+      "split": "train",
+      "label": "lane",
+      "polyline": [
+        [
+          390,
+          578
+        ],
+        [
+          475,
+          498
+        ]
+      ]
+    },
+    {
+      "video": "sample_1",
+      "frame_id": 241,
+      "group": "sample_1-240-lane-supplement",
+      "split": "train",
+      "label": "lane",
+      "polyline": [
+        [
+          387.3,
+          577.4
+        ],
+        [
+          466.9,
+          503.4
+        ]
+      ]
+    },
+    {
+      "video": "sample_1",
+      "frame_id": 242,
+      "group": "sample_1-240-lane-supplement",
+      "split": "train",
+      "label": "lane",
+      "polyline": [
+        [
+          385.1,
+          575.3
+        ],
+        [
+          457.0,
+          508.9
+        ]
+      ]
+    },
+    {
+      "video": "sample_2",
+      "frame_id": 58,
+      "group": "sample_2-60-lane-supplement",
+      "split": "train",
+      "label": "lane",
+      "polyline": [
+        [
+          127.5,
+          422.0
+        ],
+        [
+          233.7,
+          401.9
+        ]
+      ]
+    },
+    {
+      "video": "sample_2",
+      "frame_id": 59,
+      "group": "sample_2-60-lane-supplement",
+      "split": "train",
+      "label": "lane",
+      "polyline": [
+        [
+          128.9,
+          421.5
+        ],
+        [
+          231.2,
+          402.2
+        ]
+      ]
+    },
+    {
+      "video": "sample_2",
+      "frame_id": 60,
+      "group": "sample_2-60-lane-supplement",
+      "split": "train",
+      "label": "lane",
+      "polyline": [
+        [
+          128,
+          422
+        ],
+        [
+          227,
+          403
+        ]
+      ]
+    },
+    {
+      "video": "sample_2",
+      "frame_id": 61,
+      "group": "sample_2-60-lane-supplement",
+      "split": "train",
+      "label": "lane",
+      "polyline": [
+        [
+          125.9,
+          422.0
+        ],
+        [
+          224.6,
+          403.0
+        ]
+      ]
+    },
+    {
+      "video": "sample_2",
+      "frame_id": 62,
+      "group": "sample_2-60-lane-supplement",
+      "split": "train",
+      "label": "lane",
+      "polyline": [
+        [
+          127.5,
+          422.5
+        ],
+        [
+          222.7,
+          404.1
+        ]
+      ]
+    },
+    {
+      "video": "sample_2",
+      "frame_id": 838,
+      "group": "sample_2-840-curb-supplement",
+      "split": "train",
+      "label": "curb",
+      "polyline": [
+        [
+          998.9,
+          469.1
+        ],
+        [
+          1246.5,
+          597.7
+        ]
+      ]
+    },
+    {
+      "video": "sample_2",
+      "frame_id": 839,
+      "group": "sample_2-840-curb-supplement",
+      "split": "train",
+      "label": "curb",
+      "polyline": [
+        [
+          1003.6,
+          470.8
+        ],
+        [
+          1264.0,
+          603.5
+        ]
+      ]
+    },
+    {
+      "video": "sample_2",
+      "frame_id": 840,
+      "group": "sample_2-840-curb-supplement",
+      "split": "train",
+      "label": "curb",
+      "polyline": [
+        [
+          1007,
+          473
+        ],
+        [
+          1271,
+          604
+        ]
+      ]
+    },
+    {
+      "video": "sample_2",
+      "frame_id": 841,
+      "group": "sample_2-840-curb-supplement",
+      "split": "train",
+      "label": "curb",
+      "polyline": [
+        [
+          1011.1,
+          473.5
+        ],
+        [
+          1277.6,
+          602.8
+        ]
+      ]
+    },
+    {
+      "video": "sample_2",
+      "frame_id": 842,
+      "group": "sample_2-840-curb-supplement",
+      "split": "train",
+      "label": "curb",
+      "polyline": [
+        [
+          1014.0,
+          473.2
+        ],
+        [
+          1278.0,
+          604.2
+        ]
+      ]
+    },
+    {
+      "video": "sample_2",
+      "frame_id": 1228,
+      "group": "sample_2-1230-lane-supplement",
+      "split": "train",
+      "label": "lane",
+      "polyline": [
+        [
+          844.7,
+          493.4
+        ],
+        [
+          1063.7,
+          688.6
+        ]
+      ]
+    },
+    {
+      "video": "sample_2",
+      "frame_id": 1229,
+      "group": "sample_2-1230-lane-supplement",
+      "split": "train",
+      "label": "lane",
+      "polyline": [
+        [
+          846.8,
+          497.5
+        ],
+        [
+          1075.5,
+          701.0
+        ]
+      ]
+    },
+    {
+      "video": "sample_2",
+      "frame_id": 1230,
+      "group": "sample_2-1230-lane-supplement",
+      "split": "train",
+      "label": "lane",
+      "polyline": [
+        [
+          860,
+          511
+        ],
+        [
+          1070,
+          698
+        ]
+      ]
+    },
+    {
+      "video": "sample_2",
+      "frame_id": 1231,
+      "group": "sample_2-1230-lane-supplement",
+      "split": "train",
+      "label": "lane",
+      "polyline": [
+        [
+          875.4,
+          524.2
+        ],
+        [
+          1071.2,
+          698.6
+        ]
+      ]
+    },
+    {
+      "video": "sample_2",
+      "frame_id": 1232,
+      "group": "sample_2-1230-lane-supplement",
+      "split": "train",
+      "label": "lane",
+      "polyline": [
+        [
+          877.9,
+          525.7
+        ],
+        [
+          1071.6,
+          697.7
+        ]
+      ]
+    }
+  ],
+  "vehicle_annotations": [
+    {
+      "video": "sample_2",
+      "frame_id": 60,
+      "split": "development",
+      "audit_box": [
+        708,
+        246,
+        856,
+        578
+      ],
+      "polygon": [
+        [
+          779,
+          254
+        ],
+        [
+          798,
+          259
+        ],
+        [
+          807,
+          279
+        ],
+        [
+          805,
+          291
+        ],
+        [
+          827,
+          313
+        ],
+        [
+          838,
+          340
+        ],
+        [
+          831,
+          358
+        ],
+        [
+          820,
+          359
+        ],
+        [
+          815,
+          397
+        ],
+        [
+          832,
+          417
+        ],
+        [
+          832,
+          460
+        ],
+        [
+          830,
+          488
+        ],
+        [
+          841,
+          510
+        ],
+        [
+          836,
+          536
+        ],
+        [
+          816,
+          544
+        ],
+        [
+          807,
+          567
+        ],
+        [
+          781,
+          572
+        ],
+        [
+          768,
+          553
+        ],
+        [
+          748,
+          531
+        ],
+        [
+          733,
+          521
+        ],
+        [
+          730,
+          495
+        ],
+        [
+          722,
+          468
+        ],
+        [
+          733,
+          454
+        ],
+        [
+          719,
+          443
+        ],
+        [
+          722,
+          420
+        ],
+        [
+          739,
+          394
+        ],
+        [
+          748,
+          361
+        ],
+        [
+          725,
+          364
+        ],
+        [
+          712,
+          348
+        ],
+        [
+          722,
+          328
+        ],
+        [
+          741,
+          304
+        ],
+        [
+          761,
+          293
+        ],
+        [
+          764,
+          272
+        ]
+      ]
+    },
+    {
+      "video": "sample_2",
+      "frame_id": 1230,
+      "split": "development",
+      "audit_box": [
+        78,
+        283,
+        456,
+        495
+      ],
+      "polygon": [
+        [
+          88,
+          342
+        ],
+        [
+          142,
+          323
+        ],
+        [
+          193,
+          299
+        ],
+        [
+          289,
+          291
+        ],
+        [
+          342,
+          300
+        ],
+        [
+          385,
+          320
+        ],
+        [
+          412,
+          346
+        ],
+        [
+          441,
+          362
+        ],
+        [
+          448,
+          384
+        ],
+        [
+          446,
+          409
+        ],
+        [
+          435,
+          417
+        ],
+        [
+          429,
+          432
+        ],
+        [
+          413,
+          445
+        ],
+        [
+          404,
+          453
+        ],
+        [
+          392,
+          453
+        ],
+        [
+          372,
+          468
+        ],
+        [
+          350,
+          480
+        ],
+        [
+          324,
+          486
+        ],
+        [
+          305,
+          481
+        ],
+        [
+          292,
+          458
+        ],
+        [
+          192,
+          452
+        ],
+        [
+          164,
+          464
+        ],
+        [
+          118,
+          454
+        ],
+        [
+          97,
+          438
+        ],
+        [
+          82,
+          416
+        ],
+        [
+          84,
+          379
+        ]
+      ]
+    },
+    {
+      "video": "sample_2",
+      "frame_id": 632,
+      "split": "extra",
+      "audit_box": [
+        721,
+        272,
+        830,
+        516
+      ],
+      "polygon": [
+        [
+          763,
+          278
+        ],
+        [
+          784,
+          275
+        ],
+        [
+          792,
+          286
+        ],
+        [
+          790,
+          299
+        ],
+        [
+          811,
+          314
+        ],
+        [
+          817,
+          337
+        ],
+        [
+          809,
+          350
+        ],
+        [
+          804,
+          376
+        ],
+        [
+          810,
+          400
+        ],
+        [
+          814,
+          425
+        ],
+        [
+          808,
+          463
+        ],
+        [
+          811,
+          477
+        ],
+        [
+          804,
+          486
+        ],
+        [
+          790,
+          490
+        ],
+        [
+          788,
+          510
+        ],
+        [
+          770,
+          511
+        ],
+        [
+          763,
+          493
+        ],
+        [
+          747,
+          481
+        ],
+        [
+          739,
+          470
+        ],
+        [
+          739,
+          444
+        ],
+        [
+          738,
+          426
+        ],
+        [
+          736,
+          408
+        ],
+        [
+          735,
+          383
+        ],
+        [
+          743,
+          362
+        ],
+        [
+          747,
+          344
+        ],
+        [
+          730,
+          349
+        ],
+        [
+          724,
+          338
+        ],
+        [
+          734,
+          323
+        ],
+        [
+          749,
+          309
+        ],
+        [
+          755,
+          295
+        ]
+      ]
+    },
+    {
+      "video": "sample_2",
+      "frame_id": 1412,
+      "split": "extra",
+      "audit_box": [
+        757,
+        272,
+        882,
+        538
+      ],
+      "polygon": [
+        [
+          810,
+          278
+        ],
+        [
+          830,
+          280
+        ],
+        [
+          839,
+          295
+        ],
+        [
+          836,
+          308
+        ],
+        [
+          851,
+          321
+        ],
+        [
+          862,
+          338
+        ],
+        [
+          856,
+          354
+        ],
+        [
+          850,
+          374
+        ],
+        [
+          853,
+          397
+        ],
+        [
+          857,
+          416
+        ],
+        [
+          867,
+          440
+        ],
+        [
+          870,
+          468
+        ],
+        [
+          863,
+          491
+        ],
+        [
+          860,
+          503
+        ],
+        [
+          852,
+          514
+        ],
+        [
+          844,
+          529
+        ],
+        [
+          824,
+          535
+        ],
+        [
+          805,
+          524
+        ],
+        [
+          802,
+          504
+        ],
+        [
+          783,
+          493
+        ],
+        [
+          773,
+          477
+        ],
+        [
+          774,
+          453
+        ],
+        [
+          771,
+          434
+        ],
+        [
+          777,
+          410
+        ],
+        [
+          779,
+          393
+        ],
+        [
+          776,
+          372
+        ],
+        [
+          783,
+          356
+        ],
+        [
+          765,
+          354
+        ],
+        [
+          760,
+          342
+        ],
+        [
+          776,
+          323
+        ],
+        [
+          796,
+          311
+        ],
+        [
+          799,
+          291
+        ]
+      ]
+    }
+  ]
+}

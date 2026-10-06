@@ -5,6 +5,9 @@ from __future__ import annotations
 from collections import defaultdict, deque
 from typing import Any
 
+import numpy as np
+
+from dashcam_ai.domain.lane_lines import LaneCurve, LaneLineFrame
 from dashcam_ai.domain.perception import TrackedObject
 from dashcam_ai.video.reader import _cv2
 
@@ -23,10 +26,37 @@ class OpenCVAnnotator:
         self,
         frame: Any,
         objects: list[TrackedObject],
+        lane_lines: LaneLineFrame | None = None,
+        lane_occlusion_mask: np.ndarray[Any, Any] | None = None,
     ) -> Any:
         """回傳加入物件框、精簡類別標籤與歷史軌跡的影格。"""
         cv2 = _cv2()
         output = frame.copy()
+        if lane_lines is not None:
+            for curve in lane_lines.curves:
+                intensity = 255 if curve.carried_frames == 0 else 180
+                for segment in self._visible_curve_segments(
+                    curve, objects if lane_occlusion_mask is None else []
+                ):
+                    curve_points = np.asarray(segment, dtype=np.int32).reshape((-1, 1, 2))
+                    cv2.polylines(
+                        output,
+                        [curve_points],
+                        False,
+                        (20, 20, 20),
+                        9,
+                        cv2.LINE_AA,
+                    )
+                    cv2.polylines(
+                        output,
+                        [curve_points],
+                        False,
+                        (intensity, intensity, intensity),
+                        5,
+                        cv2.LINE_AA,
+                    )
+            if lane_occlusion_mask is not None:
+                output[lane_occlusion_mask > 0] = frame[lane_occlusion_mask > 0]
         occupied_labels: list[LabelBox] = []
         for obj in objects:
             x1, y1, x2, y2 = (round(value) for value in obj.bbox.as_xyxy())
@@ -83,6 +113,30 @@ class OpenCVAnnotator:
     @staticmethod
     def _track_label_lines(obj: TrackedObject) -> tuple[str, ...]:
         return (f"#{obj.track_id}",)
+
+    @staticmethod
+    def _visible_curve_segments(
+        curve: LaneCurve,
+        objects: list[TrackedObject],
+    ) -> list[list[tuple[int, int]]]:
+        """切開落在車框內的曲線，避免補線覆蓋車身。"""
+        segments: list[list[tuple[int, int]]] = []
+        current: list[tuple[int, int]] = []
+        for point in curve.points:
+            hidden = any(
+                obj.bbox.x1 <= point.x <= obj.bbox.x2
+                and obj.bbox.y1 <= point.y <= obj.bbox.y2
+                for obj in objects
+            )
+            if hidden:
+                if len(current) >= 2:
+                    segments.append(current)
+                current = []
+                continue
+            current.append((round(point.x), round(point.y)))
+        if len(current) >= 2:
+            segments.append(current)
+        return segments
 
     @classmethod
     def _place_label(

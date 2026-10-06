@@ -5,6 +5,17 @@ detection:
   duplicate_vehicle_iou_threshold: 0.85
   duplicate_vehicle_containment_threshold: 0.9
   duplicate_vehicle_center_distance_ratio: 0.22
+  # Fixed camera: normalized outline of the visible lower-left ego body.
+  ego_vehicle_polygon:
+    - [0.000000, 0.536857]
+    - [0.052385, 0.559110]
+    - [0.134480, 0.642559]
+    - [0.186083, 0.716273]
+    - [0.275215, 0.803894]
+    - [0.354183, 0.880389]
+    - [0.490227, 1.000000]
+    - [0.000000, 1.000000]
+  ego_vehicle_overlap_threshold: 0.8
   imgsz: 1280
   device: auto
   classes:
@@ -16,6 +27,37 @@ detection:
 tracking:
   tracker: botsort.yaml
   minimum_track_length: 2
+
+lane_detection:
+  enabled: true
+  backend: yolop_onnx
+  model: models/yolop-640-640.onnx
+  model_sha256: cd66a3e0087a7258ae07768cc02cb742eed93865727ae4c9baf969b8fa190696
+  input_size: 640
+  probability_threshold: 0.5
+  minimum_drivable_probability: 0.5
+  white_lightness_threshold: 90
+  white_saturation_threshold: 125
+  local_contrast_threshold: 12
+  strong_probability_threshold: 0.6
+  roi_top_ratio: 0.4
+  minimum_component_area_ratio: 0.00004
+  minimum_vertical_span_ratio: 0.1
+  minimum_fragment_vertical_span_ratio: 0.05
+  maximum_horizontal_to_vertical_ratio: 5.0
+  maximum_fit_error_ratio: 0.025
+  maximum_arrow_fit_error_ratio: 0.008
+  maximum_row_width_ratio: 0.08
+  maximum_row_width_variation_ratio: 3.5
+  maximum_fragment_gap_ratio: 0.12
+  sample_count: 24
+  smoothing_alpha: 0.35
+  maximum_missing_frames: 1
+  minimum_curve_confidence: 0.5
+  maximum_boundaries: 8
+  temporal_association_distance_ratio: 0.08
+  excluded_bbox_margin_ratio: 0.02
+  minimum_confirmation_frames: 2
 
 output:
   save_video: true

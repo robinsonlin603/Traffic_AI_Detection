@@ -12,6 +12,7 @@ import typer
 from dashcam_ai.application.analyzer import Analyzer
 from dashcam_ai.config.models import load_config
 from dashcam_ai.detection.ultralytics import UltralyticsDetectorTracker
+from dashcam_ai.lane.segmentation import YoloPLaneLineDetector
 from dashcam_ai.logging import configure_logging
 from dashcam_ai.runtime.device import inspect_devices
 from dashcam_ai.validation.records import SUPPORTED_PLATFORMS
@@ -183,6 +184,12 @@ def analyze(
     configure_logging(config.logging.level)
     detection = config.detection
     output = config.output
+    lane = config.lane_detection
+    if lane.enabled and lane.backend != "yolop_onnx":
+        raise typer.BadParameter(
+            f"不支援的白線模型後端：{lane.backend}",
+            param_hint="lane_detection.backend",
+        )
     # 命令列參數優先於設定檔，未指定時才採用 YAML 中的預設值。
     backend = UltralyticsDetectorTracker(
         model=_resolve_model_path(model if model is not None else detection.model),
@@ -190,6 +197,8 @@ def analyze(
         imgsz=imgsz or detection.imgsz,
         class_names=detection.classes,
         minimum_vehicle_area_ratio=detection.minimum_vehicle_area_ratio,
+        ego_vehicle_polygon=detection.ego_vehicle_polygon,
+        ego_vehicle_overlap_threshold=detection.ego_vehicle_overlap_threshold,
         duplicate_vehicle_iou_threshold=detection.duplicate_vehicle_iou_threshold,
         duplicate_vehicle_containment_threshold=(
             detection.duplicate_vehicle_containment_threshold
@@ -206,6 +215,47 @@ def analyze(
         save_frames=output.save_frames if save_frames is None else save_frames,
         codec=output.codec,
         minimum_track_length=config.tracking.minimum_track_length,
+        lane_detector=(
+            YoloPLaneLineDetector(
+                model=_resolve_model_path(lane.model),
+                expected_sha256=lane.model_sha256 or None,
+                input_size=lane.input_size,
+                probability_threshold=lane.probability_threshold,
+                minimum_drivable_probability=lane.minimum_drivable_probability,
+                white_lightness_threshold=lane.white_lightness_threshold,
+                white_saturation_threshold=lane.white_saturation_threshold,
+                local_contrast_threshold=lane.local_contrast_threshold,
+                strong_probability_threshold=lane.strong_probability_threshold,
+                roi_top_ratio=lane.roi_top_ratio,
+                minimum_component_area_ratio=lane.minimum_component_area_ratio,
+                minimum_vertical_span_ratio=lane.minimum_vertical_span_ratio,
+                minimum_fragment_vertical_span_ratio=(
+                    lane.minimum_fragment_vertical_span_ratio
+                ),
+                maximum_horizontal_to_vertical_ratio=(
+                    lane.maximum_horizontal_to_vertical_ratio
+                ),
+                maximum_fit_error_ratio=lane.maximum_fit_error_ratio,
+                maximum_arrow_fit_error_ratio=lane.maximum_arrow_fit_error_ratio,
+                maximum_row_width_ratio=lane.maximum_row_width_ratio,
+                maximum_row_width_variation_ratio=(
+                    lane.maximum_row_width_variation_ratio
+                ),
+                maximum_fragment_gap_ratio=lane.maximum_fragment_gap_ratio,
+                sample_count=lane.sample_count,
+                smoothing_alpha=lane.smoothing_alpha,
+                maximum_missing_frames=lane.maximum_missing_frames,
+                minimum_curve_confidence=lane.minimum_curve_confidence,
+                maximum_boundaries=lane.maximum_boundaries,
+                temporal_association_distance_ratio=(
+                    lane.temporal_association_distance_ratio
+                ),
+                excluded_bbox_margin_ratio=lane.excluded_bbox_margin_ratio,
+                minimum_confirmation_frames=lane.minimum_confirmation_frames,
+            )
+            if lane.enabled
+            else None
+        ),
     )
     summary = analyzer.analyze(input_path, resolved_output_path)
     typer.echo(

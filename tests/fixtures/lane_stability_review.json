@@ -1,0 +1,194 @@
+{
+  "input_sha256": "48f0e3010d7acffebf95b8bd55e1193589785a3d8835ec528040f0298edbf4ba",
+  "width": 1280,
+  "height": 720,
+  "fps": 30,
+  "coordinate_system": "original image; zero-based frame_id",
+  "tolerance_pixels": 10,
+  "scope": "Manually reviewed visible locations only; not dataset precision/recall. Compare rendered evidence outside vehicle occlusion. Frame 1260 has no clearly visible left stripe and is not a recall failure.",
+  "cases": [
+    {
+      "frame_id": 30,
+      "name": "left stripe",
+      "expected_line": true,
+      "points": [
+        [
+          180,
+          422
+        ],
+        [
+          270,
+          405
+        ]
+      ]
+    },
+    {
+      "frame_id": 128,
+      "name": "incorrect joined line",
+      "expected_line": false,
+      "points": [
+        [
+          655,
+          414
+        ],
+        [
+          946,
+          490
+        ],
+        [
+          1020,
+          530
+        ]
+      ]
+    },
+    {
+      "frame_id": 420,
+      "name": "stop line",
+      "expected_line": false,
+      "points": [
+        [
+          350,
+          505
+        ],
+        [
+          550,
+          540
+        ],
+        [
+          700,
+          570
+        ]
+      ]
+    },
+    {
+      "frame_id": 600,
+      "name": "left arrow",
+      "expected_line": false,
+      "points": [
+        [
+          500,
+          460
+        ],
+        [
+          530,
+          440
+        ]
+      ]
+    },
+    {
+      "frame_id": 630,
+      "name": "vertical lane",
+      "expected_line": true,
+      "points": [
+        [
+          685,
+          465
+        ],
+        [
+          692,
+          530
+        ]
+      ]
+    },
+    {
+      "frame_id": 840,
+      "name": "yellow curb",
+      "expected_line": false,
+      "points": [
+        [
+          1190,
+          570
+        ],
+        [
+          1240,
+          597
+        ]
+      ]
+    },
+    {
+      "frame_id": 1200,
+      "name": "left stripe",
+      "expected_line": true,
+      "points": [
+        [
+          370,
+          514
+        ]
+      ]
+    },
+    {
+      "frame_id": 1230,
+      "name": "left stripe",
+      "expected_line": true,
+      "points": [
+        [
+          370,
+          529
+        ]
+      ]
+    },
+    {
+      "frame_id": 1305,
+      "name": "visible painted left tail",
+      "expected_line": true,
+      "points": [
+        [
+          350,
+          540
+        ],
+        [
+          374,
+          525
+        ]
+      ]
+    },
+    {
+      "frame_id": 1350,
+      "name": "left stripe",
+      "expected_line": true,
+      "points": [
+        [
+          400,
+          528
+        ]
+      ]
+    },
+    {
+      "frame_id": 1530,
+      "name": "left lane",
+      "expected_line": true,
+      "points": [
+        [
+          480,
+          520
+        ]
+      ]
+    },
+    {
+      "frame_id": 1620,
+      "name": "left lane",
+      "expected_line": true,
+      "points": [
+        [
+          500,
+          490
+        ]
+      ]
+    },
+    {
+      "frame_id": 1650,
+      "name": "detached arrow head",
+      "expected_line": false,
+      "points": [
+        [
+          1160,
+          547
+        ],
+        [
+          1190,
+          563
+        ]
+      ]
+    }
+  ]
+}

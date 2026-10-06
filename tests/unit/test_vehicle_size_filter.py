@@ -5,6 +5,7 @@ import pytest
 from pydantic import ValidationError
 
 from dashcam_ai.config.models import DetectionConfig
+from dashcam_ai.detection.ego_mask import EgoVehicleMask
 from dashcam_ai.detection.ultralytics import UltralyticsDetectorTracker
 
 
@@ -22,6 +23,9 @@ def backend(
     value._duplicate_vehicle_center_distance_ratio = center_distance_ratio
     value._vehicle_class_ids = {2, 3, 5, 7}
     value._vehicle_class_id = 80
+    value._ego_vehicle_mask = EgoVehicleMask([])
+    value._context_model = None
+    value._context_boxes = None
     return value
 
 

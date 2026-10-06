@@ -44,7 +44,9 @@ def test_analyze_passes_minimum_track_length_from_config(tmp_path: Path, monkeyp
         "detection:\n  minimum_vehicle_area_ratio: 0.002\n"
         "  duplicate_vehicle_iou_threshold: 0.9\n"
         "  duplicate_vehicle_containment_threshold: 0.92\n"
-        "  duplicate_vehicle_center_distance_ratio: 0.18\n",
+        "  duplicate_vehicle_center_distance_ratio: 0.18\n"
+        "  ego_vehicle_polygon: [[0, 0.5], [0.5, 0.5], [0, 1]]\n"
+        "  ego_vehicle_overlap_threshold: 0.85\n",
         encoding="utf-8",
     )
     captured: dict[str, object] = {}
@@ -91,6 +93,8 @@ def test_analyze_passes_minimum_track_length_from_config(tmp_path: Path, monkeyp
     assert backend_options["duplicate_vehicle_iou_threshold"] == 0.9
     assert backend_options["duplicate_vehicle_containment_threshold"] == 0.92
     assert backend_options["duplicate_vehicle_center_distance_ratio"] == 0.18
+    assert backend_options["ego_vehicle_polygon"] == [(0, 0.5), (0.5, 0.5), (0, 1)]
+    assert backend_options["ego_vehicle_overlap_threshold"] == 0.85
 
 
 def test_model_uses_current_directory_before_main_checkout(tmp_path, monkeypatch) -> None:

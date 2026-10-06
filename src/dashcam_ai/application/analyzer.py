@@ -10,8 +10,10 @@ from pathlib import Path
 from typing import Any
 
 from dashcam_ai.application.perception import PerceptionBackend
+from dashcam_ai.domain.lane_lines import LaneLineRecord
 from dashcam_ai.domain.perception import Track, TrackObservation
 from dashcam_ai.domain.video import FrameRecord
+from dashcam_ai.lane.segmentation import YoloPLaneLineDetector
 from dashcam_ai.logging import get_logger
 from dashcam_ai.storage.artifacts import ArtifactStore
 from dashcam_ai.video.reader import OpenCVVideoReader
@@ -41,6 +43,7 @@ class Analyzer:
         codec: str = "mp4v",
         progress_interval: int = 100,
         minimum_track_length: int = 1,
+        lane_detector: YoloPLaneLineDetector | None = None,
         reader_factory: Callable[[Path], Any] = OpenCVVideoReader,
     ) -> None:
         if progress_interval <= 0:
@@ -53,6 +56,7 @@ class Analyzer:
         self.codec = codec
         self.progress_interval = progress_interval
         self.minimum_track_length = minimum_track_length
+        self.lane_detector = lane_detector
         self.reader_factory = reader_factory
 
     def analyze(self, source: Path, output_directory: Path) -> AnalysisSummary:
@@ -65,6 +69,8 @@ class Analyzer:
         frames_processed = 0
         writer: OpenCVVideoWriter | None = None
         annotator = OpenCVAnnotator()
+        if self.lane_detector is not None:
+            self.lane_detector.reset()
         with self.reader_factory(source) as reader, ArtifactStore(
             output_directory, save_frames=self.save_frames
         ) as store:
@@ -82,6 +88,23 @@ class Analyzer:
             try:
                 for video_frame in reader:
                     tracked = self.perception.process(video_frame.image)
+                    lane_lines = (
+                        self.lane_detector.detect(
+                            video_frame.image,
+                            excluded_boxes=[obj.bbox for obj in tracked],
+                        )
+                        if self.lane_detector is not None
+                        and (writer is not None or self.save_frames)
+                        else None
+                    )
+                    if lane_lines is not None and self.save_frames:
+                        store.write_lane_lines(
+                            LaneLineRecord(
+                                frame_id=video_frame.frame_id,
+                                timestamp=video_frame.timestamp,
+                                lane_lines=lane_lines,
+                            )
+                        )
                     store.write_frame(
                         FrameRecord(
                             frame_id=video_frame.frame_id,
@@ -97,7 +120,18 @@ class Analyzer:
                             )
                         )
                     if writer is not None:
-                        writer.write(annotator.annotate(video_frame.image, tracked))
+                        writer.write(
+                            annotator.annotate(
+                                video_frame.image,
+                                tracked,
+                                lane_lines=lane_lines,
+                                lane_occlusion_mask=(
+                                    self.lane_detector.occlusion_mask
+                                    if self.lane_detector is not None
+                                    else None
+                                ),
+                            )
+                        )
                     frames_processed += 1
                     total_frames = reader.metadata.frame_count
                     if frames_processed % self.progress_interval == 0 or (
