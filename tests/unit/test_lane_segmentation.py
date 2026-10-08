@@ -1355,3 +1355,447 @@ def test_verified_bay_extension_preserves_other_stripes_and_limits_the_gap(
     cv2.line(marking, (740, 447), (1010, 682), 1, 15)
     curve = _curve(start[0], end[0], top=start[1], bottom=end[1])
     assert detector._near_bay_extension(curve, marking) is expected
+
+
+@pytest.mark.parametrize("mirror", [False, True])
+def test_observed_shallow_paint_survives_the_vertical_height_gate(mirror: bool) -> None:
+    cv2 = pytest.importorskip("cv2")
+    detector = _detector()
+    frame = np.full((720, 1280, 3), 50, np.uint8)
+    probability = np.zeros(frame.shape[:2], np.float32)
+    cv2.line(frame, (360, 433), (410, 425), (200, 200, 200), 3)
+    cv2.line(probability, (360, 433), (410, 425), 0.8, 5)
+    box = BBox(x1=355, y1=300, x2=450, y2=417)
+    if mirror:
+        frame = frame[:, ::-1].copy()
+        probability = probability[:, ::-1].copy()
+        box = BBox(x1=829, y1=300, x2=924, y2=417)
+    road = np.full(probability.shape, 0.8, np.float32)
+    detector._segmentation_probabilities = lambda _: (probability, road)
+    detector.detect(frame, [box])
+    result = detector.detect(frame, [box])
+    assert result.curves
+    assert any(detector._narrow_stripe_support(c, frame) >= 0.9 for c in result.curves)
+
+
+@pytest.mark.parametrize("mirror", [False, True])
+def test_shallow_vehicle_paint_never_releases_box_interiors(mirror: bool) -> None:
+    cv2 = pytest.importorskip("cv2")
+    detector = _detector()
+    frame = np.full((720, 1280, 3), 50, np.uint8)
+    probability = np.zeros(frame.shape[:2], np.float32)
+    cv2.line(frame, (360, 437), (432, 423), (200, 200, 200), 3)
+    cv2.line(probability, (360, 437), (432, 423), 0.8, 5)
+    box = BBox(x1=300, y1=340, x2=500, y2=500)
+    if mirror:
+        frame = frame[:, ::-1].copy()
+        probability = probability[:, ::-1].copy()
+        box = BBox(x1=779, y1=340, x2=979, y2=500)
+    road = np.full(probability.shape, 0.8, np.float32)
+    detector._segmentation_probabilities = lambda _: (probability, road)
+    detector.detect(frame, [box])
+    result = detector.detect(frame, [box])
+    assert not result.curves
+    assert detector.occlusion_mask[430, 883 if mirror else 396] > 0
+
+
+@pytest.mark.parametrize("mirror", [False, True])
+def test_crosswalk_envelope_rejects_a_curve_between_parallel_bars(mirror: bool) -> None:
+    cv2 = pytest.importorskip("cv2")
+    detector = _detector()
+    frame = np.full((720, 1280, 3), 40, np.uint8)
+    for y in (380, 410, 440):
+        cv2.line(frame, (760, y), (1030, y), (220, 220, 220), 6)
+    if mirror:
+        frame = frame[:, ::-1].copy()
+    probability = np.full(frame.shape[:2], 0.7, np.float32)
+    road = np.full(frame.shape[:2], 0.8, np.float32)
+    detector._candidate_mask(frame, probability, [], road)
+    paint, bad = detector._paint_context(frame)
+    curve = _curve(799 if not mirror else 480, 990 if not mirror else 289,
+                   top=391, bottom=429)
+    reason = detector._context_rejection(curve, paint, bad, road, frame)
+    assert reason == "crosswalk_group_context"
+    # Adjacent longitudinal paint must remain available.
+    lane = _curve(680 if not mirror else 599, 650 if not mirror else 629,
+                  top=450, bottom=650)
+    assert detector._context_rejection(lane, paint, bad, road, frame) is None
+
+
+@pytest.mark.parametrize("mirror", [False, True])
+def test_short_paint_requires_confirmation_and_current_evidence(mirror: bool) -> None:
+    cv2 = pytest.importorskip("cv2")
+    detector = _detector()
+    frame = np.full((720, 1280, 3), 50, np.uint8)
+    probability = np.zeros(frame.shape[:2], np.float32)
+    cv2.line(frame, (360, 433), (410, 425), (200,) * 3, 3)
+    cv2.line(probability, (360, 433), (410, 425), 0.8, 5)
+    box = BBox(x1=355, y1=300, x2=450, y2=417)
+    if mirror:
+        frame = frame[:, ::-1].copy()
+        probability = probability[:, ::-1].copy()
+        box = BBox(x1=829, y1=300, x2=924, y2=417)
+    road = np.full(probability.shape, 0.8, np.float32)
+    detector._segmentation_probabilities = lambda _: (probability, road)
+    assert not detector.detect(frame, [box]).curves
+    assert detector.detect(frame, [box]).curves
+    blank = np.full_like(frame, 50)
+    # Even a stale high model score cannot renew paint on a blank road.
+    for _ in range(3):
+        result = detector.detect(blank, [box])
+        assert all(c.carried_frames > 0 for c in result.curves)
+    assert not result.curves
+    detector.reset()
+    assert not detector.detect(frame, [box]).curves
+
+
+@pytest.mark.parametrize("mirror", [False, True])
+def test_low_score_shallow_reflection_does_not_release_padding(mirror: bool) -> None:
+    cv2 = pytest.importorskip("cv2")
+    detector = _detector()
+    frame = np.full((720, 1280, 3), 50, np.uint8)
+    probability = np.zeros(frame.shape[:2], np.float32)
+    cv2.line(frame, (360, 433), (410, 425), (200,) * 3, 3)
+    cv2.line(probability, (360, 433), (410, 425), 0.3, 5)
+    box = BBox(x1=355, y1=300, x2=450, y2=416)
+    if mirror:
+        frame = frame[:, ::-1].copy()
+        probability = probability[:, ::-1].copy()
+        box = BBox(x1=829, y1=300, x2=924, y2=416)
+    road = np.full(probability.shape, 0.8, np.float32)
+    detector._segmentation_probabilities = lambda _: (probability, road)
+    for _ in range(3):
+        assert not detector.detect(frame, [box]).curves
+        assert detector.occlusion_mask[429, 894 if mirror else 385] > 0
+
+
+@pytest.mark.parametrize("mirror", [False, True])
+def test_disconnected_model_fragments_follow_continuous_observed_paint(mirror: bool) -> None:
+    cv2 = pytest.importorskip("cv2")
+    detector = _detector()
+    frame = np.full((720, 1280, 3), 110, np.uint8)
+    probability = np.zeros(frame.shape[:2], np.float32)
+    cv2.line(frame, (360, 433), (410, 425), (150,) * 3, 3)
+    cv2.line(probability, (360, 433), (378, 430), 0.65, 5)
+    cv2.line(probability, (392, 428), (410, 425), 0.65, 5)
+    box = BBox(x1=355, y1=300, x2=450, y2=417)
+    if mirror:
+        frame = frame[:, ::-1].copy()
+        probability = probability[:, ::-1].copy()
+        box = BBox(x1=829, y1=300, x2=924, y2=417)
+    road = np.full(probability.shape, 0.8, np.float32)
+    detector._segmentation_probabilities = lambda _: (probability, road)
+    detector.detect(frame, [box])
+    result = detector.detect(frame, [box])
+    assert result.curves
+    assert any(abs(c.points[-1].x - c.points[0].x) > 40 for c in result.curves)
+
+
+@pytest.mark.parametrize("mirror", [False, True])
+def test_temporal_paint_requires_model_support_after_a_score_drop(mirror: bool) -> None:
+    cv2 = pytest.importorskip("cv2")
+    detector = _detector()
+    frame = np.full((720, 1280, 3), 50, np.uint8)
+    probability = np.zeros(frame.shape[:2], np.float32)
+    cv2.line(frame, (360, 433), (410, 425), (200,) * 3, 3)
+    cv2.line(probability, (360, 433), (410, 425), 0.55, 5)
+    box = BBox(x1=355, y1=300, x2=450, y2=417)
+    if mirror:
+        frame = frame[:, ::-1].copy()
+        probability = probability[:, ::-1].copy()
+        box = BBox(x1=829, y1=300, x2=924, y2=417)
+    road = np.full(probability.shape, 0.8, np.float32)
+    detector._segmentation_probabilities = lambda _: (probability, road)
+    assert not detector.detect(frame, [box]).curves
+    probability[probability > 0] = 0.49
+    cv2.circle(probability, (871 if mirror else 408, 425), 3, 0.51, -1)
+    assert any(c.carried_frames == 0 for c in detector.detect(frame, [box]).curves)
+    probability[probability > 0] = 0.3
+    for _ in range(3):
+        result = detector.detect(frame, [box])
+        assert all(c.carried_frames > 0 for c in result.curves)
+    assert not result.curves
+
+
+@pytest.mark.parametrize("mirror", [False, True])
+def test_paint_at_the_image_border_does_not_index_outside_the_frame(mirror: bool) -> None:
+    cv2 = pytest.importorskip("cv2")
+    detector = _detector()
+    frame = np.full((720, 1280, 3), 50, np.uint8)
+    probability = np.zeros(frame.shape[:2], np.float32)
+    cv2.line(frame, (1240, 390), (1279, 401), (200,) * 3, 7)
+    cv2.line(probability, (1240, 390), (1279, 401), 0.8, 7)
+    if mirror:
+        frame = frame[:, ::-1].copy()
+        probability = probability[:, ::-1].copy()
+    road = np.full(probability.shape, 0.8, np.float32)
+    detector._segmentation_probabilities = lambda _: (probability, road)
+    for _ in range(2):
+        result = detector.detect(frame)
+        assert all(0 <= p.x < 1280 and 0 <= p.y < 720
+                   for c in result.curves for p in c.points)
+
+
+@pytest.mark.parametrize("mirror", [False, True])
+def test_crosswalk_group_also_clears_a_previously_confirmed_nearby_ghost(mirror: bool) -> None:
+    cv2 = pytest.importorskip("cv2")
+    detector = _detector()
+    ghost = _curve(740 if not mirror else 539, 1000 if not mirror else 279,
+                   top=365, bottom=375)
+    detector._stabilize([ghost], 1280)
+    assert detector._stabilize([ghost], 1280).curves
+    frame = np.full((720, 1280, 3), 40, np.uint8)
+    for y in (380, 410, 440):
+        cv2.line(frame, (760, y), (1030, y), (220,) * 3, 6)
+    if mirror:
+        frame = frame[:, ::-1].copy()
+    probability = np.full(frame.shape[:2], 0.7, np.float32)
+    road = np.full(frame.shape[:2], 0.8, np.float32)
+    detector._candidate_mask(frame, probability, [], road)
+    paint, bad = detector._paint_context(frame)
+    assert detector._context_rejection(ghost, paint, bad, road, frame) == "crosswalk_group_context"
+    assert not detector._stabilize([], 1280, frame=frame).curves
+
+
+@pytest.mark.parametrize("mirror", [False, True])
+def test_isolated_unmasked_short_paint_is_not_promoted(mirror: bool) -> None:
+    cv2 = pytest.importorskip("cv2")
+    detector = _detector()
+    frame = np.full((720, 1280, 3), 50, np.uint8)
+    probability = np.zeros(frame.shape[:2], np.float32)
+    cv2.line(frame, (360, 433), (410, 425), (200,) * 3, 3)
+    cv2.line(probability, (360, 433), (410, 425), 0.8, 5)
+    if mirror:
+        frame = frame[:, ::-1].copy()
+        probability = probability[:, ::-1].copy()
+    road = np.full(probability.shape, 0.8, np.float32)
+    detector._segmentation_probabilities = lambda _: (probability, road)
+    for _ in range(3):
+        assert not detector.detect(frame).curves
+
+
+@pytest.mark.parametrize("mirror", [False, True])
+def test_perspective_lane_dashes_do_not_expand_crosswalk_envelope(mirror: bool) -> None:
+    cv2 = pytest.importorskip("cv2")
+    detector = _detector()
+    frame = np.full((720, 1280, 3), 40, np.uint8)
+    for y in (380, 410, 440):
+        cv2.line(frame, (200, y), (325, y-25), (220,) * 3, 3)
+    if mirror:
+        frame = frame[:, ::-1].copy()
+    probability = np.full(frame.shape[:2], 0.7, np.float32)
+    road = np.full(frame.shape[:2], 0.8, np.float32)
+    detector._candidate_mask(frame, probability, [], road)
+    detector._paint_context(frame)
+    assert not detector._marking_masks["crosswalk_group_context"].any()
+
+
+@pytest.mark.parametrize("mirror", [False, True])
+def test_new_tiny_stroke_near_verified_bay_keeps_neighboring_long_lane(
+    mirror: bool,
+) -> None:
+    cv2 = pytest.importorskip("cv2")
+    detector = _detector()
+    frame = np.full((720, 1280, 3), 50, np.uint8)
+    bay = np.zeros(frame.shape[:2], np.uint8)
+    cv2.line(bay, (700, 380), (930, 580), 1, 15)
+    short = _curve(715, 772, top=392, bottom=413)
+    adjacent = _curve(655, 795, top=420, bottom=560)
+    cv2.line(frame, (715, 392), (772, 413), (220,) * 3, 3)
+    cv2.line(frame, (655, 420), (795, 560), (220,) * 3, 3)
+    if mirror:
+        frame = frame[:, ::-1].copy()
+        bay = bay[:, ::-1].copy()
+        short = _curve(564, 507, top=392, bottom=413)
+        adjacent = _curve(624, 484, top=420, bottom=560)
+    detector._marking_masks = {"labelled_bay_context": bay}
+    paint = np.ones(frame.shape[:2], np.uint8)
+    bad = np.zeros_like(paint)
+    road = np.full(paint.shape, 0.8, np.float32)
+    assert detector._context_rejection(
+        short, paint, bad, road, frame, observed_paint=True,
+    ) == "labelled_bay_context"
+    assert detector._context_rejection(
+        adjacent, paint, bad, road, frame, observed_paint=True,
+    ) is None
+
+
+@pytest.mark.parametrize("mirror", [False, True])
+def test_perspective_neighbor_cannot_expand_transverse_envelope(mirror: bool) -> None:
+    cv2 = pytest.importorskip("cv2")
+    detector = _detector()
+    frame = np.full((720, 1280, 3), 40, np.uint8)
+    cv2.line(frame, (0, 362), (225, 362), (220,) * 3, 3)
+    cv2.line(frame, (28, 384), (108, 380), (220,) * 3, 3)
+    cv2.line(frame, (144, 445), (297, 413), (220,) * 3, 3)
+    if mirror:
+        frame = frame[:, ::-1].copy()
+    probability = np.full(frame.shape[:2], 0.7, np.float32)
+    road = np.full(frame.shape[:2], 0.8, np.float32)
+    detector._candidate_mask(frame, probability, [], road)
+    detector._paint_context(frame)
+    lane = _curve(297 if not mirror else 982, 144 if not mirror else 1135,
+                  top=413, bottom=445)
+    assert detector._mask_overlap(lane, detector._marking_masks["crosswalk_group_context"]) < 0.2
+
+
+@pytest.mark.parametrize("mirror", [False, True])
+def test_coarse_crossing_envelope_keeps_strong_observed_longitudinal_lane(mirror: bool) -> None:
+    cv2 = pytest.importorskip("cv2")
+    detector = _detector()
+    frame = np.full((720, 1280, 3), 50, np.uint8)
+    cv2.line(frame, (453, 396), (370, 423), (220,) * 3, 3)
+    if mirror:
+        frame = frame[:, ::-1].copy()
+    lane = _curve(453 if not mirror else 826, 370 if not mirror else 909,
+                  top=396, bottom=423).model_copy(update={"lane_probability": 0.7})
+    paint = np.ones(frame.shape[:2], np.uint8)
+    bad = np.zeros_like(paint)
+    road = np.full(paint.shape, 0.8, np.float32)
+    detector._marking_masks = {"crosswalk_group_context": paint}
+    assert detector._context_rejection(lane, paint, bad, road, frame) is None
+    detector._stabilize([lane], 1280)
+    detector._stabilize([lane], 1280)
+    assert detector._stabilize([], 1280, frame=frame).curves
+    weak = lane.model_copy(update={"lane_probability": 0.55})
+    assert detector._context_rejection(weak, paint, bad, road, frame) == "crosswalk_group_context"
+
+
+@pytest.mark.parametrize("mirror", [False, True])
+@pytest.mark.parametrize("forward", [False, True])
+def test_long_recovery_needs_a_forward_heading(mirror: bool, forward: bool) -> None:
+    cv2 = pytest.importorskip("cv2")
+    detector = _detector()
+    frame = np.full((720, 1280, 3), 50, np.uint8)
+    probability = np.zeros(frame.shape[:2], np.float32)
+    a, b = ((400, 410), (310, 439)) if forward else ((850, 407), (922, 424))
+    cv2.line(frame, a, b, (220,) * 3, 3)
+    cv2.line(probability, a, b, 0.8, 5)
+    if mirror:
+        frame = frame[:, ::-1].copy()
+        probability = probability[:, ::-1].copy()
+    protected = np.zeros(probability.shape, np.uint8)
+    expanded = np.ones_like(protected)
+    road = np.full(probability.shape, 0.8, np.float32)
+    curves, recovered = detector._visible_road_fragments(
+        frame, probability, road, protected, expanded,
+    )
+    assert bool(curves) is forward
+    assert bool(recovered.any()) is forward
+
+
+def test_recovered_short_paint_requires_a_fresh_candidate_instead_of_generic_carry() -> None:
+    detector = _detector()
+    lane = _curve(410, 360, top=425, bottom=433)
+    observed = lane.model_copy(update={"boundary_id": "recovered-paint"})
+    detector._stabilize([observed], 1280)
+    assert detector._stabilize([observed], 1280).curves
+    assert not detector._stabilize([], 1280).curves
+    # Ordinary established lanes retain their existing limited carry behavior.
+    detector.reset()
+    detector._stabilize([lane], 1280)
+    assert detector._stabilize([lane], 1280).curves
+    assert detector._stabilize([], 1280).curves
+
+
+@pytest.mark.parametrize("mirror", [False, True])
+def test_weak_current_paint_cannot_promote_an_unconfirmed_ordinary_candidate(mirror: bool) -> None:
+    cv2 = pytest.importorskip("cv2")
+    frame = np.full((720, 1280, 3), 50, np.uint8)
+    probability = np.zeros(frame.shape[:2], np.float32)
+    cv2.line(frame, (360, 433), (410, 425), (200,) * 3, 3)
+    cv2.line(probability, (360, 433), (410, 425), 0.55, 5)
+    box = BBox(x1=355, y1=300, x2=450, y2=417)
+    if mirror:
+        frame = frame[:, ::-1].copy()
+        probability = probability[:, ::-1].copy()
+        box = BBox(x1=829, y1=300, x2=924, y2=417)
+    road = np.full(probability.shape, 0.8, np.float32)
+    seed = _detector()
+    seed._segmentation_probabilities = lambda _: (probability, road)
+    seed.detect(frame, [box])
+    ordinary = next(iter(seed._previous.values())).model_copy(update={"boundary_id": "candidate"})
+    detector = _detector()
+    detector._stabilize([ordinary], 1280)
+    detector._segmentation_probabilities = lambda _: (probability, road)
+    probability[probability > 0] = 0.49
+    cv2.circle(probability, (871 if mirror else 408, 425), 3, 0.51, -1)
+    assert not detector.detect(frame, [box]).curves
+
+
+@pytest.mark.parametrize("mirror", [False, True])
+def test_nearly_horizontal_observed_lane_does_not_use_unstable_heading(mirror: bool) -> None:
+    cv2 = pytest.importorskip("cv2")
+    detector = _detector()
+    frame = np.full((720, 1280, 3), 50, np.uint8)
+    probability = np.zeros(frame.shape[:2], np.float32)
+    cv2.line(frame, (403, 380), (268, 398), (220,) * 3, 3)
+    cv2.line(probability, (403, 380), (268, 398), 0.8, 5)
+    if mirror:
+        frame = frame[:, ::-1].copy()
+        probability = probability[:, ::-1].copy()
+    protected = np.zeros(probability.shape, np.uint8)
+    expanded = np.ones_like(protected)
+    road = np.full(probability.shape, 0.8, np.float32)
+    curves, recovered = detector._visible_road_fragments(
+        frame, probability, road, protected, expanded,
+    )
+    assert curves
+    assert recovered.any()
+
+
+@pytest.mark.parametrize("mirror", [False, True])
+def test_released_paint_cannot_change_normal_candidate_refinement(mirror: bool) -> None:
+    cv2 = pytest.importorskip("cv2")
+    detector = _detector()
+    frame = np.full((720, 1280, 3), 50, np.uint8)
+    probability = np.zeros(frame.shape[:2], np.float32)
+    cv2.line(frame, (360, 433), (410, 425), (200,) * 3, 3)
+    cv2.line(probability, (360, 433), (410, 425), 0.8, 5)
+    box = BBox(x1=355, y1=300, x2=450, y2=417)
+    if mirror:
+        frame = frame[:, ::-1].copy()
+        probability = probability[:, ::-1].copy()
+        box = BBox(x1=829, y1=300, x2=924, y2=417)
+    road = np.full(probability.shape, 0.8, np.float32)
+    detector._segmentation_probabilities = lambda _: (probability, road)
+    ordinary = _curve(600, 620)
+    detector._visible_margin_paint = lambda *args, **kwargs: np.zeros_like(probability)
+    detector._component_curves = lambda *args, **kwargs: (
+        ([ordinary], Counter(), 1) if kwargs.get("use_context") else ([], Counter(), 0)
+    )
+    refinements = []
+
+    def inspect_refinement(curve: LaneCurve, *_: object, **__: object) -> LaneCurve:
+        if curve is ordinary:
+            refinements.append(bool(detector.occlusion_mask[429, 894 if mirror else 385]))
+        return curve
+
+    detector._refine_paint_geometry = inspect_refinement
+    detector.detect(frame, [box])
+    assert refinements == [True]
+    assert detector.occlusion_mask[429, 894 if mirror else 385] == 0
+
+
+@pytest.mark.parametrize("mirror", [False, True])
+@pytest.mark.parametrize("y,thickness,expected", [(360, 1, True), (360, 5, False), (520, 5, True)])
+def test_recovery_paint_width_follows_perspective(
+    mirror: bool, y: int, thickness: int, expected: bool,
+) -> None:
+    cv2 = pytest.importorskip("cv2")
+    detector = _detector()
+    frame = np.full((720, 1280, 3), 50, np.uint8)
+    probability = np.zeros(frame.shape[:2], np.float32)
+    cv2.line(frame, (360, y), (420, y-30), (220,) * 3, thickness)
+    cv2.line(probability, (360, y), (420, y-30), 0.8, 5)
+    if mirror:
+        frame = frame[:, ::-1].copy()
+        probability = probability[:, ::-1].copy()
+    protected = np.zeros(probability.shape, np.uint8)
+    expanded = np.ones_like(protected)
+    road = np.full(probability.shape, 0.3, np.float32)
+    curves, released = detector._visible_road_fragments(
+        frame, probability, road, protected, expanded,
+    )
+    assert bool(curves) is expected
+    assert bool(released.any()) is expected
