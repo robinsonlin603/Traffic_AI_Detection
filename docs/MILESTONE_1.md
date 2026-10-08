@@ -30,7 +30,7 @@ MP4 影片
 ### 影片與分析產物
 
 - 使用 OpenCV 讀取 MP4 影片並保留原始解析度資訊。
-- 產生包含邊界框、類別、追蹤 ID 與信心分數的標註影片。
+- 產生包含邊界框、追蹤 ID 與軌跡的標註影片；標籤只顯示 #ID。
 - 將逐影格資料串流寫入 JSONL，避免長影片必須將所有影格保留在記憶體中。
 - 產生追蹤摘要、事件占位資料及執行環境 metadata。
 
@@ -116,13 +116,64 @@ Milestone 1 已涵蓋下列自動化驗證：
 - 使用同一影片比較 MPS 與 CUDA 的輸出結果。
 - 比較長影片的處理速度、資源使用及穩定性。
 
-## 不在 Milestone 1 範圍內
+## 2026-09-03 恢復 Milestone 1
 
-Milestone 1 專注於穩定的偵測、追蹤與資料輸出基礎。以下功能將在後續階段處理：
+舊 Milestone 2 實作已移除。現在只畫綠色物件框、單行 #ID 類別縮寫、深色標籤底板、底部軌跡點及橘色軌跡；保留標籤避讓，不顯示信心數字、車道或事件橫幅。偵測信心仍保存於資料中。
 
-- Phase 2：車道幾何、自車運動、lane change 與 cut-in。
-- Phase 3：方向燈辨識與事件融合。
-- Phase 4：FastAPI、GPS 整合與事件影片片段。
-- Phase 5：VLM／LLM 分析與進階語意功能。
+frames.jsonl 每筆只有 frame_id、timestamp、objects；events.json 固定為 []。保留最短追蹤長度修正、進度顯示與自動輸出路徑。先前章節的 MPS 實片結果是歷史紀錄，不代表此次修改已獲雙平台驗收。
 
-完整的執行決策與技術範圍請參閱 [Execution Plan](./EXEC_PLAN.md)。
+新階段見 [Roadmap](ROADMAP.md)。舊紀錄見 [歷史封存](history/legacy-milestone-2/README.md)。
+
+## 本次回退驗證結果（2026-09-03）
+
+55 項 pytest、Ruff、strict Mypy（36 個來源檔案）通過，git diff --check 通過。
+以既有 yolo26m.pt、imgsz 1280 在 CPU 完整分析 test1.mp4，產生並成功逐幀解碼 625 幀 1920×1080 影片；88 筆符合最短長度的追蹤摘要，0 個事件。全部逐幀資料只含 frame_id、timestamp、objects。
+
+人工畫面抽查影格 0、312、624，確認保留綠色框、#ID 類別縮寫、深色底板、標籤避讓與橘色軌跡，沒有車道／事件疊圖。此抽查驗證回退後輸出樣式，不代表偵測準確率驗收；模型仍會把畫面左下自車儀表部位誤認為 car，偵測模型本次未改動。
+
+輸入 SHA-256：4b4d7a363070066011b80e3b777ff51a0bd16bf0bc5e81986f9413a05785a964。模型 SHA-256：401cea9ab23ad19246ff7744859816bc599f350e93c9dd30367b6f0a0745d0b7。
+
+macOS MPS：blocked，本機執行環境無法使用 MPS，且工作目錄包含本次未提交修改。Linux CUDA：missing，未在該平台重跑。CPU 實片成功僅證明本次 dirty worktree 的 CPU 行為，不能完成 clean-commit 雙平台驗收。機器產生報告見 ../validation/milestone-1/macos-mps.json。
+
+
+## 2026-09-03 小型車輛追蹤前篩選
+
+使用者核准以框占畫面比例排除過小車輛，保留主要車輛。此為局部變更，依已核准的三步計畫完成尺寸量測、實作、短片與自動測試驗證。
+
+新增 detection.minimum_vehicle_area_ratio，預設 0.001（0.1%），0 停用。依原始影像面積篩選 car/motorcycle/bus/truck，在 Ultralytics 追蹤 callback 執行前移除過小偵測；不改 person/bicycle，不合併類別或重複框。runtime metadata 保存門檻。
+
+基準資料 frame 116：原 #40 約 23.2×29.9 px、面積占比 0.0334%；原 #3 約 0.7712%、原 #5 約 2.8669%。使用相同既有影片及模型（SHA-256 見上節），在 CPU 對 frame 110–125 共 16 幀分別以門檻 0 與 0.001 分析。檢查追蹤前 callback，確認框尚無 ID 且所有車輛均符合面積門檻。frame 116 偵測由 8 筆降為 6 筆，原 #40 對應目標及另一過小車框被排除，原 #3/#5 對應車輛保留。已目視檢查該幀；短片從中途開始，ID 不與全片編號對齊。
+
+61 項 pytest、Ruff、strict Mypy（36 source files）通過。macOS MPS 報告重新產生，source_commit 為 5fdf4e6def033d5021e94197f80331adc30749b2，但 dirty worktree 且 MPS unavailable，故 blocked；Linux CUDA missing，兩 GPU 平台均待乾淨來源版本實機重跑。未重跑完整影片，未 commit/push。
+
+限制：此為大小篩選，並非距離估計；小型機車或遮擋車輛可能被排除。門檻附近的物件可能斷續提供給追蹤器；追蹤器仍保留其既有 lost-track 狀態，重現不保證 ID 延續。不同鏡頭或影片仍需調整門檻。
+
+
+## 2026-09-03 預設本機模型解析
+
+使用者核准簡化 analyze，只需 --input、--output（輸出仍可省略）。此局部改動不需 ExecPlan。預設模型檔名先解析目前目錄，其次透過 Git common-dir 找主要工作目錄的既有權重；明確路徑必須存在，不靜默替換，不自動下載。保留 --model、--config 與其他覆寫選項。
+
+64 項 pytest、Ruff、strict Mypy（36 來源檔）通過；涵蓋目前目錄優先、worktree 共用權重、明確路徑及缺失錯誤。實際從現有影片取一幀，以僅 --input 和 --output 的 CLI 完成 CPU 分析，metadata 確認 auto 選 CPU、既有模型雜湊與 0.001 尺寸門檻。此 smoke test 僅驗證簡化入口，不代替完整影片或 GPU 驗收。
+
+本機報告 source_commit 仍為 5fdf4e6def033d5021e94197f80331adc30749b2，工作樹未提交且 MPS unavailable，macOS MPS blocked；Linux CUDA missing，兩平台待乾淨版本重跑。未 commit/push。
+
+## 2026-09-15 移除人物追蹤
+
+預設偵測類別移除 person，人物不再送入 BoT-SORT，也不會產生人物 ID、軌跡或逐幀物件資料。保留 car、motorcycle、bus、truck、bicycle。此變更可減少騎士與機車同時標註，但模型若將人物誤判成 motorcycle，仍可能形成重複 M 框；重複框處理不在本次範圍。
+
+設定測試與完整 64 項 pytest、Ruff、strict Mypy（36 來源檔）通過，git diff --check 通過。本次依使用者縮減後的核准範圍未執行實拍影片分析，macOS MPS 與 Linux CUDA 報告均未更新；未 commit/push。
+
+
+## 2026-09-15 有動力車輛統一與追蹤前去重
+
+依核准的 EXEC_PLAN_MILESTONE1_VEHICLE_DEDUP.md，YOLO 僅偵測 car、truck、bus、motorcycle；追蹤前以 0.85 IoU 信心優先去除跨原始類別的高度重疊框；另以較小框包含比例 0.9 且水平、垂直中心距離比例皆不高於 0.22 去除巢狀框，再統一映射為 vehicle。person 與 bicycle 不追蹤，標註只顯示 #ID。尺寸篩選預設停用，minimum_track_length 保持不變。實拍影片重跑及人工審查由使用者執行，不在本次自動驗證範圍。加入巢狀框規則後，完整 71 項 pytest、Ruff、strict Mypy（36 來源檔）及 git diff --check 通過；未更新平台報告，未 commit/push。
+
+
+## 2026-09-16 追蹤輸出身分修正
+
+BoT-SORT 輸出後再次消除高重疊或巢狀的同車框，並將被排除的 ID 映射到保留 ID。若新 ID 與中斷前車輛的端點框高度重疊且中間缺少一至兩幀，則沿用既有 ID；相鄰影格直接出現的新車不銜接。以既有 innovv-test-1 結構化輸出重播確認 #8/#9 與 #508/#523 修正，#177/#197 與 #275/#294 維持分離。完整 76 項 pytest、Ruff、strict Mypy（37 來源檔）與 git diff --check 通過；實拍影片未重跑，平台報告未更新。
+
+
+## 2026-09-16 canonical ID 碰撞防護
+
+同一 canonical ID 在同一影格對應到兩個不同位置的非重複框時，保留原始 ID 持有者，解除另一條軌跡的 alias 並恢復其原始 ID，避免兩台不同車同時標成 #275。

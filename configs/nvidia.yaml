@@ -1,59 +1,57 @@
 detection:
   model: yolo26m.pt
   confidence: 0.35
+  minimum_vehicle_area_ratio: 0
+  duplicate_vehicle_iou_threshold: 0.85
+  duplicate_vehicle_containment_threshold: 0.9
+  duplicate_vehicle_center_distance_ratio: 0.22
+  # Fixed camera: normalized outline of the visible lower-left ego body.
+  ego_vehicle_polygon:
+    - [0.000000, 0.536857]
+    - [0.052385, 0.559110]
+    - [0.134480, 0.642559]
+    - [0.186083, 0.716273]
+    - [0.275215, 0.803894]
+    - [0.354183, 0.880389]
+    - [0.490227, 1.000000]
+    - [0.000000, 1.000000]
+  ego_vehicle_overlap_threshold: 0.8
   imgsz: 1280
   device: cuda:0
-  classes: [car, motorcycle, bus, truck, person, bicycle]
+  classes: [car, motorcycle, bus, truck]
 tracking:
   tracker: botsort.yaml
   minimum_track_length: 2
-lane_geometry:
+lane_detection:
   enabled: true
-  ego_lane_polygon:
-    - {x: 0.47, y: 0.66}
-    - {x: 0.54, y: 0.66}
-    - {x: 0.78, y: 1.00}
-    - {x: 0.22, y: 1.00}
-  confidence: 1.0
-lane_membership:
-  boundary_margin_pixels: 12.0
-ego_motion:
-  max_features: 500
-  feature_quality_level: 0.01
-  feature_min_distance: 8.0
-  optical_flow_window_size: 21
-  optical_flow_max_level: 3
-  ransac_reprojection_threshold: 3.0
-  minimum_tracked_features: 12
-  minimum_inliers: 8
-  minimum_inlier_ratio: 0.5
-  maximum_mean_reprojection_error: 2.5
-  mask_padding_pixels: 8
-temporal_lane:
-  smoothing_window_frames: 3
-  approaching_distance_pixels: 40.0
-  entered_distance_pixels: 20.0
-  debounce_frames: 2
-  minimum_confirmation_frames: 3
-  minimum_confirmation_duration_seconds: 0.1
-  maximum_missing_frames: 2
-  candidate_timeout_seconds: 2.0
-  history_size: 30
-forward_corridor:
-  polygon:
-    - {x: 0.485, y: 0.70}
-    - {x: 0.525, y: 0.70}
-    - {x: 0.68, y: 1.00}
-    - {x: 0.32, y: 1.00}
-cut_in:
-  evidence_history_size: 12
-  minimum_bbox_expansion_ratio: 0.05
-  minimum_confirmed_confidence: 0.65
-  minimum_motion_quality_ratio: 0.8
-  lane_change_weight: 0.4
-  corridor_weight: 0.3
-  bbox_expansion_weight: 0.15
-  motion_quality_weight: 0.15
+  backend: yolop_onnx
+  model: models/yolop-640-640.onnx
+  model_sha256: cd66a3e0087a7258ae07768cc02cb742eed93865727ae4c9baf969b8fa190696
+  input_size: 640
+  probability_threshold: 0.5
+  minimum_drivable_probability: 0.5
+  white_lightness_threshold: 90
+  white_saturation_threshold: 125
+  local_contrast_threshold: 12
+  strong_probability_threshold: 0.6
+  roi_top_ratio: 0.4
+  minimum_component_area_ratio: 0.00004
+  minimum_vertical_span_ratio: 0.1
+  minimum_fragment_vertical_span_ratio: 0.05
+  maximum_horizontal_to_vertical_ratio: 5.0
+  maximum_fit_error_ratio: 0.025
+  maximum_arrow_fit_error_ratio: 0.008
+  maximum_row_width_ratio: 0.08
+  maximum_row_width_variation_ratio: 3.5
+  maximum_fragment_gap_ratio: 0.12
+  sample_count: 24
+  smoothing_alpha: 0.35
+  maximum_missing_frames: 1
+  minimum_curve_confidence: 0.5
+  maximum_boundaries: 8
+  temporal_association_distance_ratio: 0.08
+  excluded_bbox_margin_ratio: 0.02
+  minimum_confirmation_frames: 2
 output:
   save_video: true
   save_frames: true

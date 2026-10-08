@@ -2,10 +2,11 @@ import json
 from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
+import typer
 from typer.testing import CliRunner
 
-from dashcam_ai.cli import _build_scene_analyzer, _resolve_output_path, app
-from dashcam_ai.config.models import AppConfig
+from dashcam_ai.cli import _resolve_model_path, _resolve_output_path, app
 
 
 def test_devices_command_returns_json() -> None:
@@ -27,27 +28,25 @@ def test_explicit_output_path_is_preserved() -> None:
     assert _resolve_output_path(Path("samples/test3.mp4"), custom) == custom
 
 
-def test_scene_analyzer_is_disabled_with_lane_geometry() -> None:
-    config = AppConfig()
-    disabled = config.model_copy(
-        update={"lane_geometry": config.lane_geometry.model_copy(update={"enabled": False})}
-    )
-
-    assert _build_scene_analyzer(disabled) is None
+def test_lane_overlay_command_is_removed() -> None:
+    result = CliRunner().invoke(app, ["lane-overlay"])
+    assert result.exit_code == 2
+    assert "No such command" in result.output
 
 
-def test_scene_analyzer_builds_from_default_configuration() -> None:
-    assert _build_scene_analyzer(AppConfig()) is not None
-
-
-def test_analyze_passes_minimum_track_length_from_config(
-    tmp_path: Path, monkeypatch
-) -> None:
+def test_analyze_passes_minimum_track_length_from_config(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr("dashcam_ai.cli._resolve_model_path", lambda model: model)
     input_path = tmp_path / "input.mp4"
     input_path.touch()
     config_path = tmp_path / "config.yaml"
     config_path.write_text(
-        "tracking:\n  minimum_track_length: 7\nlane_geometry:\n  enabled: false\n",
+        "tracking:\n  minimum_track_length: 7\n"
+        "detection:\n  minimum_vehicle_area_ratio: 0.002\n"
+        "  duplicate_vehicle_iou_threshold: 0.9\n"
+        "  duplicate_vehicle_containment_threshold: 0.92\n"
+        "  duplicate_vehicle_center_distance_ratio: 0.18\n"
+        "  ego_vehicle_polygon: [[0, 0.5], [0.5, 0.5], [0, 1]]\n"
+        "  ego_vehicle_overlap_threshold: 0.85\n",
         encoding="utf-8",
     )
     captured: dict[str, object] = {}
@@ -66,7 +65,13 @@ def test_analyze_passes_minimum_track_length_from_config(
                 output_directory=output,
             )
 
-    monkeypatch.setattr("dashcam_ai.cli.UltralyticsDetectorTracker", lambda **kwargs: object())
+    backend_options: dict[str, object] = {}
+
+    def fake_backend(**kwargs: object) -> object:
+        backend_options.update(kwargs)
+        return object()
+
+    monkeypatch.setattr("dashcam_ai.cli.UltralyticsDetectorTracker", fake_backend)
     monkeypatch.setattr("dashcam_ai.cli.Analyzer", FakeAnalyzer)
 
     result = CliRunner().invoke(
@@ -84,3 +89,47 @@ def test_analyze_passes_minimum_track_length_from_config(
 
     assert result.exit_code == 0
     assert captured["minimum_track_length"] == 7
+    assert backend_options["minimum_vehicle_area_ratio"] == 0.002
+    assert backend_options["duplicate_vehicle_iou_threshold"] == 0.9
+    assert backend_options["duplicate_vehicle_containment_threshold"] == 0.92
+    assert backend_options["duplicate_vehicle_center_distance_ratio"] == 0.18
+    assert backend_options["ego_vehicle_polygon"] == [(0, 0.5), (0.5, 0.5), (0, 1)]
+    assert backend_options["ego_vehicle_overlap_threshold"] == 0.85
+
+
+def test_model_uses_current_directory_before_main_checkout(tmp_path, monkeypatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    weights = tmp_path / "yolo26m.pt"
+    weights.touch()
+    assert _resolve_model_path("yolo26m.pt") == str(weights)
+
+
+def test_model_falls_back_to_main_checkout(tmp_path, monkeypatch) -> None:
+    main = tmp_path / "main"
+    main.mkdir()
+    weights = main / "yolo26m.pt"
+    weights.touch()
+    worktree = tmp_path / "worktree"
+    worktree.mkdir()
+    monkeypatch.chdir(worktree)
+    monkeypatch.setattr(
+        "dashcam_ai.cli.subprocess.run",
+        lambda *args, **kwargs: SimpleNamespace(stdout=str(main / ".git")),
+    )
+    assert _resolve_model_path("yolo26m.pt") == str(weights)
+    with pytest.raises(typer.BadParameter, match="不會自動下載"):
+        _resolve_model_path("missing.pt")
+    with pytest.raises(typer.BadParameter):
+        _resolve_model_path("./yolo26m.pt")
+    assert _resolve_model_path(str(weights)) == str(weights)
+
+
+def test_missing_model_outside_git_has_clear_error(tmp_path, monkeypatch) -> None:
+    monkeypatch.chdir(tmp_path)
+
+    def no_git(*args, **kwargs):
+        raise FileNotFoundError("git")
+
+    monkeypatch.setattr("dashcam_ai.cli.subprocess.run", no_git)
+    with pytest.raises(typer.BadParameter, match="找不到本機模型"):
+        _resolve_model_path("yolo26m.pt")

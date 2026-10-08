@@ -1,0 +1,513 @@
+{
+  "scope": "Continuous straight-stripe audit added after focused trial5; raw-image optical flow from manual anchors, every crop visually reviewed; endpoints clipped to visible frame after paint leaves bottom. Same development scenes, not held-out data; local visible dash only, not other dashes or full lane.",
+  "videos": [
+    {
+      "name": "sample_1",
+      "input_sha256": "220611d110329da7a5ad89405c475ed4104c4c5c8eae6eb0ec8f34e0d6f0ea2d",
+      "width": 1280,
+      "height": 720,
+      "fps": 30,
+      "tolerance_pixels": 10,
+      "scope": "Continuous straight-stripe audit added after focused trial5; raw-image optical flow from manual anchors, every crop visually reviewed; endpoints clipped to visible frame after paint leaves bottom. Same development scenes, not held-out data; local visible dash only, not other dashes or full lane.",
+      "cases": [
+        {
+          "frame_id": 0,
+          "group": "sample_1-continuous-straight",
+          "category": "straight",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              681,
+              403
+            ],
+            [
+              700,
+              429
+            ]
+          ],
+          "check_straight_geometry": true
+        },
+        {
+          "frame_id": 1,
+          "group": "sample_1-continuous-straight",
+          "category": "straight",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              679,
+              404
+            ],
+            [
+              700,
+              432
+            ]
+          ],
+          "check_straight_geometry": true
+        },
+        {
+          "frame_id": 2,
+          "group": "sample_1-continuous-straight",
+          "category": "straight",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              680,
+              404
+            ],
+            [
+              702,
+              435
+            ]
+          ],
+          "check_straight_geometry": true
+        },
+        {
+          "frame_id": 3,
+          "group": "sample_1-continuous-straight",
+          "category": "straight",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              680,
+              409
+            ],
+            [
+              703,
+              442
+            ]
+          ],
+          "check_straight_geometry": true
+        },
+        {
+          "frame_id": 4,
+          "group": "sample_1-continuous-straight",
+          "category": "straight",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              678,
+              411
+            ],
+            [
+              704,
+              449
+            ]
+          ],
+          "check_straight_geometry": true
+        },
+        {
+          "frame_id": 5,
+          "group": "sample_1-continuous-straight",
+          "category": "straight",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              679,
+              413
+            ],
+            [
+              707,
+              455
+            ]
+          ],
+          "check_straight_geometry": true
+        },
+        {
+          "frame_id": 6,
+          "group": "sample_1-continuous-straight",
+          "category": "straight",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              680,
+              417
+            ],
+            [
+              710,
+              462
+            ]
+          ],
+          "check_straight_geometry": true
+        },
+        {
+          "frame_id": 7,
+          "group": "sample_1-continuous-straight",
+          "category": "straight",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              679,
+              420
+            ],
+            [
+              711,
+              471
+            ]
+          ],
+          "check_straight_geometry": true
+        },
+        {
+          "frame_id": 8,
+          "group": "sample_1-continuous-straight",
+          "category": "straight",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              679,
+              419
+            ],
+            [
+              715,
+              478
+            ]
+          ],
+          "check_straight_geometry": true
+        },
+        {
+          "frame_id": 9,
+          "group": "sample_1-continuous-straight",
+          "category": "straight",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              681,
+              422
+            ],
+            [
+              720,
+              487
+            ]
+          ],
+          "check_straight_geometry": true
+        },
+        {
+          "frame_id": 10,
+          "group": "sample_1-continuous-straight",
+          "category": "straight",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              680,
+              429
+            ],
+            [
+              724,
+              501
+            ]
+          ],
+          "check_straight_geometry": true
+        },
+        {
+          "frame_id": 11,
+          "group": "sample_1-continuous-straight",
+          "category": "straight",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              679,
+              433
+            ],
+            [
+              727,
+              517
+            ]
+          ],
+          "check_straight_geometry": true
+        },
+        {
+          "frame_id": 12,
+          "group": "sample_1-continuous-straight",
+          "category": "straight",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              680,
+              435
+            ],
+            [
+              733,
+              535
+            ]
+          ],
+          "check_straight_geometry": true
+        }
+      ]
+    },
+    {
+      "name": "sample_2",
+      "input_sha256": "48f0e3010d7acffebf95b8bd55e1193589785a3d8835ec528040f0298edbf4ba",
+      "width": 1280,
+      "height": 720,
+      "fps": 30,
+      "tolerance_pixels": 10,
+      "scope": "Continuous straight-stripe audit added after focused trial5; raw-image optical flow from manual anchors, every crop visually reviewed; endpoints clipped to visible frame after paint leaves bottom. Same development scenes, not held-out data; local visible dash only, not other dashes or full lane.",
+      "cases": [
+        {
+          "frame_id": 1786,
+          "group": "sample_2-continuous-straight",
+          "category": "straight",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              749,
+              443
+            ],
+            [
+              835,
+              536
+            ]
+          ],
+          "check_straight_geometry": true
+        },
+        {
+          "frame_id": 1787,
+          "group": "sample_2-continuous-straight",
+          "category": "straight",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              751,
+              447
+            ],
+            [
+              852,
+              556
+            ]
+          ],
+          "check_straight_geometry": true
+        },
+        {
+          "frame_id": 1788,
+          "group": "sample_2-continuous-straight",
+          "category": "straight",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              754,
+              451
+            ],
+            [
+              873,
+              578
+            ]
+          ],
+          "check_straight_geometry": true
+        },
+        {
+          "frame_id": 1789,
+          "group": "sample_2-continuous-straight",
+          "category": "straight",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              758,
+              457
+            ],
+            [
+              899,
+              612
+            ]
+          ],
+          "check_straight_geometry": true
+        },
+        {
+          "frame_id": 1790,
+          "group": "sample_2-continuous-straight",
+          "category": "straight",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              761,
+              465
+            ],
+            [
+              933,
+              649
+            ]
+          ],
+          "check_straight_geometry": true
+        },
+        {
+          "frame_id": 1791,
+          "group": "sample_2-continuous-straight",
+          "category": "straight",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              763,
+              471
+            ],
+            [
+              976,
+              697
+            ]
+          ],
+          "check_straight_geometry": true
+        },
+        {
+          "frame_id": 1792,
+          "group": "sample_2-continuous-straight",
+          "category": "straight",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              770,
+              482
+            ],
+            [
+              983,
+              718
+            ]
+          ],
+          "check_straight_geometry": true
+        },
+        {
+          "frame_id": 1793,
+          "group": "sample_2-continuous-straight",
+          "category": "straight",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              775,
+              494
+            ],
+            [
+              979,
+              718
+            ]
+          ],
+          "check_straight_geometry": true
+        },
+        {
+          "frame_id": 1794,
+          "group": "sample_2-continuous-straight",
+          "category": "straight",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              779,
+              504
+            ],
+            [
+              970,
+              718
+            ]
+          ],
+          "check_straight_geometry": true
+        },
+        {
+          "frame_id": 1795,
+          "group": "sample_2-continuous-straight",
+          "category": "straight",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              789,
+              518
+            ],
+            [
+              966,
+              718
+            ]
+          ],
+          "check_straight_geometry": true
+        },
+        {
+          "frame_id": 1796,
+          "group": "sample_2-continuous-straight",
+          "category": "straight",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              800,
+              534
+            ],
+            [
+              957,
+              718
+            ]
+          ],
+          "check_straight_geometry": true
+        },
+        {
+          "frame_id": 1797,
+          "group": "sample_2-continuous-straight",
+          "category": "straight",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              809,
+              553
+            ],
+            [
+              947,
+              718
+            ]
+          ],
+          "check_straight_geometry": true
+        },
+        {
+          "frame_id": 1798,
+          "group": "sample_2-continuous-straight",
+          "category": "straight",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              822,
+              577
+            ],
+            [
+              942,
+              718
+            ]
+          ],
+          "check_straight_geometry": true
+        },
+        {
+          "frame_id": 1799,
+          "group": "sample_2-continuous-straight",
+          "category": "straight",
+          "split": "development",
+          "expected_line": true,
+          "polyline": [
+            [
+              841,
+              608
+            ],
+            [
+              932,
+              718
+            ]
+          ],
+          "check_straight_geometry": true
+        }
+      ]
+    }
+  ]
+}

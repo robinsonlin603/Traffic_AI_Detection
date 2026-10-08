@@ -20,7 +20,7 @@ def passing_record(commit: str, platform_id: str = "linux-cuda") -> ValidationRe
     accelerator = "cuda" if platform_id == "linux-cuda" else "mps"
     operating_system = "Linux" if platform_id == "linux-cuda" else "Darwin"
     return ValidationRecord(
-        milestone="milestone-2",
+        milestone="milestone-1",
         platform=platform_id,
         source_commit=commit,
         worktree_dirty=False,
@@ -57,7 +57,7 @@ def test_validation_status_marks_an_old_commit_stale(monkeypatch, tmp_path: Path
     )
     monkeypatch.setattr("dashcam_ai.cli._run_git", lambda root, *args: "b" * 40)
     result = runner.invoke(
-        app, ["validation-status", "validation/milestone-2/linux-cuda.json"]
+        app, ["validation-status", "validation/milestone-1/linux-cuda.json"]
     )
     assert result.exit_code == 1
     assert '"freshness": "stale"' in result.stdout
@@ -71,7 +71,7 @@ def test_milestone_requires_both_platforms(monkeypatch, tmp_path: Path) -> None:
     monkeypatch.setattr(
         "dashcam_ai.validation.status._run_git", lambda root, *args: commit
     )
-    result = runner.invoke(app, ["milestone-status", "--milestone", "2"])
+    result = runner.invoke(app, ["milestone-status", "--milestone", "1"])
     assert result.exit_code == 1
     assert '"platform": "linux-cuda"' in result.stdout
     assert '"status": "missing"' in result.stdout

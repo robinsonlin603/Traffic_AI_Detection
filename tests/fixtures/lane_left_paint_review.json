@@ -1,0 +1,96 @@
+{
+  "input_sha256": "48f0e3010d7acffebf95b8bd55e1193589785a3d8835ec528040f0298edbf4ba",
+  "width": 1280,
+  "height": 720,
+  "fps": 30,
+  "tolerance_pixels": 10,
+  "coordinate_system": "original image; zero-based frame_id",
+  "scope": "User circled visible paint in two screenshots. Known development cases only; not full-interval accuracy. Preserve earlier 630/660/680 polylines unchanged. Detector masks never shorten ground-truth length.",
+  "screenshot_matches": [
+    {
+      "file": "截圖 2026-10-05 晚上9.47.16.png",
+      "sha256": "193684a0cd8be451aa7643336bceee19cc35a9510d4ec3765275244b39eb950f",
+      "frame_id": 615,
+      "timestamp_seconds": 20.5,
+      "homography_inliers": 767
+    },
+    {
+      "file": "截圖 2026-10-05 晚上9.47.21.png",
+      "sha256": "16b8c15d3989c6d30f7dc50d05e107d11c20a6e492656f6756593183bd1987e1",
+      "frame_id": 660,
+      "timestamp_seconds": 22.0,
+      "homography_inliers": 520
+    }
+  ],
+  "cases": [
+    {
+      "frame_id": 615,
+      "name": "screenshot 1 visible left dash",
+      "category": "left_lane",
+      "split": "development",
+      "expected_line": true,
+      "polyline": [
+        [
+          478,
+          408
+        ],
+        [
+          510,
+          397
+        ]
+      ],
+      "group": "sample_2-615-left_lane"
+    },
+    {
+      "frame_id": 630,
+      "group": "sample_2-630-left_lane",
+      "category": "left_lane",
+      "split": "development",
+      "expected_line": true,
+      "polyline": [
+        [
+          393,
+          438
+        ],
+        [
+          475,
+          408
+        ]
+      ]
+    },
+    {
+      "frame_id": 660,
+      "group": "sample_2-660-left_lane",
+      "category": "left_lane",
+      "split": "development",
+      "expected_line": true,
+      "polyline": [
+        [
+          381,
+          431
+        ],
+        [
+          476,
+          400
+        ]
+      ]
+    },
+    {
+      "frame_id": 680,
+      "group": "sample_2-680-left_lane",
+      "category": "left_lane",
+      "split": "development",
+      "expected_line": true,
+      "polyline": [
+        [
+          283,
+          442
+        ],
+        [
+          372,
+          409
+        ]
+      ]
+    }
+  ]
+}

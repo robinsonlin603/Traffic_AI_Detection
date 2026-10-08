@@ -1,0 +1,322 @@
+{
+  "input_sha256": "48f0e3010d7acffebf95b8bd55e1193589785a3d8835ec528040f0298edbf4ba",
+  "width": 1280,
+  "height": 720,
+  "fps": 30,
+  "tolerance_pixels": 10,
+  "coordinate_system": "original image; zero-based frame_id",
+  "scope": "User screenshot visible paint only. Known development data. Keep all previous fixtures unchanged; new 630/680 visible positions are separate from legacy offset polylines. No detector occlusion may reduce ground-truth length.",
+  "screenshot_matches": [
+    {
+      "file": "截圖 2026-10-06 晚上7.52.52.png",
+      "sha256": "b162e8737d0f238a30aa510916b8c8d39cee4616d5e58cff9b5f5ca658bacd17",
+      "frame_id": 657,
+      "reported_version": "yolop_v9",
+      "match_method": "raw-frame ORB; no F-minus-one assumption"
+    },
+    {
+      "file": "截圖 2026-10-06 晚上7.53.01.png",
+      "sha256": "eb02a1299ba279e4c643eedf8d52bf916fcc73fe8fe402df77335ebcbf402276",
+      "frame_id": 697,
+      "reported_version": "yolop_v9",
+      "match_method": "raw-frame ORB; no F-minus-one assumption"
+    },
+    {
+      "file": "截圖 2026-10-06 晚上10.00.46.png",
+      "sha256": "4ce86baf34822b8babc4875716a310308703c4ad9676c61f9b335b55c44ae69c",
+      "frame_id": 540,
+      "reported_version": "v10",
+      "match_method": "raw-frame ORB; no F-minus-one assumption"
+    },
+    {
+      "file": "截圖 2026-10-06 晚上10.02.57.png",
+      "sha256": "e0a37287938661953d5d8415230c7ece64f83c88b3b3709c0707a081ef5e3aec",
+      "frame_id": 1222,
+      "reported_version": "v10",
+      "match_method": "raw-frame ORB; no F-minus-one assumption"
+    },
+    {
+      "file": "截圖 2026-10-06 晚上10.03.03.png",
+      "sha256": "28e09030746961d245ef10c2c8fc059b2505cefa8ca752feabe90bf701753935",
+      "frame_id": 1244,
+      "reported_version": "v10",
+      "match_method": "raw-frame ORB; no F-minus-one assumption"
+    }
+  ],
+  "cases": [
+    {
+      "frame_id": 630,
+      "name": "visible left paint",
+      "group": "sample_2-630-visible-left",
+      "category": "left_lane",
+      "split": "development",
+      "expected_line": true,
+      "polyline": [
+        [
+          282,
+          475
+        ],
+        [
+          319,
+          463
+        ]
+      ]
+    },
+    {
+      "frame_id": 657,
+      "name": "visible left paint",
+      "group": "sample_2-657-visible-left",
+      "category": "left_lane",
+      "split": "development",
+      "expected_line": true,
+      "polyline": [
+        [
+          413,
+          422
+        ],
+        [
+          489,
+          397
+        ]
+      ]
+    },
+    {
+      "frame_id": 680,
+      "name": "visible left paint",
+      "group": "sample_2-680-visible-left",
+      "category": "left_lane",
+      "split": "development",
+      "expected_line": true,
+      "polyline": [
+        [
+          285,
+          476
+        ],
+        [
+          372,
+          446
+        ]
+      ]
+    },
+    {
+      "frame_id": 697,
+      "name": "visible left paint",
+      "group": "sample_2-697-visible-left",
+      "category": "left_lane",
+      "split": "development",
+      "expected_line": true,
+      "polyline": [
+        [
+          265,
+          400
+        ],
+        [
+          380,
+          384
+        ]
+      ]
+    },
+    {
+      "frame_id": 1222,
+      "name": "visible left paint",
+      "group": "sample_2-1222-visible-left",
+      "category": "left_lane",
+      "split": "development",
+      "expected_line": true,
+      "polyline": [
+        [
+          453,
+          388
+        ],
+        [
+          494,
+          380
+        ]
+      ]
+    },
+    {
+      "frame_id": 1244,
+      "name": "visible left paint",
+      "group": "sample_2-1244-visible-left",
+      "category": "left_lane",
+      "split": "development",
+      "expected_line": true,
+      "polyline": [
+        [
+          463,
+          382
+        ],
+        [
+          493,
+          375
+        ]
+      ]
+    },
+    {
+      "frame_id": 615,
+      "name": "screenshot 1 visible left dash",
+      "category": "left_lane",
+      "split": "development",
+      "expected_line": true,
+      "polyline": [
+        [
+          478,
+          408
+        ],
+        [
+          510,
+          397
+        ]
+      ],
+      "group": "sample_2-615-left_lane"
+    },
+    {
+      "frame_id": 660,
+      "group": "sample_2-660-left_lane",
+      "category": "left_lane",
+      "split": "development",
+      "expected_line": true,
+      "polyline": [
+        [
+          381,
+          431
+        ],
+        [
+          476,
+          400
+        ]
+      ]
+    },
+    {
+      "frame_id": 1228,
+      "group": "sample_2-1230-left_lane",
+      "category": "left_lane",
+      "split": "held_out",
+      "expected_line": true,
+      "polyline": [
+        [
+          328,
+          553
+        ],
+        [
+          426,
+          485
+        ]
+      ]
+    },
+    {
+      "frame_id": 1229,
+      "group": "sample_2-1230-left_lane",
+      "category": "left_lane",
+      "split": "held_out",
+      "expected_line": true,
+      "polyline": [
+        [
+          328,
+          554
+        ],
+        [
+          426,
+          486
+        ]
+      ]
+    },
+    {
+      "frame_id": 1230,
+      "group": "sample_2-1230-left_lane",
+      "category": "left_lane",
+      "split": "held_out",
+      "expected_line": true,
+      "polyline": [
+        [
+          330,
+          555
+        ],
+        [
+          426,
+          488
+        ]
+      ]
+    },
+    {
+      "frame_id": 1231,
+      "group": "sample_2-1230-left_lane",
+      "category": "left_lane",
+      "split": "held_out",
+      "expected_line": true,
+      "polyline": [
+        [
+          330,
+          555
+        ],
+        [
+          427,
+          486
+        ]
+      ]
+    },
+    {
+      "frame_id": 1232,
+      "group": "sample_2-1230-left_lane",
+      "category": "left_lane",
+      "split": "held_out",
+      "expected_line": true,
+      "polyline": [
+        [
+          329,
+          554
+        ],
+        [
+          430,
+          485
+        ]
+      ]
+    },
+    {
+      "frame_id": 540,
+      "group": "sample_2-540-crosswalk-envelope",
+      "category": "crosswalk",
+      "split": "development",
+      "expected_line": false,
+      "polygon": [
+        [
+          920,
+          357
+        ],
+        [
+          1090,
+          360
+        ],
+        [
+          1180,
+          410
+        ],
+        [
+          1170,
+          445
+        ],
+        [
+          920,
+          425
+        ]
+      ]
+    },
+    {
+      "frame_id": 540,
+      "group": "sample_2-540-adjacent-lane-control",
+      "category": "lane_control",
+      "split": "development",
+      "expected_line": true,
+      "polyline": [
+        [
+          600,
+          443
+        ],
+        [
+          549,
+          510
+        ]
+      ]
+    }
+  ]
+}

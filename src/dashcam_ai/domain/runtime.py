@@ -17,3 +17,10 @@ class RuntimeMetadata(BaseModel):
     model_sha256: str | None = None
     imgsz: int = Field(gt=0)
     confidence: float = Field(ge=0, le=1)
+    minimum_vehicle_area_ratio: float = Field(default=0, ge=0, le=1)
+    duplicate_vehicle_iou_threshold: float = Field(default=0.85, ge=0, le=1)
+    duplicate_vehicle_containment_threshold: float = Field(default=0.9, ge=0, le=1)
+    duplicate_vehicle_center_distance_ratio: float = Field(default=0.22, ge=0, le=1)
+    ego_vehicle_polygon: list[tuple[float, float]] = Field(default_factory=list)
+    ego_vehicle_overlap_threshold: float = Field(default=0.8, gt=0, le=1)
+    ego_vehicle_context_recovery: bool = False

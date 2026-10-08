@@ -1,7 +1,5 @@
-"""公開車道偵測與車道歸屬分析介面。"""
+"""道路白線分割與時間平滑。"""
 
-from dashcam_ai.lane.base import LaneDetector
-from dashcam_ai.lane.configured import ConfiguredLaneDetector
-from dashcam_ai.lane.membership import LaneMembershipEvaluator
+from dashcam_ai.lane.segmentation import YoloPLaneLineDetector
 
-__all__ = ["ConfiguredLaneDetector", "LaneDetector", "LaneMembershipEvaluator"]
+__all__ = ["YoloPLaneLineDetector"]

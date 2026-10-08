@@ -1,0 +1,115 @@
+{
+  "description": "Manual original-image-reviewed existing neighbor detections; IoU >= 0.5, not whole-video recall. IDs may change after self-object removal.",
+  "videos": [
+    {
+      "name": "sample_1",
+      "neighbor_controls": [
+        {
+          "frame_id": 0,
+          "bbox": [
+            775,
+            367,
+            811,
+            419
+          ]
+        },
+        {
+          "frame_id": 600,
+          "bbox": [
+            909,
+            349,
+            1188,
+            714
+          ]
+        },
+        {
+          "frame_id": 1230,
+          "bbox": [
+            888,
+            355,
+            1159,
+            697
+          ]
+        },
+        {
+          "frame_id": 1799,
+          "bbox": [
+            891,
+            357,
+            1163,
+            703
+          ]
+        },
+        {
+          "frame_id": 600,
+          "bbox": [
+            1125,
+            387,
+            1280,
+            648
+          ],
+          "reason": "Newly observed gray-mask confidence regression; original-image outside-mask recovery must preserve this motorcycle."
+        }
+      ]
+    },
+    {
+      "name": "sample_2",
+      "neighbor_controls": [
+        {
+          "frame_id": 0,
+          "bbox": [
+            363,
+            316,
+            503,
+            490
+          ]
+        },
+        {
+          "frame_id": 0,
+          "bbox": [
+            709,
+            412,
+            821,
+            564
+          ]
+        },
+        {
+          "frame_id": 600,
+          "bbox": [
+            157,
+            275,
+            313,
+            438
+          ]
+        },
+        {
+          "frame_id": 600,
+          "bbox": [
+            311,
+            327,
+            456,
+            489
+          ]
+        },
+        {
+          "frame_id": 1230,
+          "bbox": [
+            81,
+            290,
+            450,
+            491
+          ]
+        },
+        {
+          "frame_id": 1799,
+          "bbox": [
+            776,
+            368,
+            811,
+            411
+          ]
+        }
+      ]
+    }
+  ]
+}

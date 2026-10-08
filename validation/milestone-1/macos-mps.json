@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "milestone": "milestone-1",
+  "platform": "macos-mps",
+  "source_commit": "16bedd00158f53e6329260e61119859a1e7eced1",
+  "worktree_dirty": false,
+  "started_at": "2026-09-15T08:40:20.057671Z",
+  "finished_at": "2026-09-15T08:40:24.870626Z",
+  "environment": {
+    "operating_system": "Darwin",
+    "operating_system_release": "25.6.0",
+    "python_version": "3.12.11",
+    "torch_version": "2.13.0",
+    "cuda_version": null,
+    "ultralytics_version": "8.4.127",
+    "opencv_version": "4.14.0.94",
+    "accelerator": "mps",
+    "accelerator_available": false,
+    "accelerator_name": null
+  },
+  "gates": [
+    {
+      "name": "pytest",
+      "command": [
+        "python",
+        "-m",
+        "pytest"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "duration_seconds": 2.5778355410002405,
+      "output_excerpt": "................................................................         [100%]\n64 passed in 1.73s\n"
+    },
+    {
+      "name": "ruff",
+      "command": [
+        "python",
+        "-m",
+        "ruff",
+        "check",
+        "."
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "duration_seconds": 0.08947591700416524,
+      "output_excerpt": "All checks passed!\n"
+    },
+    {
+      "name": "mypy",
+      "command": [
+        "python",
+        "-m",
+        "mypy",
+        "src"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "duration_seconds": 0.6521750419997261,
+      "output_excerpt": "Success: no issues found in 36 source files\n"
+    }
+  ],
+  "acceptance_run": null,
+  "verdict": "blocked",
+  "reasons": [
+    "required mps accelerator was unavailable"
+  ]
+}

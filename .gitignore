@@ -14,4 +14,4 @@ output/*
 samples/*
 !samples/.gitkeep
 *.pt
-
+*.onnx
