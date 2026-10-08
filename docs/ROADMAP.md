@@ -26,3 +26,5 @@ Milestone 3 只問「是否有車從一個車道換到另一個車道」。不�
 2026-10-05 左白漆修正：[ExecPlan](EXEC_PLAN_MILESTONE2_LEFT_PAINT.md)、[驗證 review](MILESTONE2_LEFT_PAINT_REVIEW.md)。兩張圈選白漆恢復 100%，舊 630／680 左線仍漏；兩支各 1800 幀 CPU 成對比較／解碼及來源核對完成，直線 25/27、原控制 15/16、圖案 45/55、額外 49/50，固定斑馬線區域 1131 幀誤畫 0，無新增已標註退步。212 個測試、Ruff、Mypy 與 20 幀 MPS 整合通過；整體品質 failed、正式 MPS blocked、CUDA missing，M2 未完成。
 
 2026-10-06 公車格排除：[ExecPlan](EXEC_PLAN_MILESTONE2_BUS_BAYS.md)、[驗證 review](MILESTONE2_BUS_BAY_REVIEW.md)。v28 兩片各 1800 幀 AFTER CPU 重播與凍結 BEFORE 比較／四片完整解碼、來源與所有 fixture 稽核完成，公車格及真線控制 136/136、1410–1414 真線退步恢復，無新增已標註退步；615／660 左漆保留 100%，630／680 仍漏。249 tests、Ruff、Mypy 42 檔、20 幀 MPS 整合通過。整體品質 failed、正式 MPS blocked、CUDA missing，M2 未完成。
+
+2026-10-07 可見左線／斑馬線：[ExecPlan](EXEC_PLAN_MILESTONE2_LEFT_CROSSWALK.md)、[驗證 review](MILESTONE2_LEFT_CROSSWALK_REVIEW.md)。trial-27 指定六處左漆達 90% 覆蓋門檻（1222 為 95.45%，其餘 100%），540 斑馬線誤畫 1361→0；兩片各 1800 幀連續 AFTER、四片全數解碼、44 個來源／固定輸入／產物及全 fixture 稽核完成，固定斑馬線區 1131 幀零誤畫、公車格及控制 136/136，無新增已標註退步。294 tests、Ruff、Mypy 42 檔及 20 幀 MPS 整合通過，三段半速短片待新人工確認。1228–1232 近處左線仍 failed，新案例 10/15；整體品質 failed、正式 MPS blocked、CUDA missing，M2 未完成。失敗 trial-23 的 21 筆退步與其餘試驗證據保留。

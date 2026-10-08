@@ -146,3 +146,56 @@ M2 Linux CUDA missing。M1 macOS 16bedd0、legacy M2 macOS cef1205／CUDA c7d77e
 stale，M1 CUDA missing。品質通過、clean 固定來源與 M2 驗證入口可用後，兩個
 GPU 平台須各自重跑。只更新本機手動紀錄，未修改其他平台機器報告，未 commit
 或 push。
+
+## 2026-10-07 可見左線與斑馬線：最終來源整合通過，全片尚在執行
+
+本輪 HEAD `38e937ffd8ab043a7d9038756af119d26948e712`、dirty；白線 SHA256
+`4233b5ac3ae601d37cec095d3f477d4387ff478e041ea132d84aebc29be3b4b7`。
+[左線／斑馬線 review](../../docs/MILESTONE2_LEFT_CROSSWALK_REVIEW.md) 保存範圍與方法。
+286 pytest、Ruff、Mypy（42 檔）、diff 檢查 passed；755 個不同影格 CPU 聚焦
+回歸無新增已通過案例失敗、公車格及控制 136/136。兩片各 1800 幀完整連續
+AFTER 尚在重跑，不能將聚焦結果當作完整序列通過。新 fixture 11/15，
+1229–1232 原有近處左线失敗保留，整體品質仍 failed。
+
+同一精確來源 20 幀預設 CLI actual requested=mps/resolved=mps、完整解碼、
+42 個來源與輸入／產物雜湊核對 passed；車輛模型 MPS，白線 ONNX CPU。
+輸入為 sample2 900..919 重新編碼短片；ignored
+`output/left-crosswalk-review-v1/default-cli-smoke-trial-23-review.json`
+保存本輪證據。這是局部整合，不是全片追蹤或正式 GPU 驗收。
+
+正式 M2 macOS MPS **blocked**（dirty、validate 只支援 M1、正式 JSON missing），
+M2 Linux CUDA **missing**；M1 macOS 16bedd0 與 legacy M2 macOS cef1205／CUDA
+c7d77e3 **stale**，M1 CUDA **missing**。前輪其他來源結果對本輪 stale，不能
+轉用為本輪通過；兩個 GPU 平台需對 clean 固定來源各自重跑。只更新本機
+手動紀錄，不改其他平台機器報告，未 commit 或 push。
+
+後續全長稽核：trial-23 兩片重跑及四片解碼完成，但新增 21 筆已標註退步，
+來源拒絕；上述聚焦／局部整合結果不構成採納。trial-24 修改中，前輪精確
+來源的測試與 MPS 整合對新來源 stale，需重跑。正式 MPS blocked／CUDA missing
+不變。
+
+## 2026-10-07 trial-27：本輪回歸完成，整體品質仍 failed
+
+HEAD `38e937ffd8ab043a7d9038756af119d26948e712`、dirty；本輪白線 SHA256
+`32a8fa3028199bc40ad1256f768f8b2ca503d9f99e819cda3a731eeaaabdc070`。
+294 pytest、Ruff、Mypy 42 檔通過；755 個不同影格聚焦無新增已通過案例失敗，
+公車格及控制 136/136；trial-23 的 21 筆退步在相同模型輸入 79 幀窗口全部
+重現且修復。兩片各 1800 幀連續 AFTER、四片完整解碼、44 個來源與固定
+輸入／產物、全部 fixture 稽核完成；固定斑馬線區 1131 幀零誤畫，沒有新增
+已通過案例失敗，公車格及真線控制 136/136。完整證據見 ignored
+`output/left-crosswalk-review-v1/final-audit-trial-27.json`。三段 249 幀半速
+短片全數解碼與八個原片幀局部檢視完成，新影片待使用者人工確認。
+新案例 4→10/15，1228–1232 原有近處線仍 failed；不能套用舊試驗 11/15。
+
+同來源 20 幀預設 CLI 實際 requested=mps／resolved=mps、全數解碼、42 個
+來源與輸入／產物核對 passed，見 ignored
+`output/left-crosswalk-review-v1/default-cli-smoke-trial-27-review.json`。
+車輛模型 MPS、白線 ONNX CPU；只是局部整合，不是全片 GPU 品質驗收。
+正式 M2 macOS MPS blocked（dirty、validate 只支援 M1、正式 JSON missing）；
+Linux CUDA missing，其他舊來源報告 stale。只更新本機手動紀錄。
+
+本輪完整 `quality_passed=false`、`regressions_detected=false`；1228–1232
+近處漏線及其他原有品質失敗仍保留。錄製車輛觀察自車形狀框 0、旁車控制
+11/11，只核對沿用資料，沒有全片新 GPU 追蹤。完整方法、平台 stale／missing
+清單與短片見 [本輪 review](../../docs/MILESTONE2_LEFT_CROSSWALK_REVIEW.md)。
+M2 未完成，沒有修改其他平台機器報告、commit 或 push。
