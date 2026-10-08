@@ -138,11 +138,15 @@ class YoloPLaneLineDetector:
         self._ages: dict[str, int] = {}
         self._next_boundary_id = 1
         self.occlusion_mask: np.ndarray[Any, Any] | None = None
+        self._normal_occlusion_mask: np.ndarray[Any, Any] | None = None
         self._marking_occlusion_mask: np.ndarray[Any, Any] | None = None
         self._parent_lane_mask: np.ndarray[Any, Any] | None = None
         self.marking_mask: np.ndarray[Any, Any] | None = None
         self._marking_masks: dict[str, np.ndarray[Any, Any]] = {}
         self._contaminated_paint: np.ndarray[Any, Any] | None = None
+        self._recovered_ids: set[str] = set()
+        self._visible_paint_candidates: list[LaneCurve] = []
+        self._crossing_envelope: np.ndarray[Any, Any] | None = None
         self._bay_history: tuple[
             np.ndarray[Any, Any], np.ndarray[Any, Any], np.ndarray[Any, Any], int,
         ] | None = None
@@ -154,11 +158,15 @@ class YoloPLaneLineDetector:
         self._ages.clear()
         self._next_boundary_id = 1
         self.occlusion_mask = None
+        self._normal_occlusion_mask = None
         self._marking_occlusion_mask = None
         self._parent_lane_mask = None
         self.marking_mask = None
         self._marking_masks = {}
         self._contaminated_paint = None
+        self._recovered_ids = set()
+        self._visible_paint_candidates = []
+        self._crossing_envelope = None
         self._bay_history = None
 
     def detect(
@@ -179,12 +187,19 @@ class YoloPLaneLineDetector:
             return LaneLineFrame(status=LaneLineStatus.UNKNOWN, reason="empty frame")
 
         probability, drivable_probability = self._segmentation_probabilities(frame)
+        # This new coarse context is recomputed below. It must not influence
+        # legacy margin recovery through the previous frame's mask.
+        getattr(self, "_marking_masks", {}).pop("crosswalk_group_context", None)
         mask, mask_diagnostics = self._candidate_mask(
             frame,
             probability,
             excluded_boxes or [],
             drivable_probability,
         )
+        render_occlusion = self.occlusion_mask
+        # New recovery may release current paint for rendering, but normal
+        # refinement and parent support must retain their established mask.
+        self.occlusion_mask = self._normal_occlusion_mask
         paint, rejected_paint = self._paint_context(frame)
         bay_mask = self._labelled_bay_markings(frame, drivable_probability)
         self._marking_masks["labelled_bay_context"] = bay_mask
@@ -202,11 +217,13 @@ class YoloPLaneLineDetector:
         # Reject non-lane fragments before merging: a transverse marking must
         # not borrow a neighbouring fragment's direction or road support.
         supported: list[LaneCurve] = []
+        observed_supported: set[int] = set()
         occlusion_supported: set[int] = set()
         parent_labels: np.ndarray[Any, Any] | None = None
         parent_support: set[int] = set()
         decisions: list[LaneCandidateDecision] = []
-        for curve in candidates:
+        for curve in [*candidates, *self._visible_paint_candidates]:
+            observed_fragment = any(curve is c for c in self._visible_paint_candidates)
             was_occluded = (
                 (curve.component_height_ratio or 0) < self._minimum_fragment_span
                 and self._occluded_fragment(curve, width, frame)
@@ -217,14 +234,15 @@ class YoloPLaneLineDetector:
                         frame, probability, drivable_probability, paint, rejected_paint,
                     )
                 was_occluded = self._curve_component_label(curve, parent_labels) in parent_support
-            refined = self._refine_paint_geometry(curve, frame)
+            refined = curve if observed_fragment else self._refine_paint_geometry(curve, frame)
             if refined is not curve:
                 decisions.append(LaneCandidateDecision(
                     stage="context", reason="aligned_to_visible_paint", curve=curve,
                 ))
                 curve = refined
             reason = self._context_rejection(
-                curve, paint, rejected_paint, drivable_probability, frame
+                curve, paint, rejected_paint, drivable_probability, frame,
+                observed_paint=observed_fragment,
             )
             if reason == "low_drivable_context":
                 trimmed = self._painted_tail(curve, frame)
@@ -241,8 +259,24 @@ class YoloPLaneLineDetector:
                 decisions.append(LaneCandidateDecision(stage="context", reason=reason, curve=curve))
             else:
                 supported.append(curve)
+                if observed_fragment:
+                    observed_supported.add(id(curve))
                 if was_occluded:
                     occlusion_supported.add(id(curve))
+        # Rescue fragments must not displace a longer already-supported stripe.
+        supported = [c for c in supported if not (
+            id(c) in observed_supported and any(
+                id(other) not in observed_supported
+                and self._curve_distance(c, other, width) < 0.01
+                and other.points[-1].y - other.points[0].y
+                >= c.points[-1].y - c.points[0].y
+                and self._narrow_stripe_support(other, frame) >= 0.9
+                and np.hypot(other.points[-1].x-other.points[0].x,
+                             other.points[-1].y-other.points[0].y)
+                >= width * self._minimum_fragment_span
+                for other in supported
+            )
+        )]
         merged = self._merge_fragments(supported, width, height, frame)
         contextual: list[LaneCurve] = []
         for curve in merged:
@@ -256,6 +290,8 @@ class YoloPLaneLineDetector:
                 rejection_reasons[reason] += 1
                 decisions.append(LaneCandidateDecision(stage="merge", reason=reason, curve=curve))
             elif (
+                id(curve) not in observed_supported
+                and
                 (curve.component_height_ratio or 0) < self._minimum_span
                 and np.hypot(
                     curve.points[-1].x - curve.points[0].x,
@@ -291,7 +327,9 @@ class YoloPLaneLineDetector:
             rejection_reasons=dict(rejection_reasons),
             candidate_decisions=tuple(decisions),
         )
-        return self._stabilize(contextual, width, diagnostics, frame)
+        result = self._stabilize(contextual, width, diagnostics, frame)
+        self.occlusion_mask = render_occlusion
+        return result
 
     @staticmethod
     def _curve_component_label(curve: LaneCurve, labels: np.ndarray[Any, Any]) -> int:
@@ -391,12 +429,20 @@ class YoloPLaneLineDetector:
             rejected_now = (
                 marking_mask is not None and self._mask_overlap(previous, marking_mask) > 0.2
             )
+            crossing = getattr(self, "_marking_masks", {}).get("crosswalk_group_context")
+            a, b = previous.points[0], previous.points[-1]
+            rejected_now |= (
+                crossing is not None and abs(b.x-a.x) > abs(b.y-a.y) * 1.5
+                and self._mask_overlap(previous, crossing) > 0.2
+                and not (frame is not None and self._strong_longitudinal_paint(previous, frame))
+            )
             if rejected_now:
                 decisions.append(LaneCandidateDecision(
                     stage="carry", reason="current_marking_evidence", curve=previous,
                 ))
             if (
                 confirmed
+                and boundary_id not in getattr(self, "_recovered_ids", set())
                 and missing <= self._maximum_missing
                 and confidence >= self._minimum_confidence
                 and not conflicts_with_fresh
@@ -549,6 +595,9 @@ class YoloPLaneLineDetector:
                 box_mask[road > 0] = 0
             occlusion = cv2.bitwise_or(occlusion, box_mask)
         self._marking_occlusion_mask = occlusion.copy()
+        self._visible_paint_candidates, visible_road = self._visible_road_fragments(
+            frame, probability, drivable_probability, protected, occlusion,
+        ) if drivable_probability is not None else ([], np.zeros_like(mask))
         if excluded_boxes and drivable_probability is not None:
             # Geometry refinement must use this frame's box interiors, not the
             # previous frame's expanded occlusion mask.
@@ -570,11 +619,305 @@ class YoloPLaneLineDetector:
         )
         mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, np.ones((5, 5), dtype=np.uint8))
         mask[occlusion > 0] = 0
+        # Keep normal extraction on its established mask. Recovered paint has
+        # its own fitted candidates; releasing it for rendering must not grow
+        # a different normal component or change legacy margin recovery.
+        self._normal_occlusion_mask = occlusion.copy()
+        occlusion[visible_road > 0] = 0
         return mask, {
             "lane_pixel_count": int(np.count_nonzero(lane_mask)),
             "white_supported_pixel_count": white_supported_pixel_count,
             "vehicle_excluded_pixel_count": vehicle_excluded_pixel_count,
         }
+
+    def _visible_road_fragments(
+        self, frame: np.ndarray[Any, Any], probability: np.ndarray[Any, Any],
+        road: np.ndarray[Any, Any], protected: np.ndarray[Any, Any],
+        expanded: np.ndarray[Any, Any],
+    ) -> tuple[list[LaneCurve], np.ndarray[Any, Any]]:
+        """Recover observed shallow paint, retaining vehicle interiors and gaps."""
+        cv2 = _cv2()
+        height, width = probability.shape
+        hls = cv2.cvtColor(frame[:, :, :3], cv2.COLOR_BGR2HLS)
+        gray = cv2.cvtColor(frame[:, :, :3], cv2.COLOR_BGR2GRAY)
+        local = cv2.GaussianBlur(hls[:, :, 1], (0, 0), sigmaX=9)
+        paint = (
+            (probability >= self._threshold)
+            & (
+                (hls[:, :, 1] >= self._white_lightness)
+                | ((probability >= self._strong_probability)
+                   & (hls[:, :, 1] >= max(35, self._white_lightness // 2)))
+            )
+            & (hls[:, :, 2] <= self._white_saturation)
+            & (hls[:, :, 1].astype(np.int16) - local >= self._local_contrast)
+        ).astype(np.uint8)
+        paint[:round(height * self._roi_top)] = 0
+        paint[round(height * 0.95):] = 0
+        interior = cv2.erode(protected, np.ones((max(3, round(width * 0.024)) | 1,) * 2,
+                                               np.uint8))
+        paint[interior > 0] = 0
+        paint = cv2.morphologyEx(paint, cv2.MORPH_CLOSE, np.ones((3, 3), np.uint8))
+        paint[interior > 0] = 0
+        count, labels, stats, _ = cv2.connectedComponentsWithStats(paint, 8)
+        recover = np.zeros_like(paint)
+        curves = []
+        components = [(labels[y:y+h, x:x+w] == label, x, y, False)
+                      for label, (x, y, w, h, _) in enumerate(stats[1:], 1)]
+        # Worn paint can split the model's evidence into individually tiny
+        # pieces. Group nearby pieces, but fit only observed pixels and never
+        # replace an already long component with a connected neighbour.
+        radius = max(1, round(width * 0.005))
+        grouped = cv2.dilate(paint, np.ones((radius * 2 + 1,) * 2, np.uint8))
+        group_count, group_labels, group_stats, _ = cv2.connectedComponentsWithStats(grouped, 8)
+        for group in range(1, group_count):
+            gx, gy, gw, gh, _ = (int(v) for v in group_stats[group])
+            members = np.unique(labels[gy:gy+gh, gx:gx+gw][
+                group_labels[gy:gy+gh, gx:gx+gw] == group
+            ])
+            members = members[members > 0]
+            if len(members) < 2 or any(max(stats[i, 2:4]) >= width * 0.02 for i in members):
+                continue
+            components.append((np.isin(labels[gy:gy+gh, gx:gx+gw], members), gx, gy, True))
+        # Evidence may enter a small box-edge strip only when the same observed
+        # paint predominantly lies outside every original vehicle box.
+        narrow_paint = cv2.morphologyEx(
+            gray, cv2.MORPH_TOPHAT, cv2.getStructuringElement(
+                cv2.MORPH_ELLIPSE, (max(3, round(width * 0.006)) | 1,) * 2,
+            ),
+        )
+        narrow_paint = (
+            (narrow_paint >= self._local_contrast)
+            & (hls[:, :, 1] >= self._white_lightness)
+            & (hls[:, :, 2] <= self._white_saturation) & (interior == 0)
+        ).astype(np.uint8)
+        for component, x, y, fragmented in components:
+            ys, xs = np.where(component)
+            area = len(xs)
+            w, h = int(np.ptp(xs)) + 1, int(np.ptp(ys)) + 1
+            if area < height * width * self._minimum_area or max(w, h) < width * 0.02:
+                continue
+            xy = np.column_stack((xs + x, ys + y)).astype(float)
+            center = xy.mean(axis=0)
+            values, axes = np.linalg.eigh(np.cov((xy - center).T))
+            if values[1] < max(1, values[0]) * 25:
+                continue
+            axis = axes[:, 1]
+            if axis[1] < 0:
+                axis = -axis
+            if axis[1] <= 0.03:
+                continue
+            along = (xy - center) @ axis
+            lo, hi = np.percentile(along, [2, 98])
+            if hi - lo < width * 0.02:
+                continue
+            points = center + np.linspace(lo, hi, self._sample_count)[:, None] * axis
+            coords = np.rint(points).astype(int)
+            px, py = coords.T
+            if np.any((px < 0) | (px >= width) | (py < 0) | (py >= height)):
+                continue
+            if np.mean(protected[py, px] > 0) > 0.35 or np.any(interior[py, px]):
+                continue
+            hidden = float(np.mean(expanded[py, px] > 0))
+            # Short pieces need predominant mask evidence. A longer observed
+            # stripe can be truncated at one end, but still needs substantial
+            # overlap; unmasked paint never enters this recovery path.
+            if hidden < 0.5 and not (
+                hidden >= 0.3 and h < height * self._minimum_fragment_span
+                and hi - lo >= width * (self._minimum_fragment_span + self._bbox_margin)
+            ):
+                continue
+            curve = LaneCurve(
+                boundary_id="recovered-paint", points=tuple(
+                    Point2D(x=float(a), y=float(b)) for a, b in points
+                ), confidence=float(probability[ys+y, xs+x].mean()),
+                lane_probability=float(probability[ys+y, xs+x].mean()),
+                drivable_probability=float(road[ys+y, xs+x].mean()),
+                component_area_ratio=area / (height * width),
+                component_width_ratio=w / width, component_height_ratio=h / height,
+                fit_error_ratio=float(np.sqrt(values[0])) / width,
+            )
+            if self._narrow_stripe_support(curve, frame, gray=gray) < 0.8:
+                curve = self._refine_paint_geometry(
+                    curve, frame, minimum_length=width * 0.02, occlusion=interior,
+                )
+            paint_aligned = False
+            if self._narrow_stripe_support(curve, frame, gray=gray) < 0.75:
+                aligned = self._align_fragment_paint(curve, frame, narrow_paint, paint)
+                paint_aligned = aligned is not curve
+                curve = aligned
+            coords = np.rint([(p.x, p.y) for p in curve.points]).astype(int)
+            first, last = curve.points[0], curve.points[-1]
+            if last.y <= first.y:
+                continue
+            # Alignment can move a proposal away from the mask that justified
+            # its recovery. Recheck the final observed geometry too.
+            final_hidden = float(np.mean(expanded[coords[:, 1], coords[:, 0]] > 0))
+            if final_hidden < 0.5 and not (
+                final_hidden >= 0.3
+                and last.y - first.y < height * self._minimum_fragment_span
+                and np.hypot(last.x-first.x, last.y-first.y)
+                >= width * (self._minimum_fragment_span + self._bbox_margin)
+            ):
+                continue
+            horizon = first.x + (last.x - first.x) / (last.y - first.y) * (
+                height * self._roi_top - first.y
+            )
+            if (
+                not -0.1 * width <= horizon <= width * 1.1
+                or not self._consistent_recovery_heading(curve, height, width)
+            ):
+                continue
+            if self._narrow_stripe_support(
+                curve, frame, gray=gray,
+                minimum_contrast=self._local_contrast if fragmented or paint_aligned else 18,
+                perspective_top_ratio=(
+                    self._roi_top if float(road[coords[:, 1], coords[:, 0]].max())
+                    < self._minimum_drivable else None
+                ),
+            ) < (0.8 if fragmented or paint_aligned else 0.75):
+                continue
+            # Current paint alone releases pixels; no line is extended under a car.
+            local_line = np.zeros_like(recover)
+            cv2.polylines(local_line, [coords], False, 1, max(3, round(width * 0.004)))
+            evidence = narrow_paint if fragmented or paint_aligned else paint
+            local_line[(interior > 0) | (cv2.dilate(evidence, np.ones((3, 3), np.uint8)) == 0)] = 0
+            recover |= local_line
+            curves.append(curve)
+        for previous in self._previous.values():
+            if (
+                previous.boundary_id not in getattr(self, "_recovered_ids", set())
+                or previous.confirmed_frames < 1
+                or self._missing.get(previous.boundary_id, 0)
+                or (previous.component_height_ratio or 0) >= self._minimum_fragment_span
+            ):
+                continue
+            # A previously observed stripe may be worn. Locate CURRENT paint around
+            # its last observation; a missing stripe or scene cut cannot renew it.
+            curve = self._refine_paint_geometry(
+                previous, frame, minimum_length=width * 0.02,
+                minimum_contrast=self._local_contrast, occlusion=interior,
+            )
+            if curve is previous:
+                curve = self._align_fragment_paint(previous, frame, narrow_paint)
+            if curve is previous:
+                continue
+            points = np.asarray([(p.x, p.y) for p in curve.points])
+            previous_points = np.asarray([(p.x, p.y) for p in previous.points])
+            distances = np.linalg.norm(
+                points[:, None, :] - previous_points[None, :, :], axis=2,
+            )
+            if float(distances.min(axis=1).mean()) > width * 0.006:
+                continue
+            px, py = np.rint(points).astype(int).T
+            if np.any((px < 0) | (px >= width) | (py < 0) | (py >= height)):
+                continue
+            current_probability = float(probability[py, px].mean())
+            confidence = (
+                self._alpha * current_probability + (1 - self._alpha) * previous.confidence
+            )
+            nearby_model = cv2.dilate(
+                (probability >= self._threshold).astype(np.uint8), np.ones((7, 7), np.uint8),
+            )
+            if (
+                confidence < self._threshold
+                or not self._consistent_recovery_heading(curve, height, width)
+                or current_probability < previous.confidence * 0.8
+                or not np.any(nearby_model[py, px])
+                or np.mean(expanded[py, px] > 0) < 0.5
+                or np.mean(protected[py, px] > 0) > 0.35 or np.any(interior[py, px])
+                or self._narrow_stripe_support(
+                    curve, frame, gray=gray, minimum_contrast=self._local_contrast,
+                    perspective_top_ratio=(
+                        self._roi_top if float(road[py, px].max())
+                        < self._minimum_drivable else None
+                    ),
+                ) < 0.8
+            ):
+                continue
+            curve = curve.model_copy(update={
+                "boundary_id": "recovered-paint", "confidence": confidence,
+                "lane_probability": current_probability,
+                "drivable_probability": float(road[py, px].mean()),
+                "component_width_ratio": float(np.ptp(points[:, 0])) / width,
+                "component_height_ratio": float(np.ptp(points[:, 1])) / height,
+                "carried_frames": 0,
+            })
+            local_line = np.zeros_like(recover)
+            cv2.polylines(local_line, [np.rint(points).astype(np.int32)], False, 1, 3)
+            local_line[(interior > 0) | (
+                cv2.dilate(narrow_paint, np.ones((3, 3), np.uint8)) == 0
+            )] = 0
+            recover |= local_line
+            curves.append(curve)
+        return curves, recover
+
+    def _consistent_recovery_heading(
+        self, curve: LaneCurve, height: int, width: int,
+    ) -> bool:
+        """Long rescue strokes must head toward the forward view, not the far opposite edge."""
+        a, b = curve.points[0], curve.points[-1]
+        if b.y <= a.y:
+            return False
+        if (
+            np.hypot(b.x-a.x, b.y-a.y) < width * self._minimum_fragment_span
+            or abs(b.x-a.x) > self._maximum_horizontal_to_vertical * (b.y-a.y)
+        ):
+            # Tiny or nearly horizontal paint cannot provide a stable
+            # extrapolated heading; current narrow-paint evidence still applies.
+            return True
+        horizon = a.x + (b.x-a.x) / (b.y-a.y) * (height * self._roi_top-a.y)
+        return not (
+            (a.x > width * 0.5 and horizon < width * 0.3)
+            or (a.x < width * 0.5 and horizon > width * 0.7)
+        )
+
+    def _align_fragment_paint(
+        self, curve: LaneCurve, frame: np.ndarray[Any, Any],
+        narrow_paint: np.ndarray[Any, Any], seed: np.ndarray[Any, Any] | None = None,
+    ) -> LaneCurve:
+        """Align a short proposal to current narrow paint within a bounded band."""
+        cv2 = _cv2()
+        height, width = narrow_paint.shape
+        points = np.asarray([(p.x, p.y) for p in curve.points])
+        axis = points[-1] - points[0]
+        axis /= max(1, np.linalg.norm(axis))
+        radius = max(1, round(width * 0.006))
+        low = np.maximum(np.floor(points.min(axis=0)).astype(int) - radius, 0)
+        high = np.minimum(np.ceil(points.max(axis=0)).astype(int) + radius + 1,
+                          [width, height])
+        if np.any(high <= low):
+            return curve
+        lines = cv2.HoughLinesP(
+            narrow_paint[low[1]:high[1], low[0]:high[0]], 1, np.pi / 180,
+            threshold=max(6, round(width * 0.009)),
+            minLineLength=width * 0.02, maxLineGap=radius,
+        )
+        if lines is None:
+            return curve
+        nearby_seed = cv2.dilate(seed, np.ones((7, 7), np.uint8)) if seed is not None else None
+        best = 0.8
+        aligned_curve = curve
+        for line in lines[:, 0]:
+            ends = line.reshape(2, 2) + low
+            ends = ends[np.argsort(ends[:, 1])]
+            direction = ends[1] - ends[0]
+            if direction[1] <= 0 or abs(np.dot(
+                direction / max(1, np.linalg.norm(direction)), axis,
+            )) < np.cos(np.deg2rad(20)):
+                continue
+            fitted = np.linspace(ends[0], ends[1], self._sample_count)
+            fx, fy = np.rint(fitted).astype(int).T
+            if nearby_seed is not None and np.mean(nearby_seed[fy, fx] > 0) < 0.75:
+                continue
+            aligned = curve.model_copy(update={
+                "points": tuple(Point2D(x=float(a), y=float(b)) for a, b in fitted),
+            })
+            support = self._narrow_stripe_support(
+                aligned, frame, minimum_contrast=self._local_contrast,
+            )
+            if support >= best:
+                aligned_curve, best = aligned, support
+        return aligned_curve
 
     def _visible_margin_paint(
         self, frame: np.ndarray[Any, Any], mask: np.ndarray[Any, Any],
@@ -716,7 +1059,7 @@ class YoloPLaneLineDetector:
         radius = max(1, round(width * 0.004))
         kernel = np.ones((radius * 2 + 1,) * 2, dtype=np.uint8)
         for reason, marking in self._marking_masks.items():
-            if reason == "repeated_marking_context":
+            if reason in ("repeated_marking_context", "crosswalk_group_context"):
                 continue
             rejected = cv2.bitwise_or(rejected, marking)
         self._contaminated_paint = cv2.dilate(contaminated, kernel)
@@ -824,6 +1167,10 @@ class YoloPLaneLineDetector:
             "parking_marking_context": cv2.dilate(parking, kernel),
             "crosswalk_context": cv2.dilate(crosswalk, kernel),
             "repeated_marking_context": cv2.dilate(repeated, kernel),
+            "crosswalk_group_context": cv2.dilate(
+                self._crossing_envelope,
+                np.ones((max(3, round(width * 0.04)) | 1,) * 2, np.uint8),
+            ),
         }
 
     def _labelled_bay_markings(
@@ -1337,8 +1684,9 @@ class YoloPLaneLineDetector:
         direction. One lane ribbon or separated dashes cannot form this group.
         """
         cv2 = _cv2()
-        width = paint.shape[1]
+        height, width = paint.shape
         result = np.zeros_like(paint)
+        self._crossing_envelope = np.zeros_like(paint)
         paint = paint.copy()
         if self.occlusion_mask is not None:
             paint[self.occlusion_mask > 0] = 0
@@ -1379,6 +1727,7 @@ class YoloPLaneLineDetector:
                 & (np.abs(across) <= width * 0.06)
             )
             neighbours: list[float] = []
+            neighbour_points: list[np.ndarray[Any, Any]] = []
             projection = points @ direction
             for index in eligible:
                 other, _, other_length = strokes[index]
@@ -1405,6 +1754,7 @@ class YoloPLaneLineDetector:
                     continue
                 if all(abs(gap - existing) >= width * 0.008 for existing in neighbours):
                     neighbours.append(gap)
+                    neighbour_points.append(other)
                     # Only the existence of two distinct neighbours is used.
                     # Later additions cannot change this stroke's decision.
                     if len(neighbours) >= 2:
@@ -1413,6 +1763,39 @@ class YoloPLaneLineDetector:
                 cv2.line(result, tuple(np.rint(points[0]).astype(int)),
                          tuple(np.rint(points[1]).astype(int)), 1,
                          max(3, round(width * 0.012)))
+                # Perspective lane dashes may be parallel in the image. Expand
+                # only groups with two long transverse bands whose individual
+                # extrapolations cannot converge within the forward road view.
+                # The third band may be partly clipped by a vehicle.
+                transverse = []
+                for band in [points, *neighbour_points]:
+                    delta = band[1] - band[0]
+                    horizon = (
+                        band[0, 0] + delta[0] / delta[1]
+                        * (height * self._roi_top - band[0, 1])
+                    ) if abs(delta[1]) > 1 else None
+                    transverse.append(
+                        np.linalg.norm(delta) >= width * self._minimum_fragment_span
+                        and (horizon is None or not -0.1 * width <= horizon <= 1.1 * width)
+                    )
+                if abs(direction[0]) > abs(direction[1]) * 2 and sum(transverse) >= 2:
+                    bands = [band for band, is_transverse in zip(
+                        [points, *neighbour_points], transverse, strict=True,
+                    ) if is_transverse]
+                    projections = [band @ direction for band in bands]
+                    start = max(float(projection.min()) for projection in projections)
+                    stop = min(float(projection.max()) for projection in projections)
+                    if stop <= start:
+                        continue
+                    # Only the shared extent of verified transverse bands
+                    # supplies the envelope, never a perspective neighbour.
+                    vertices = np.vstack([
+                        band[0] + np.asarray([start-projection[0], stop-projection[0]])[:, None]
+                        / (projection[1]-projection[0]) * (band[1]-band[0])
+                        for band, projection in zip(bands, projections, strict=True)
+                    ])
+                    cv2.fillConvexPoly(self._crossing_envelope,
+                                       cv2.convexHull(np.rint(vertices).astype(np.int32)), 1)
         return result
 
     @staticmethod
@@ -1430,6 +1813,22 @@ class YoloPLaneLineDetector:
         hits[inside] = mask[ys[inside], xs[inside]] > 0
         return float(np.mean(hits))
 
+    def _strong_longitudinal_paint(
+        self, curve: LaneCurve, frame: np.ndarray[Any, Any],
+    ) -> bool:
+        """A coarse crossing envelope cannot overrule strong continuous lane evidence."""
+        if (curve.lane_probability or 0) < self._strong_probability:
+            return False
+        a, b = curve.points[0], curve.points[-1]
+        if b.y <= a.y:
+            return False
+        height, width = frame.shape[:2]
+        horizon = a.x + (b.x-a.x) / (b.y-a.y) * (height * self._roi_top-a.y)
+        return bool(
+            -0.1 * width <= horizon <= width * 1.1
+            and self._narrow_stripe_support(curve, frame) >= 0.9
+        )
+
     def _context_rejection(
         self,
         curve: LaneCurve,
@@ -1437,14 +1836,33 @@ class YoloPLaneLineDetector:
         rejected_paint: np.ndarray[Any, Any],
         drivable: np.ndarray[Any, Any],
         frame: np.ndarray[Any, Any] | None = None,
+        *, observed_paint: bool = False,
     ) -> str | None:
         height, width = paint.shape
         markings: dict[str, np.ndarray[Any, Any]] = getattr(self, "_marking_masks", {})
         for reason, marking in markings.items():
             if reason == "repeated_marking_context":
                 continue
+            if reason == "crosswalk_group_context":
+                a, b = curve.points[0], curve.points[-1]
+                if (
+                    abs(b.x - a.x) <= abs(b.y - a.y) * 1.5
+                    or (frame is not None and self._strong_longitudinal_paint(curve, frame))
+                ):
+                    continue
             if self._mask_overlap(curve, marking) > 0.2:
                 return reason
+            if reason == "labelled_bay_context" and observed_paint:
+                a, b = curve.points[0], curve.points[-1]
+                if np.hypot(b.x-a.x, b.y-a.y) < width * self._minimum_fragment_span:
+                    # A newly recovered tiny stroke beside a verified label
+                    # lacks enough independent evidence to become a lane.
+                    radius = max(1, round(width * self._bbox_margin))
+                    nearby = _cv2().dilate(
+                        marking, np.ones((radius * 2 + 1,) * 2, np.uint8),
+                    )
+                    if self._mask_overlap(curve, nearby) > 0.2:
+                        return reason
             if (
                 reason == "labelled_bay_context" and frame is not None
                 and self._narrow_stripe_support(curve, frame) >= 0.75
@@ -1507,6 +1925,12 @@ class YoloPLaneLineDetector:
         ) or (
             frame is not None and max(sides) < 0.3
             and self._narrow_stripe_support(curve, frame) >= 0.75
+        ) or (
+            observed_paint and frame is not None
+            and (curve.lane_probability or 0) >= self._threshold
+            and self._narrow_stripe_support(
+                curve, frame, minimum_contrast=self._local_contrast,
+            ) >= 0.8
         )
         if min(sides) < 0.3 and max(sides) > 0.7 and not painted_boundary:
             return "road_edge_context"
@@ -1529,7 +1953,14 @@ class YoloPLaneLineDetector:
             nearby_symbols = _cv2().dilate(
                 rejected_paint, np.ones((radius * 2 + 1,) * 2, np.uint8)
             )
-            if paint_ridge < 0.2 or np.mean(nearby_symbols[ys, xs] > 0) >= 0.3:
+            if (
+                paint_ridge < 0.2 or np.mean(nearby_symbols[ys, xs] > 0) >= 0.3
+            ) and not (
+                observed_paint and (curve.lane_probability or 0) >= self._threshold
+                and self._narrow_stripe_support(
+                    curve, frame, minimum_contrast=self._local_contrast,
+                ) >= 0.75
+            ):
                 return "weak_transverse_paint"
         if (
             (curve.component_width_ratio or 0) * width
@@ -1545,6 +1976,8 @@ class YoloPLaneLineDetector:
         curve: LaneCurve, frame: np.ndarray[Any, Any],
         *, gray: np.ndarray[Any, Any] | None = None,
         maximum_width_ratio: float = 0.012,
+        minimum_contrast: float = 18,
+        perspective_top_ratio: float | None = None,
     ) -> float:
         """Require a narrow bright ribbon with dark pavement on both sides.
 
@@ -1575,14 +2008,24 @@ class YoloPLaneLineDetector:
             np.median(values[:, (offsets >= -far) & (offsets <= -near)], axis=1),
             np.median(values[:, (offsets >= near) & (offsets <= far)], axis=1),
         )
-        bright = values > flank[:, None] + 18
+        bright = values > flank[:, None] + minimum_contrast
         support = []
-        for row in bright:
+        for point, row in zip(points, bright, strict=True):
             runs = np.flatnonzero(np.diff(np.r_[False, row, False]))
+            maximum_width = max(3, width * maximum_width_ratio)
+            center_margin = width * 0.006
+            if perspective_top_ratio is not None:
+                # Far crosswalk bars can look narrow under the near-camera
+                # width limit. A recovered stripe must shrink with road depth
+                # and follow the centre of the observed ribbon.
+                depth = max(0.15, (point[1] - height * perspective_top_ratio)
+                            / (height * (1 - perspective_top_ratio)))
+                maximum_width = max(3, width * maximum_width_ratio * depth)
+                center_margin = max(1, width * 0.0015)
             support.append(any(
-                1 <= stop - start <= max(3, width * maximum_width_ratio)
-                and start <= radius + width * 0.006
-                and stop >= radius - width * 0.006
+                1 <= stop - start <= maximum_width
+                and start <= radius + center_margin
+                and stop >= radius - center_margin
                 for start, stop in zip(runs[::2], runs[1::2], strict=True)
             ))
         return float(np.mean(support))
@@ -1667,6 +2110,8 @@ class YoloPLaneLineDetector:
     def _refine_paint_geometry(
         self, curve: LaneCurve, frame: np.ndarray[Any, Any],
         *, minimum_length: float | None = None,
+        minimum_contrast: float = 25,
+        occlusion: np.ndarray[Any, Any] | None = None,
     ) -> LaneCurve:
         """Fit visible narrow paint, rather than a bent segmentation halo.
 
@@ -1698,8 +2143,11 @@ class YoloPLaneLineDetector:
             np.median(values[:, offsets <= -near], axis=1),
             np.median(values[:, offsets >= near], axis=1),
         )
-        bright = (values >= self._white_lightness) & (values > flanks[:, None] + 25)
-        occlusion = getattr(self, "occlusion_mask", None)
+        bright = (values >= self._white_lightness) & (
+            values > flanks[:, None] + minimum_contrast
+        )
+        if occlusion is None:
+            occlusion = getattr(self, "occlusion_mask", None)
         if occlusion is not None:
             bright[occlusion[ys, xs] > 0] = False
         observed = []
@@ -2082,6 +2530,7 @@ class YoloPLaneLineDetector:
             unmatched_previous.remove(previous_id)
 
         output: list[LaneCurve] = []
+        self._recovered_ids = getattr(self, "_recovered_ids", set())
         for index, candidate in enumerate(candidates):
             boundary_id = matches.get(index)
             if boundary_id is None:
@@ -2103,6 +2552,10 @@ class YoloPLaneLineDetector:
                     self._ages[boundary_id],
                     width,
                 )
+            if candidate.boundary_id == "recovered-paint":
+                self._recovered_ids.add(boundary_id)
+            else:
+                self._recovered_ids.discard(boundary_id)
             self._previous[boundary_id] = curve
             self._missing[boundary_id] = 0
             output.append(curve)
@@ -2151,6 +2604,7 @@ class YoloPLaneLineDetector:
         self._previous.pop(boundary_id, None)
         self._missing.pop(boundary_id, None)
         self._ages.pop(boundary_id, None)
+        getattr(self, "_recovered_ids", set()).discard(boundary_id)
 
     def _smooth(
         self,

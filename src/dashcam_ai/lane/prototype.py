@@ -250,8 +250,11 @@ class ExperimentalLaneDetector(YoloPLaneLineDetector):
         rejected_paint: np.ndarray[Any, Any],
         drivable: np.ndarray[Any, Any],
         frame: np.ndarray[Any, Any] | None = None,
+        *, observed_paint: bool = False,
     ) -> str | None:
-        reason = super()._context_rejection(curve, paint, rejected_paint, drivable, frame)
+        reason = super()._context_rejection(
+            curve, paint, rejected_paint, drivable, frame, observed_paint=observed_paint,
+        )
         if self.classifier is None or frame is None:
             return reason
         label, confidence = self.classifier.predict(frame, curve)
